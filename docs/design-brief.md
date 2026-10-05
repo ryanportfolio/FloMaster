@@ -315,7 +315,7 @@ Before anything goes public: no staging links, no leftover placeholder text, no 
 | Target | Value | How we check it |
 |---|---|---|
 | Largest Contentful Paint | ≤ 2.5s | Lighthouse mobile run with throttling, plus headed Chrome on this machine |
-| Interaction to Next Paint | ≤ 200ms | Lighthouse and a manual run through the booking flow |
+| Interaction to Next Paint | ≤ 200ms | A recorded run through the booking flow, ZIP check and tag switch, using Chrome DevTools live metrics or a Lighthouse timespan recording. A standard Lighthouse page-load run doesn't measure INP. |
 | Cumulative Layout Shift | ≤ 0.1 | Lighthouse; tag switch tested separately |
 | Accessibility | WCAG 2.2 AA | axe scan of every page, keyboard-only run, screen reader run (NVDA) on Home, Book and Pricing |
 | Call button size | At least 44x44px (we use 48px) | Measured in the browser at 375px wide |
