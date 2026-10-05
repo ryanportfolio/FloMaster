@@ -37,7 +37,7 @@ const priceMap = Object.fromEntries(services.map((s) => [s.slug, s.prices]));
       <Image src={portrait} alt="" width={120} height={120} class="bh-pic" format="webp" loading="eager" />
       <div>
         <h1>Book a time</h1>
-        <p class="lead">Four quick questions. <Fact k="bookingConfirm" /></p>
+        <p class="lead">Four quick questions, then <Fact k="bookingConfirm" text={facts.bookingConfirm.value.replace(/\.$/, "")} /></p>
       </div>
     </div>
   </section>
@@ -147,7 +147,7 @@ const priceMap = Object.fromEntries(services.map((s) => [s.slug, s.prices]));
     <div class="wrap cb">
       <div>
         <h2>Rather talk first?</h2>
-        <p class="lead">Leave your number and I'll call you. Good for bigger jobs, questions about price, or if none of the times suit.</p>
+        <p class="lead">Leave your number and I'll call you back about bigger jobs, prices, or a time that suits you better</p>
       </div>
       <CallbackForm id="cb-book" />
     </div>
@@ -193,7 +193,7 @@ const priceMap = Object.fromEntries(services.map((s) => [s.slug, s.prices]));
     if (!/^\d{5}$/.test(z)) { zipStatus.textContent = ""; return null; }
     const city = zips[z];
     zipStatus.className = `zip-status small ${city ? "ok" : "no"}`;
-    zipStatus.textContent = !city ? "That ZIP is outside my area. Call me and I'll tell you honestly if I can help." : sometimes.includes(z) ? `${city}: I'll confirm I can reach you when I text.` : `${city}: yes, I cover that.`;
+    zipStatus.textContent = !city ? "That ZIP is outside my area. Call me and I'll tell you if I can help." : sometimes.includes(z) ? `${city}: I'll confirm I can reach you when I text.` : `${city}: yes, I cover that.`;
     return city ?? null;
   };
   $("#zip").addEventListener("input", zipCheck);
@@ -253,18 +253,18 @@ const priceMap = Object.fromEntries(services.map((s) => [s.slug, s.prices]));
   .bh { display: flex; align-items: center; gap: 1.25rem; }
   .bh :global(.bh-pic) { width: 4.5rem; height: 4.5rem; border-radius: 50%; object-fit: cover; border: 3px solid var(--sky); flex: none; }
   .bh h1 { margin: 0 0 0.25rem; font-size: var(--step-3); }
-  .bh .lead { margin: 0; color: var(--sky-100); font-size: 1.0625rem; }
+  .bh .lead { margin: 0; color: var(--sky-100); font-size: var(--step-0); }
   .layout { display: grid; gap: var(--space-4); }
   @media (min-width: 1000px) { .layout { grid-template-columns: minmax(0, 1fr) 21rem; align-items: start; } }
   .step { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1.25rem 1.25rem 0.75rem; margin-bottom: 1rem; }
   @media (min-width: 700px) { .step { padding: 1.5rem 1.75rem 1rem; } }
-  legend { float: left; width: 100%; font-family: var(--font-slab); font-size: 1.375rem; font-weight: 700; color: var(--navy-900); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem; }
+  legend { float: left; width: 100%; font-family: var(--font-slab); font-size: var(--step-1); font-weight: 700; color: var(--navy-900); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem; }
   legend + * { clear: both; }
-  .n { display: inline-grid; place-content: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--navy); color: var(--white); font-size: 1rem; flex: none; }
+  .n { display: inline-grid; place-content: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--navy); color: var(--white); font-size: 1.0625rem; flex: none; }
   .step .error { margin: 0.5rem 0 0.5rem; }
   .other { margin-top: 1rem; }
   .days { display: grid; gap: 1rem; margin-bottom: 0.5rem; }
-  .day-h { font-weight: 700; margin: 0 0 0.4rem; font-size: 1rem; }
+  .day-h { font-weight: 700; margin: 0 0 0.4rem; font-size: 1.0625rem; }
   .day .choices { grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr)); }
   .day .choice span { min-height: 2.9rem; justify-content: center; font-variant-numeric: tabular-nums; }
   .addr { display: grid; gap: 0 1rem; }
@@ -274,19 +274,19 @@ const priceMap = Object.fromEntries(services.map((s) => [s.slug, s.prices]));
   .zip-status.ok { color: var(--ok); }
   .zip-status.no { color: #b42318; }
   .hint { margin-bottom: 0.75rem; }
-  .submit { width: 100%; min-height: 3.75rem; font-size: 1.1875rem; margin-top: 0.5rem; }
+  .submit { width: 100%; min-height: 3.75rem; font-size: 1.25rem; margin-top: 0.5rem; }
   @media (min-width: 700px) { .submit { width: auto; padding-inline: 2.5rem; } }
   .after { margin-top: 0.75rem; }
   .error-summary { margin: 0 0 1rem; font-weight: 700; color: #b42318; }
   .error-summary:empty { display: none; }
-  .tagwrap { font-family: var(--font-body); font-size: 0.8rem; font-weight: 400; }
-  .side { display: grid; gap: 1rem; position: sticky; top: 1rem; }
+  .tagwrap { font-family: var(--font-body); font-size: 0.875rem; font-weight: 400; }
+  .side { display: grid; gap: 1rem; position: sticky; top: calc(var(--header-h) + 1rem); }
   .summary { background: var(--navy) var(--waves); background-size: 72px 36px; color: var(--white); border-radius: var(--radius-lg); padding: 1.5rem; }
   .summary a { color: var(--white); }
-  .sum-h { color: var(--white); font-size: 1.375rem; }
+  .sum-h { color: var(--white); font-size: var(--step-1); }
   .sum-job { font-weight: 700; color: var(--sky-300); margin-bottom: 0.25rem; }
   .summary table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
-  .summary :global(th), .summary :global(td) { text-align: left; padding: 0.45rem 0; border-bottom: 1px solid rgb(255 255 255 / 0.15); font-size: 0.9375rem; font-weight: 400; vertical-align: top; }
+  .summary :global(th), .summary :global(td) { text-align: left; padding: 0.45rem 0; border-bottom: 1px solid rgb(255 255 255 / 0.15); font-size: 1.0625rem; font-weight: 400; vertical-align: top; }
   .summary :global(td) { text-align: right; font-family: var(--font-slab); font-weight: 700; white-space: nowrap; padding-left: 0.75rem; }
   .fees-mini { list-style: none; padding: 0; margin: 0 0 1rem; }
   .fees-mini li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.3rem 0; }

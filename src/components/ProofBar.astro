@@ -64,18 +64,18 @@ const dpor = "https://www.dpor.virginia.gov/LicenseLookup";
   .proofbar-badge { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; background: var(--navy); color: var(--white); }
   .proofbar-badge :global(svg) { width: 1.5rem; height: 1.5rem; }
   .proofbar-lic { margin: 0; display: flex; flex-direction: column; font-family: var(--font-slab); color: var(--navy-900); line-height: 1.2; }
-  .proofbar-lic-k { font-size: 1.0625rem; font-weight: 600; text-wrap: balance; }
+  .proofbar-lic-k { font-size: 1.1875rem; font-weight: 600; text-wrap: balance; }
   .proofbar-lic-n { font-size: var(--step-2); font-weight: 700; letter-spacing: -0.005em; white-space: nowrap; }
   .proofbar-check {
     grid-column: 1 / -1; justify-self: start; display: inline-block; padding-block: 0.3rem;
-    font-weight: 700; font-size: 1rem; line-height: 1.5; color: var(--navy);
+    font-weight: 700; font-size: 1.0625rem; line-height: 1.5; color: var(--navy);
   }
   .proofbar-check :global(svg) { width: 1.1em; height: 1.1em; margin-left: 0.35em; vertical-align: -0.2em; }
 
   /* The other five: icon in a small tinted disc, a bold line, a short second line. */
-  .proofbar-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); font-size: 0.9375rem; line-height: 1.35; }
+  .proofbar-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); font-size: var(--step--1); line-height: 1.4; }
   .proofbar-list li { display: flex; gap: 0.85rem; align-items: flex-start; }
-  .proofbar-list strong { display: block; font-size: 1rem; color: var(--navy-900); }
+  .proofbar-list strong { display: block; font-size: 1.125rem; color: var(--navy-900); }
   .proofbar-sub { display: block; margin-top: 0.15rem; color: var(--ink-soft); }
   .proofbar-sub a { display: inline-block; padding-block: 0.1rem; line-height: 1.5; font-weight: 600; }
   /* A review tag on a second line sits beside its value, so it doesn't cover the bold line above. */
@@ -103,6 +103,6 @@ const dpor = "https://www.dpor.virginia.gov/LicenseLookup";
   @media (min-width: 1200px) {
     .proofbar-lead { grid-template-columns: auto 1fr auto; padding-inline: 1.75rem; }
     .proofbar-check { grid-column: auto; justify-self: end; }
-    .proofbar-lic-k { font-size: 1.125rem; }
+    .proofbar-lic-k { font-size: 1.25rem; }
   }
 </style>

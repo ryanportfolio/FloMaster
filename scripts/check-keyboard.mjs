@@ -1,6 +1,7 @@
-// Tabs through pages at phone size and checks every focused element has a
-// visible focus style and is not hidden under the sticky bar or off screen
-// (WCAG 2.4.7, 2.4.11). Also measures interactive target sizes (2.5.8).
+// Tabs through pages at phone size, forward and then backward, and checks every
+// focused element has a visible focus style and is not hidden under the sticky
+// bottom bar, under the sticky header, or off screen (WCAG 2.4.7, 2.4.11).
+// Also measures interactive target sizes (2.5.8).
 import { launchPlacedChrome } from "./lib/launch-chrome.mjs";
 import { startPreview } from "./lib/preview.mjs";
 
@@ -13,34 +14,54 @@ try {
   const page = await ctx.newPage();
   for (const p of pages) {
     await page.goto(server.base + p, { waitUntil: "load" });
-    const seen = new Set();
-    for (let i = 0; i < 120; i++) {
-      await page.keyboard.press("Tab");
-      await page.waitForTimeout(30);
-      const r = await page.evaluate(() => {
-        const el = document.activeElement;
-        if (!el || el === document.body) return null;
-        const rect = el.getBoundingClientRect();
-        const cs = getComputedStyle(el);
-        const bar = document.querySelector("[data-sticky]");
-        const barTop = bar && !bar.classList.contains("is-waiting") && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().top : innerHeight;
-        const inBar = bar?.contains(el);
-        const id = [...document.querySelectorAll("*")].indexOf(el) + " " + el.outerHTML.slice(0, 70);
-        return {
-          id,
-          outline: cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) >= 2,
-          hidden: !inBar && (rect.bottom > barTop + 1 || rect.top < 0) && rect.height > 0,
-          small: (rect.width < 24 || rect.height < 24) && !["A"].includes(el.tagName) ? `${Math.round(rect.width)}x${Math.round(rect.height)}` : "",
-        };
-      });
-      if (!r) continue;
-      if (seen.has(r.id)) break;
-      seen.add(r.id);
-      if (!r.outline) { problems++; console.log(`NO FOCUS STYLE ${p}: ${r.id}`); }
-      if (r.hidden) { problems++; console.log(`OBSCURED ${p}: ${r.id}`); }
-      if (r.small) { problems++; console.log(`SMALL TARGET ${r.small} ${p}: ${r.id}`); }
+    // Forward first; then backward, which scrolls up and puts targets next to the header.
+    for (const key of ["Tab", "Shift+Tab"]) {
+      const back = key !== "Tab";
+      const seen = new Set();
+      for (let i = 0; i < 120; i++) {
+        await page.keyboard.press(key);
+        await page.waitForTimeout(30);
+        const r = await page.evaluate(() => {
+          const el = document.activeElement;
+          if (!el || el === document.body) return null;
+          const rect = el.getBoundingClientRect();
+          const cs = getComputedStyle(el);
+          const bar = document.querySelector("[data-sticky]");
+          const barTop = bar && !bar.classList.contains("is-waiting") && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().top : innerHeight;
+          const inBar = bar?.contains(el);
+          // The site header sticks to the top of the viewport. A focused element outside it
+          // must not sit under it: if they overlap, probe the overlap and see what is on top.
+          const header = document.querySelector(".site-header");
+          let underHeader = false;
+          if (header && !header.contains(el) && rect.height > 0) {
+            const h = header.getBoundingClientRect();
+            const top = Math.max(rect.top, h.top), bottom = Math.min(rect.bottom, h.bottom);
+            if (bottom - top > 1) {
+              const x = Math.min(Math.max(rect.left + rect.width / 2, 1), innerWidth - 1);
+              const hit = document.elementFromPoint(x, (top + bottom) / 2);
+              underHeader = !!hit && header.contains(hit);
+            }
+          }
+          const id = [...document.querySelectorAll("*")].indexOf(el) + " " + el.outerHTML.slice(0, 70);
+          return {
+            id,
+            outline: cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) >= 2,
+            hidden: !inBar && (rect.bottom > barTop + 1 || rect.top < 0) && rect.height > 0,
+            underHeader,
+            small: (rect.width < 24 || rect.height < 24) && !["A"].includes(el.tagName) ? `${Math.round(rect.width)}x${Math.round(rect.height)}` : "",
+          };
+        });
+        if (!r) continue;
+        if (seen.has(r.id)) break;
+        seen.add(r.id);
+        const dir = back ? " (backward)" : "";
+        if (!r.outline && !back) { problems++; console.log(`NO FOCUS STYLE ${p}: ${r.id}`); }
+        if (r.hidden) { problems++; console.log(`OBSCURED${dir} ${p}: ${r.id}`); }
+        if (r.underHeader) { problems++; console.log(`UNDER STICKY HEADER${dir} ${p}: ${r.id}`); }
+        if (r.small && !back) { problems++; console.log(`SMALL TARGET ${r.small} ${p}: ${r.id}`); }
+      }
+      console.log(`${p}: ${seen.size} focus stops${back ? " backward" : ""}`);
     }
-    console.log(`${p}: ${seen.size} focus stops`);
   }
   // Call buttons must be at least 44x44.
   for (const p of ["/", "/emergency", "/faq"]) {

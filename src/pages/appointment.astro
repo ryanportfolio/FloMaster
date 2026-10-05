@@ -15,7 +15,7 @@ const states = [
 ];
 ---
 <Base title="How appointment updates look" description="The texts FloMasters customers get from booking to job done.">
-  <PageHero title="What you'll hear from me, and when" lead="Every booking gets the same updates by text, so you're never left wondering when I'll turn up." />
+  <PageHero title="What you'll hear from me, and when" lead="Every booking gets the same updates by text, so you always know when I'll turn up" />
   <section class="section">
     <div class="wrap appt">
       <div class="timeline-wrap">
@@ -76,15 +76,15 @@ const states = [
   @media (min-width: 900px) { .appt { grid-template-columns: 1fr 23rem; } }
   .tabs { display: grid; gap: 0.5rem; margin-top: 1rem; }
   [role="tab"] { display: flex; align-items: center; gap: 0.9rem; text-align: left; padding: 0.8rem 1rem; border-radius: var(--radius); border: 2px solid var(--line); background: var(--white); font: inherit; color: inherit; cursor: pointer; }
-  [role="tab"] small { display: block; color: var(--ink-soft); font-size: 0.875rem; }
+  [role="tab"] small { display: block; color: var(--ink-soft); font-size: var(--step--1); }
   [role="tab"][aria-selected="true"] { border-color: var(--navy); background: var(--sky-100); }
-  .dotnum { display: grid; place-content: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--navy); color: var(--white); font: 700 0.9375rem/1 var(--font-slab); flex: none; }
+  .dotnum { display: grid; place-content: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--navy); color: var(--white); font: 700 1rem/1 var(--font-slab); flex: none; }
   .phone-mock { border-radius: 2.25rem; background: var(--navy-950); padding: 0.75rem; box-shadow: 0 30px 60px -20px rgb(12 27 48 / 0.5); }
   .pm-top { display: flex; align-items: center; gap: 0.6rem; color: var(--white); padding: 0.6rem 0.75rem 0.8rem; }
-  .pm-top small { display: block; color: var(--sky-300); font-size: 0.8125rem; }
-  .pm-av { display: grid; place-content: center; width: 2.4rem; height: 2.4rem; border-radius: 50%; background: var(--sky); color: var(--navy-950); font: 700 0.875rem/1 var(--font-slab); }
+  .pm-top small { display: block; color: var(--sky-300); font-size: 0.9375rem; }
+  .pm-av { display: grid; place-content: center; width: 2.4rem; height: 2.4rem; border-radius: 50%; background: var(--sky); color: var(--navy-950); font: 700 0.9375rem/1 var(--font-slab); }
   .pm-panel { background: #f2f4f7; border-radius: 1.6rem; padding: 1rem; min-height: 26rem; max-height: 32rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; justify-content: flex-end; }
   .pm-panel[hidden] { display: none; }
-  .bubble { margin: 0; max-width: 88%; padding: 0.6rem 0.85rem; background: #e2e7ee; border-radius: 1.1rem 1.1rem 1.1rem 0.3rem; font-size: 0.9375rem; line-height: 1.45; color: var(--ink); }
+  .bubble { margin: 0; max-width: 88%; padding: 0.6rem 0.85rem; background: #e2e7ee; border-radius: 1.1rem 1.1rem 1.1rem 0.3rem; font-size: 1.0625rem; line-height: 1.45; color: var(--ink); }
   .bubble.latest { background: var(--white); box-shadow: 0 0 0 2px var(--sky); }
 </style>

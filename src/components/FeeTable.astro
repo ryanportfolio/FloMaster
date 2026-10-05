@@ -10,7 +10,7 @@ import Fact from "./Fact.astro";
       <tr><th scope="row">Call-out (I come to you and look)</th><td class="num amt"><Fact k="calloutFee" /></td><td>Yes, <Fact k="calloutCredited" /></td></tr>
       <tr><th scope="row">Diagnostic fee</th><td class="amt"><Fact k="diagnosticFee" /></td><td>No such fee</td></tr>
       <tr><th scope="row">After-hours and emergency</th><td class="num amt"><Fact k="afterHoursFee" /></td><td><Fact k="afterHoursWhen" /></td></tr>
-      <tr><th scope="row">Cancelling or moving a visit</th><td class="amt">$0</td><td><Fact k="cancellation" /></td></tr>
+      <tr><th scope="row">Canceling or moving a visit</th><td class="amt">$0</td><td><Fact k="cancellation" /></td></tr>
       <tr><th scope="row">Card payment fee</th><td class="amt"><Fact k="cardFee" /></td><td>Card, check or cash all cost the same</td></tr>
       <tr><th scope="row">Permits</th><td class="amt">At cost</td><td><Fact k="permits" text="Only when the city requires one; I tell you first" /></td></tr>
     </tbody>
@@ -20,17 +20,17 @@ import Fact from "./Fact.astro";
 
 <style>
   .fees { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; font-size: 1rem; }
+  table { width: 100%; border-collapse: collapse; background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; font-size: 1.0625rem; }
   th, td { text-align: left; padding: 0.9rem 1rem; border-bottom: 1px solid var(--line); vertical-align: top; }
-  thead th { background: var(--navy); color: var(--white); font-size: 0.875rem; font-weight: 700; }
+  thead th { background: var(--navy); color: var(--white); font-size: 0.9375rem; font-weight: 700; }
   tbody th { font-weight: 600; }
-  .amt { font-family: var(--font-slab); font-weight: 700; font-size: 1.125rem; color: var(--navy); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .amt { font-family: var(--font-slab); font-weight: 700; font-size: 1.25rem; color: var(--navy); white-space: nowrap; font-variant-numeric: tabular-nums; }
   tbody tr:last-child > * { border-bottom: 0; }
   @media (max-width: 640px) {
     table, thead, tbody, tr, th, td { display: block; }
     thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
     tr { padding: 0.9rem 1rem; border-bottom: 1px solid var(--line); }
     tbody th, td { padding: 0.1rem 0; border: 0; }
-    .amt { font-size: 1.25rem; }
+    .amt { font-size: 1.375rem; }
   }
 </style>

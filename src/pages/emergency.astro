@@ -9,8 +9,9 @@ import emergency from "../assets/photos/emergency.jpg";
 import { facts } from "../data/facts";
 ---
 <Base title="Emergency plumber" description="Burst pipe, flooding or no water in Hampton Roads? Turn off your main shut-off, then call Antonio directly.">
-  <PageHero title="Water leaking now? Do this first." emergency actions>
-    <p class="lead now">Then call me: <a class="num" href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a>. <Fact k="afterHoursAnswer" />.</p>
+  <PageHero title="Water leaking now? Do this first" emergency actions>
+    <p class="lead now">Then call me at <a class="num" href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a></p>
+    <p class="now-note"><Fact k="afterHoursAnswer" />.</p>
   </PageHero>
 
   <section class="section">
@@ -50,7 +51,7 @@ import { facts } from "../data/facts";
     <div class="wrap cb">
       <div>
         <h2>Can't get through?</h2>
-        <p class="lead">If I'm on a job and can't pick up, leave your number. I'll call you back <Fact k="callback" />.</p>
+        <p class="lead">If I'm on a job and can't pick up, leave your number and I'll call you back <Fact k="callback" /></p>
       </div>
       <CallbackForm id="cb-emergency" urgent />
     </div>
@@ -58,7 +59,9 @@ import { facts } from "../data/facts";
 </Base>
 
 <style>
+  .now { margin-bottom: 0.25rem; }
   .now a { color: var(--white); font-weight: 700; }
+  .now-note { color: var(--sky-100); margin: 0; }
   .steps-wrap { display: grid; gap: var(--space-4); }
   @media (min-width: 1000px) { .steps-wrap { grid-template-columns: 1fr 26rem; align-items: start; } }
   .big-steps { list-style: none; counter-reset: s; padding: 0; margin: 0; display: grid; gap: var(--space-3); }
@@ -69,7 +72,7 @@ import { facts } from "../data/facts";
   .valves-more { margin: 1rem 0 0; }
   aside :global(.em-photo) { border-radius: var(--radius-lg); aspect-ratio: 4 / 3; margin-bottom: 1.25rem; }
   .fee { border-top: 5px solid var(--signal); }
-  .fee-h { font-size: 1.25rem; }
+  .fee-h { font-size: var(--step-1); }
   .cb { display: grid; gap: var(--space-4); }
   @media (min-width: 900px) { .cb { grid-template-columns: 1fr 1fr; align-items: start; } }
 </style>

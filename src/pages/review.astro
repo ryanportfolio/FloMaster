@@ -10,7 +10,8 @@ const confirmed = allFacts.filter((f) => f.status === "confirmed");
   <section class="section">
     <div class="wrap">
       <h1>Items to confirm</h1>
-      <p class="lead">Everything on the site that needs Antonio's answer. Each one shows on the page with a yellow "Confirm" tag when "Items to confirm" is on. Write the real answer, a change, or "take it out".</p>
+      <p class="lead">Everything on the site that needs Antonio's answer</p>
+      <p>Each item shows on its page with a yellow "Confirm" tag when "Items to confirm" is on. Write the real answer, a change, or "take it out".</p>
       <p class="no-print"><button class="btn btn--navy" type="button" onclick="window.print()">Print this list</button></p>
       <div class="table-scroll" tabindex="0" role="region" aria-label="Items to confirm"><table class="checklist">
         <caption class="visually-hidden">Open items</caption>
@@ -42,7 +43,7 @@ const confirmed = allFacts.filter((f) => f.status === "confirmed");
 
 <style>
   .table-scroll { overflow-x: auto; margin: 1.5rem 0 2.5rem; }
-  .checklist { min-width: 44rem; width: 100%; border-collapse: collapse; background: var(--white); font-size: 0.9375rem; }
+  .checklist { min-width: 44rem; width: 100%; border-collapse: collapse; background: var(--white); font-size: 1rem; }
   .checklist th, .checklist td { border: 1px solid var(--line); padding: 0.6rem 0.7rem; text-align: left; vertical-align: top; }
   .checklist thead th { background: var(--navy); color: var(--white); }
   .checklist tbody th { font-weight: 400; }

@@ -9,7 +9,7 @@ import commercial from "../assets/photos/commercial.jpg";
 import { facts } from "../data/facts";
 ---
 <Base title="Commercial plumbing" description="Plumbing for restaurants, offices, landlords and property managers across Hampton Roads. Scheduled around your opening hours.">
-  <PageHero title="Commercial plumbing for small businesses and rentals" lead="Restaurants, offices, shops, landlords and property managers across the 7 cities. Work scheduled around your hours, with paperwork your accounts team will like." actions />
+  <PageHero title="Commercial plumbing for small businesses and rentals" lead="For restaurants, offices, shops, landlords and property managers across the 7 cities, with work scheduled around your hours" actions />
 
   <section class="section">
     <div class="wrap co">
@@ -99,8 +99,8 @@ import { facts } from "../data/facts";
   @media (min-width: 1000px) { .co { grid-template-columns: minmax(0, 1fr) 24rem; align-items: start; } }
   .co :global(.co-photo) { border-radius: var(--radius-lg); aspect-ratio: 3 / 2; margin-bottom: var(--space-3); }
   .co h2 { font-size: var(--step-2); margin-top: var(--space-3); }
-  .visit { position: sticky; top: 1rem; border-top: 5px solid var(--sky); }
-  .v-h { font-size: 1.5rem; margin-bottom: 0.25rem; }
+  .visit { position: sticky; top: calc(var(--header-h) + 1rem); border-top: 5px solid var(--sky); }
+  .v-h { font-size: var(--step-2); margin-bottom: 0.25rem; }
   .ok { color: var(--ok); font-weight: 700; }
   .ok:empty { display: none; }
 </style>

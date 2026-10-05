@@ -123,18 +123,18 @@ const Title = level === 3 ? "h3" : "h2";
   .vs--light .vs-valve[aria-pressed="true"] { border-color: var(--vs-line); }
   .vs-art { display: block; width: 100%; max-width: 11rem; justify-self: center; height: auto; overflow: visible; }
   .vs-text { display: flex; flex-direction: column; align-items: flex-start; gap: 0.2rem; }
-  .vs-name { font: 700 1.125rem/1.2 var(--font-slab); }
+  .vs-name { font: 700 1.25rem/1.2 var(--font-slab); }
   .vs-how { font-size: var(--step--1); line-height: 1.4; color: var(--vs-soft); }
   .vs-state {
     display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-width: 4.75rem; margin-top: 0.35rem;
     padding: 0.2rem 0.7rem; border: 2px solid var(--vs-line); border-radius: 999px;
-    font: 700 0.9375rem/1.3 var(--font-body); color: var(--vs-line);
+    font: 700 1rem/1.3 var(--font-body); color: var(--vs-line);
   }
   .vs-state::before { content: ""; width: 0.55rem; height: 0.55rem; border-radius: 50%; border: 2px solid currentColor; background: currentColor; }
   [aria-pressed="true"] .vs-state { background: var(--vs-line); color: var(--vs-bg); }
   [aria-pressed="true"] .vs-state::before { background: transparent; }
 
-  @container (min-width: 18rem) {
+  @container (min-width: 20rem) {
     .vs-valve { grid-template-columns: minmax(7rem, 9rem) 1fr; gap: 0.75rem; }
     .vs-art { max-width: none; }
   }

@@ -22,8 +22,8 @@ import { facts } from "../../data/facts";
       <div class="main">
         <p class="status"><Icon name="clock" /> <span data-status>Requested</span></p>
         <p class="demo-note small">Demo only: no request was sent. This shows what a customer sees after booking.</p>
-        <h1>Thanks. Your visit is requested.</h1>
-        <p class="lead"><Fact k="bookingConfirm" /></p>
+        <h1>Thanks, your visit is requested</h1>
+        <p class="lead"><Fact k="bookingConfirm" text={facts.bookingConfirm.value.replace(/\.$/, "")} /></p>
 
         <div class="window">
           <p class="w-k">Arrival window</p>
@@ -118,14 +118,14 @@ import { facts } from "../../data/facts";
   .who :global(.who-photo) { aspect-ratio: 1; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
   .who-card { background: var(--navy) var(--waves); background-size: 60px 30px; color: var(--white); padding: 1rem 1.25rem 1.25rem; border-radius: 0 0 var(--radius-lg) var(--radius-lg); font-family: var(--font-slab); }
   .who-card p { margin: 0; }
-  .who-name { font-size: 1.3rem; font-weight: 700; }
+  .who-name { font-size: 1.45rem; font-weight: 700; }
   .who-card a { color: var(--white); font-weight: 700; display: inline-block; margin-top: 0.3rem; }
-  .status { display: inline-flex; align-items: center; gap: 0.4rem; background: #fff4cc; color: #6b4e00; font-weight: 700; border-radius: 999px; padding: 0.3rem 0.8rem; margin-bottom: 1rem; font-size: 0.9375rem; }
+  .status { display: inline-flex; align-items: center; gap: 0.4rem; background: #fff4cc; color: #6b4e00; font-weight: 700; border-radius: 999px; padding: 0.3rem 0.8rem; margin-bottom: 1rem; font-size: 1rem; }
   .status :global(svg) { width: 1.1rem; height: 1.1rem; }
   .demo-note { margin: -0.25rem 0 1rem; color: var(--ink-soft); }
   h1 { font-size: var(--step-3); }
   .window { background: var(--white); border: 2px solid var(--navy); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin: 1.5rem 0; }
-  .w-k { margin: 0; font-weight: 700; color: var(--ink-soft); font-size: 0.9375rem; }
+  .w-k { margin: 0; font-weight: 700; color: var(--ink-soft); font-size: 1rem; }
   .w-v { margin: 0.2rem 0 0.4rem; font-family: var(--font-slab); font-size: var(--step-2); font-weight: 700; color: var(--navy-900); line-height: 1.25; }
   .window .small { margin: 0; }
   .details { display: grid; gap: 0; margin: 0 0 0.75rem; }
@@ -134,7 +134,7 @@ import { facts } from "../../data/facts";
   dd { margin: 0; }
   .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.5rem 0 2rem; }
   .actions .btn--ghost { color: var(--navy); }
-  .ex-h { font-size: 1.375rem; }
+  .ex-h { font-size: var(--step-1); }
   .ok { color: var(--ok); font-weight: 700; margin-top: 0.75rem; }
   input[type="file"] { font: inherit; max-width: 100%; }
 </style>

@@ -27,7 +27,7 @@ export const services: Service[] = [
   {
     slug: "drains",
     title: "Drain clearing",
-    short: "Slow sinks, backed-up tubs and toilets, kitchen lines.",
+    short: "Slow sinks, backed-up tubs and toilets, and kitchen lines",
     bookLabel: "Blocked drain",
     photo: drains,
     photoAlt: "Gloved hands feeding a drain snake into a kitchen sink trap, with the old trap in a bucket",
@@ -46,12 +46,12 @@ export const services: Service[] = [
   {
     slug: "water-heaters",
     title: "Water heaters",
-    short: "Repairs, replacements and tankless conversions.",
+    short: "Repairs, replacements and tankless conversions",
     bookLabel: "Water heater",
     photo: waterHeater,
     photoAlt: "A plumber tightening a connector on a newly installed tank water heater in a garage",
     shot: "Antonio finishing a tank water heater install in a garage, expansion tank and shut-off visible.",
-    intro: "No hot water, a leaking tank, or rust in the water. I'll tell you honestly whether a repair makes sense on your heater's age, and if it doesn't, I'll install a replacement to code with a new expansion tank and shut-off valve.",
+    intro: "No hot water, a leaking tank, or rust in the water. I'll tell you whether a repair makes sense for a heater of that age, and if it doesn't, I'll install a replacement to code with a new expansion tank and shut-off valve.",
     covers: ["Gas and electric tank heaters", "Thermostats, elements and gas valves", "Leaking tanks and relief valves", "Tankless installs and descaling", "Permits and haul-away"],
     prices: [
       { job: "Repair (element, thermostat, valve)", range: "$175 to $425" },
@@ -65,12 +65,12 @@ export const services: Service[] = [
   {
     slug: "leaks-and-pipes",
     title: "Leaks and pipe repair",
-    short: "Leaks under sinks, in walls and in the crawlspace. Repiping.",
+    short: "Leaks under sinks, in walls and in crawlspaces, and repiping",
     bookLabel: "Leak or pipe repair",
     photo: leakRepair,
     photoAlt: "Hands fitting a new copper pipe section with a press tool in a crawlspace",
     shot: "Antonio in a crawlspace fitting new copper, headlamp on, old corroded pipe beside him.",
-    intro: "Older homes across the 7 cities still have galvanized or early copper lines, and crawlspaces near the water take a beating. I find the leak, fix that section properly, and tell you plainly if the rest of the line is close to failing.",
+    intro: "Older homes across the 7 cities still have galvanized or early copper lines, and crawlspaces near the water take a beating. I find the leak, fix that section, and tell you if the rest of the line is close to failing.",
     covers: ["Visible and hidden leaks", "Crawlspace and slab lines", "Shut-off valves", "Polybutylene and galvanized replacement", "Whole-house repipes"],
     prices: [
       { job: "Accessible leak repair", range: "$175 to $450" },
@@ -84,7 +84,7 @@ export const services: Service[] = [
   {
     slug: "fixtures",
     title: "Toilets, faucets and fixtures",
-    short: "Running toilets, dripping faucets, new fixtures fitted.",
+    short: "Running toilets, dripping faucets and new fixtures",
     bookLabel: "Toilet or faucet",
     photo: fixtures,
     photoAlt: "Hands installing a new brushed-nickel faucet on a bathroom vanity, the old faucet set aside",
@@ -103,12 +103,12 @@ export const services: Service[] = [
   {
     slug: "sewer-lines",
     title: "Sewer lines and camera inspection",
-    short: "Camera inspections, root problems, cleanouts and line repair.",
+    short: "Camera inspections, root problems, cleanouts and line repair",
     bookLabel: "Sewer line",
     photo: sewer,
     photoAlt: "A plumber in a back yard feeding a sewer camera into a cleanout, watching a monitor showing a root in the pipe",
     shot: "Antonio in a back yard at a cleanout with the sewer camera, monitor showing the pipe.",
-    intro: "Gurgling drains, sewage smells or a yard that's wet over the line. I put a camera down the pipe and show you exactly what's there on the screen, so you see the problem before you hear a price.",
+    intro: "Gurgling drains, sewage smells or a yard that's wet over the line. I put a camera down the pipe and show you what's there on the screen, so you see the problem before you hear a price.",
     covers: ["Camera inspections with video", "Root cutting", "Cleanout installation", "Spot repairs", "Line replacement"],
     prices: [
       { job: "Camera inspection with video", range: "$225 to $350" },

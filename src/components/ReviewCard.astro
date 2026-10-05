@@ -22,8 +22,8 @@ const { review, showReply = true } = Astro.props;
   .rv-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem; }
   .stars { display: inline-flex; gap: 1px; color: #e3a008; }
   .stars :global(svg) { width: 1.05rem; height: 1.05rem; }
-  .rv-text { margin: 0 0 1rem; font-size: 1.0625rem; }
+  .rv-text { margin: 0 0 1rem; font-size: var(--step-0); }
   .rv-text p { margin: 0; }
-  .rv-meta { margin: auto 0 0; font-size: 0.9375rem; color: var(--ink-soft); }
-  .rv-reply { margin: 0.9rem 0 0; padding: 0.75rem 0.9rem; background: var(--sky-100); border-radius: var(--radius); font-size: 0.9375rem; }
+  .rv-meta { margin: auto 0 0; font-size: var(--step--1); color: var(--ink-soft); }
+  .rv-reply { margin: 0.9rem 0 0; padding: 0.75rem 0.9rem; background: var(--sky-100); border-radius: var(--radius); font-size: var(--step--1); }
 </style>

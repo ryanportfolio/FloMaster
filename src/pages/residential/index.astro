@@ -8,7 +8,7 @@ import Fact from "../../components/Fact.astro";
 import { services } from "../../data/services";
 ---
 <Base title="Home plumbing services and prices" description="Drain clearing, water heaters, leak and pipe repair, fixtures and sewer lines for homes across Hampton Roads, with typical prices for every job.">
-  <PageHero title="Home plumbing, with the prices up front" lead="Typical price ranges for the jobs I do most. You get a written, flat price for your job before I start." actions />
+  <PageHero title="Home plumbing, with the prices up front" lead="Typical price ranges for the jobs I do most, and a written, flat price for your job before I start" actions />
   <section class="section">
     <div class="wrap list">
       {services.map((s, i) => (
@@ -41,7 +41,7 @@ import { services } from "../../data/services";
   h2 a { text-decoration: none; color: inherit; }
   h2 a:hover { text-decoration: underline; }
   .mini { border-collapse: collapse; width: 100%; max-width: 34rem; margin: 0.5rem 0 1rem; }
-  .mini th, .mini td { padding: 0.55rem 0; border-bottom: 1px solid var(--line); text-align: left; font-size: 1rem; }
+  .mini th, .mini td { padding: 0.55rem 0; border-bottom: 1px solid var(--line); text-align: left; font-size: 1.0625rem; }
   .mini th { font-weight: 500; }
   .mini td { text-align: right; font-family: var(--font-slab); font-weight: 700; color: var(--navy); white-space: nowrap; padding-left: 1rem; }
   .more { font-weight: 600; }

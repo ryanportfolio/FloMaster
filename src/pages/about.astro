@@ -11,11 +11,12 @@ import portrait from "../assets/photos/portrait.jpg";
 import { facts } from "../data/facts";
 ---
 <Base title="About Antonio Spence" description="Antonio Spence is a Virginia master plumber and the owner of FloMasters Plumbing and Drains, established 2024 in Hampton Roads.">
-  <PageHero title="I'm Antonio Spence. FloMasters is me." lead={`Virginia Master Plumber, license #${facts.license.value}. Owner of FloMasters Plumbing and Drains since ${facts.established.value}.`} />
+  <PageHero title="I'm Antonio Spence, and FloMasters is me" lead={`Virginia Master Plumber, license #${facts.license.value}, and owner of FloMasters Plumbing and Drains since ${facts.established.value}`} />
   <section class="section">
     <div class="wrap ab">
       <div class="story">
-        <p class="lead">I've been a plumber for <Fact k="yearsInTrade" />. I started FloMasters in {facts.established.value} because I wanted customers to get what I'd want in my own house: a straight answer, a fair price written down before the work starts, and the same person from the phone call to the clean-up.</p>
+        <p class="lead">I've been a plumber for <Fact k="yearsInTrade" />, and I started FloMasters in {facts.established.value} to give customers what I'd want in my own house</p>
+        <p>That means a straight answer, a fair price written down before the work starts, and the same person from the phone call to the clean-up.</p>
         <FactBlock k="workPromises"><p>There's no call center and no sales team. When you call, I pick up, or I call you back as soon as I'm out from under the sink. When you book, I'm the one who turns up, and I'm the one who stands behind the work.</p></FactBlock>
         <h2>How I work</h2>
         <FactBlock k="workPromises"><ul class="ticks">
