@@ -21,23 +21,50 @@ const { id, urgent = false } = Astro.props;
   <button class="btn btn--navy btn--block" type="submit" data-label="Call me back">Call me back</button>
   <p class="cbf-when small" data-when></p>
   <p class="cbf-done" role="status" data-done></p>
-  <template data-in>I'll call you back <Fact k="callback" text="within 30 minutes" />.</template>
-  <template data-out>It's outside working hours right now. I'll call you first thing when I start, at 7 a.m. For a flood, call instead.</template>
+  <template data-in>I'll call you back <Fact k="callback" />.</template>
+  <template data-out>It's outside working hours right now. I'll call you back {"{next}"}, when I start. For a flood, call instead.</template>
 </form>
 
 <script>
-  const isOpen = (spec: { weekday: number[]; saturday: number[] | null; sunday: number[] | null }) => {
-    const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", hour12: false }).formatToParts(new Date());
-    const day = parts.find((p) => p.type === "weekday")!.value;
-    const hour = Number(parts.find((p) => p.type === "hour")!.value) % 24;
-    const range = day === "Sun" ? spec.sunday : day === "Sat" ? spec.saturday : spec.weekday;
-    return !!range && hour >= range[0] && hour < range[1];
+  type Spec = { weekday: number[]; saturday: number[] | null; sunday: number[] | null };
+  // Day and hour in Virginia, whatever the visitor's clock says.
+  const nyParts = (d: Date) => {
+    const p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", hour12: false }).formatToParts(d);
+    return { day: p.find((x) => x.type === "weekday")!.value, hour: Number(p.find((x) => x.type === "hour")!.value) % 24 };
   };
+  const rangeFor = (spec: Spec, day: string) => (day === "Sun" ? spec.sunday : day === "Sat" ? spec.saturday : spec.weekday);
+  const isOpen = (spec: Spec) => { const { day, hour } = nyParts(new Date()); const r = rangeFor(spec, day); return !!r && hour >= r[0] && hour < r[1]; };
+  const hourLabel = (h: number) => (h === 12 ? "12 p.m." : h < 12 ? `${h} a.m.` : `${h - 12} p.m.`);
+  const longDay: Record<string, string> = { Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday", Sun: "Sunday" };
+  const nyDate = (ms: number) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date(ms));
+  // The next time a working period starts, from the same hours data as the footer.
+  const nextOpening = (spec: Spec) => {
+    const today = nyDate(Date.now()), tomorrow = nyDate(Date.now() + 86400000);
+    for (let h = 1; h <= 24 * 8; h++) {
+      const ms = Date.now() + h * 3600000;
+      const t = nyParts(new Date(ms));
+      const r = rangeFor(spec, t.day);
+      if (r && t.hour === r[0]) {
+        const d = nyDate(ms);
+        const when = d === today ? "today" : d === tomorrow ? "tomorrow" : longDay[t.day];
+        return `${when} at ${hourLabel(r[0])}`;
+      }
+    }
+    return "on the next working day";
+  };
+  // Keep every phone field on the page in step, live (WCAG 3.3.7: no re-entering).
+  document.addEventListener("input", (e) => {
+    const src = e.target as HTMLInputElement;
+    if (!src.matches?.("[data-carry-phone]")) return;
+    document.querySelectorAll<HTMLInputElement>("[data-carry-phone]").forEach((el) => { if (el !== src) el.value = src.value; });
+    try { sessionStorage.setItem("fm-phone", src.value); } catch {}
+  });
   const validPhone = (v: string) => v.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "").length === 10;
 
   document.querySelectorAll<HTMLFormElement>("[data-callback]").forEach((form) => {
     const when = form.querySelector<HTMLElement>("[data-when]")!;
-    when.innerHTML = form.querySelector<HTMLTemplateElement>(isOpen(JSON.parse(form.dataset.hours!)) ? "[data-in]" : "[data-out]")!.innerHTML;
+    const spec: Spec = JSON.parse(form.dataset.hours!);
+    when.innerHTML = isOpen(spec) ? form.querySelector<HTMLTemplateElement>("[data-in]")!.innerHTML : form.querySelector<HTMLTemplateElement>("[data-out]")!.innerHTML.replace("{next}", nextOpening(spec));
     const phone = form.querySelector<HTMLInputElement>("input[name=phone]")!;
     const err = form.querySelector<HTMLElement>(".error")!;
     const btn = form.querySelector<HTMLButtonElement>("button[type=submit]")!;

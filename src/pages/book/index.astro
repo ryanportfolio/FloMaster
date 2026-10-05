@@ -6,20 +6,27 @@ import CallbackForm from "../../components/CallbackForm.astro";
 import { Image } from "astro:assets";
 import portrait from "../../assets/photos/portrait.jpg";
 import { services } from "../../data/services";
-import { facts } from "../../data/facts";
+import { facts, isPublicBuild } from "../../data/facts";
 import { zips, sometimes } from "../../data/area";
 
 // Sample arrival windows (P29): the next 5 working days from the build date, Virginia time.
-const slots = ["8 to 10 a.m.", "10 a.m. to 12 p.m.", "1 to 3 p.m.", "3 to 5 p.m."];
-const days: { iso: string; label: string; windows: string[] }[] = [];
+type Slot = { label: string; start: number; end: number };
+const slots: Slot[] = [
+  { label: "8 to 10 a.m.", start: 8, end: 10 },
+  { label: "10 a.m. to 12 p.m.", start: 10, end: 12 },
+  { label: "1 to 3 p.m.", start: 13, end: 15 },
+  { label: "3 to 5 p.m.", start: 15, end: 17 },
+];
+const days: { iso: string; label: string; windows: Slot[] }[] = [];
 const d = new Date();
 while (days.length < 5) {
   d.setDate(d.getDate() + 1);
   const dow = d.getDay();
   if (dow === 0) continue;
   const label = d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: "America/New_York" });
+  const iso = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(d);
   const windows = dow === 6 ? slots.slice(0, 2) : days.length % 2 ? slots.filter((_, i) => i !== 1) : slots;
-  days.push({ iso: d.toISOString().slice(0, 10), label, windows });
+  days.push({ iso, label, windows });
 }
 const jobs = [...services.map((s) => ({ id: s.slug, label: s.bookLabel, from: s.prices[0].range })), { id: "other", label: "Something else", from: "" }];
 const priceMap = Object.fromEntries(services.map((s) => [s.slug, s.prices]));
@@ -37,7 +44,7 @@ const priceMap = Object.fromEntries(services.map((s) => [s.slug, s.prices]));
 
   <section class="section">
     <div class="wrap layout">
-      <form class="bookform" data-book novalidate data-zips={JSON.stringify(zips)} data-sometimes={JSON.stringify(sometimes)} data-prices={JSON.stringify(priceMap)}>
+      <form class="bookform" data-book novalidate data-zips={JSON.stringify(zips)} data-sometimes={JSON.stringify(sometimes)} data-prices={JSON.stringify(priceMap)} data-price-open={String(!isPublicBuild && facts.priceRanges.status === "open")}>
         <p class="error-summary" role="alert" data-summary></p>
 
         <fieldset class="step" id="f-job" aria-describedby="err-job">
@@ -67,8 +74,8 @@ const priceMap = Object.fromEntries(services.map((s) => [s.slug, s.prices]));
                 <div class="choices">
                   {day.windows.map((w) => (
                     <label class="choice">
-                      <input type="radio" name="window" value={`${day.label}, ${w}`} />
-                      <span>{w}</span>
+                      <input type="radio" name="window" value={`${day.label}, ${w.label}`} data-date={day.iso} data-start={w.start} data-end={w.end} />
+                      <span>{w.label}</span>
                     </label>
                   ))}
                 </div>
@@ -173,7 +180,9 @@ const priceMap = Object.fromEntries(services.map((s) => [s.slug, s.prices]));
     document.querySelector<HTMLElement>("[data-price]")!.hidden = !rows;
     if (rows) {
       document.querySelector("[data-price-job]")!.textContent = job!.dataset.label!;
-      document.querySelector("[data-price-rows]")!.innerHTML = rows.map((r) => `<tr><th scope="row">${r.job}</th><td class="num">${r.range}</td></tr>`).join("");
+      // Sample prices keep their P17 outline when tags are on (same markup Fact.astro renders with `plain`).
+      const open = form.dataset.priceOpen === "true";
+      document.querySelector("[data-price-rows]")!.innerHTML = rows.map((r) => `<tr><th scope="row">${r.job}</th><td class="num">${open ? `<span class="fact" data-open>${r.range}</span>` : r.range}</td></tr>`).join("");
     }
   };
   form.addEventListener("change", (e) => { if ((e.target as HTMLInputElement).name === "job") showPrice(); if (tried) validate(false); });
@@ -225,6 +234,9 @@ const priceMap = Object.fromEntries(services.map((s) => [s.slug, s.prices]));
       job: job.value === "other" && $<HTMLInputElement>("#other-note").value.trim() ? $<HTMLInputElement>("#other-note").value.trim() : job.dataset.label,
       jobId: job.value,
       window: form.querySelector<HTMLInputElement>("input[name=window]:checked")!.value,
+      windowDate: form.querySelector<HTMLInputElement>("input[name=window]:checked")!.dataset.date,
+      windowStart: Number(form.querySelector<HTMLInputElement>("input[name=window]:checked")!.dataset.start),
+      windowEnd: Number(form.querySelector<HTMLInputElement>("input[name=window]:checked")!.dataset.end),
       street: $<HTMLInputElement>("#street").value.trim(),
       zip: $<HTMLInputElement>("#zip").value.trim(),
       city: zipCheck(),

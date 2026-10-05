@@ -37,8 +37,12 @@ try {
   await page.fill("#phone", "757 555 0142");
 
   // 3. Phone carries into the callback form (WCAG 3.3.7).
-  const carried = await page.inputValue("#cb-book-phone");
-  check("phone number carried into callback form", carried === "", "callback form reads it on load; checking after reload");
+  check("phone number carried into callback form live, no reload", (await page.inputValue("#cb-book-phone")) === "757 555 0142");
+  await page.fill("#cb-book-phone", "757 555 0199");
+  check("callback edits flow back to the booking form", (await page.inputValue("#phone")) === "757 555 0199");
+  await page.fill("#phone", "757 555 0142");
+  const when = (await page.textContent("#callback [data-when]")) ?? "";
+  check("callback timing message names a real opening or the callback fact", /call you back within|call you back (today|tomorrow|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday) at \d+ (a|p)\.m\., when I start/.test(when), when.trim());
   await page.reload();
   check("phone number restored after reload", (await page.inputValue("#phone")) === "757 555 0142");
   check("callback form prefilled with the same number", (await page.inputValue("#cb-book-phone")) === "757 555 0142");
@@ -54,6 +58,8 @@ try {
   const addr = await page.textContent("[data-address]");
   check("confirmation shows the entered address", addr?.includes("1200 Colonial Ave") && addr.includes("Norfolk") || false, addr?.trim());
   check("sample-booking note hidden for a real booking", await page.isHidden("[data-sample]"));
+  const ics = await page.evaluate(async () => (await fetch(document.querySelector("[data-ics]").href)).text());
+  check("calendar file has a start and end time", /DTSTART:\d{8}T\d{6}Z/.test(ics) && /DTEND:\d{8}T\d{6}Z/.test(ics), (ics.match(/DTSTART:\S+/) ?? [""])[0]);
 
   // 5. Tags: off by default, ?tags=on turns them on before paint, switch toggles.
   await page.goto(`${base}/pricing`);
@@ -62,6 +68,14 @@ try {
   check("?tags=on shows tags", await page.evaluate(() => document.documentElement.classList.contains("tags-on")));
   const tagCount = await page.$$eval(".fact-tag", (els) => els.filter((e) => getComputedStyle(e).display !== "none").length);
   check("visible tags on pricing", tagCount > 5, `${tagCount} tags`);
+  for (const p of ["/residential", "/"]) {
+    await page.goto(`${base}${p}?tags=on`);
+    const outlined = await page.$$eval(".fact[data-open]", (els) => els.filter((e) => /\$\d/.test(e.textContent)).length);
+    check(`sample prices outlined on ${p}`, outlined >= 5, `${outlined} prices`);
+  }
+  await page.goto(`${base}/book?tags=on&job=drains`);
+  check("booking price summary outlined", (await page.$$eval("[data-price-rows] .fact[data-open]", (els) => els.length)) === 3);
+  await page.goto(`${base}/pricing?tags=on`);
   const nested = await page.$$eval("a .fact-tag, button .fact-tag", (els) => els.length);
   check("no tag labels nested in links or buttons", nested === 0, `${nested}`);
   const boxes = async () => page.$$eval("main h2, main table, main .panel", (els) => els.map((e) => { const r = e.getBoundingClientRect(); return `${Math.round(r.x)},${Math.round(r.y + scrollY)},${Math.round(r.width)},${Math.round(r.height)}`; }).join("|"));
@@ -88,6 +102,17 @@ try {
   check("before/after slider moves with arrow keys", (await page.evaluate(() => document.querySelector("[data-ba]").style.getPropertyValue("--pos"))) === "48%");
 
   await ctx.close();
+
+  // 8. Out-of-hours callback message uses the real next opening (Virginia time).
+  for (const [iso, want] of [["2026-10-09T19:30:00-04:00", "tomorrow at 8 a.m."], ["2026-10-10T14:00:00-04:00", "Monday at 7 a.m."], ["2026-10-12T05:00:00-04:00", "today at 7 a.m."]]) {
+    const c2 = await browser.newContext({ viewport: { width: 375, height: 740 } });
+    const p2 = await c2.newPage();
+    await p2.clock.setFixedTime(new Date(iso));
+    await p2.goto(`${base}/emergency`);
+    const msg = (await p2.textContent("[data-when]")) ?? "";
+    check(`out-of-hours message at ${iso}`, msg.includes(want), msg.trim());
+    await c2.close();
+  }
 } finally {
   await browser.close();
   server.stop();

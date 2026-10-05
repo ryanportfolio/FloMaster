@@ -65,7 +65,7 @@ import { facts } from "../../data/facts";
 </Base>
 
 <script>
-  type Booking = { job: string; window: string; street: string; zip: string; city: string | null; phone: string };
+  type Booking = { job: string; window: string; windowDate?: string; windowStart?: number; windowEnd?: number; street: string; zip: string; city: string | null; phone: string };
   let b: Booking | null = null;
   try { b = JSON.parse(sessionStorage.getItem("fm-booking") || "null"); } catch {}
   const set = (sel: string, v: string) => { const el = document.querySelector(sel); if (el) el.textContent = v; };
@@ -76,13 +76,33 @@ import { facts } from "../../data/facts";
     set("[data-phone]", b.phone);
     document.querySelector<HTMLElement>("[data-sample]")!.hidden = true;
   }
-  // Calendar file built in the browser from the window text.
-  const ics = document.querySelector<HTMLAnchorElement>("[data-ics]")!;
-  ics.addEventListener("click", () => {
-    const text = document.querySelector("[data-window]")!.textContent!;
-    const body = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//FloMasters//Booking//EN", "BEGIN:VEVENT", `UID:${Date.now()}@flomasters`, `SUMMARY:FloMasters plumbing visit (Antonio)`, `DESCRIPTION:Arrival window: ${text}. Antonio will text when he's on his way. (757) 277-6194`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").slice(0, 15)}Z`, "END:VEVENT", "END:VCALENDAR"].join("\r\n");
-    ics.href = URL.createObjectURL(new Blob([body], { type: "text/calendar" }));
-  });
+  // Calendar file with the real arrival window. The window is Virginia time;
+  // convert it to UTC so every calendar app places it correctly.
+  const nyToUtc = (date: string, hour: number) => {
+    const [y, m, d] = date.split("-").map(Number);
+    let guess = Date.UTC(y, m - 1, d, hour);
+    for (let i = 0; i < 2; i++) {
+      const p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", hourCycle: "h23" }).formatToParts(new Date(guess));
+      const g = (t: string) => Number(p.find((x) => x.type === t)!.value);
+      const shownAsUtc = Date.UTC(g("year"), g("month") - 1, g("day"), g("hour"));
+      guess += Date.UTC(y, m - 1, d, hour) - shownAsUtc;
+    }
+    return new Date(guess);
+  };
+  const stamp = (dt: Date) => dt.toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+  const win = b?.windowDate ? { date: b.windowDate, start: b.windowStart!, end: b.windowEnd! } : { date: "2026-10-08", start: 10, end: 12 };
+  const text = document.querySelector("[data-window]")!.textContent!;
+  const body = [
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//FloMasters//Booking//EN", "BEGIN:VEVENT",
+    `UID:${Date.now()}@flomasters`,
+    `DTSTAMP:${stamp(new Date())}`,
+    `DTSTART:${stamp(nyToUtc(win.date, win.start))}`,
+    `DTEND:${stamp(nyToUtc(win.date, win.end))}`,
+    "SUMMARY:FloMasters plumbing visit (Antonio)",
+    `DESCRIPTION:Arrival window: ${text}. Antonio will text when he's on his way. (757) 277-6194`,
+    "END:VEVENT", "END:VCALENDAR",
+  ].join("\r\n");
+  document.querySelector<HTMLAnchorElement>("[data-ics]")!.href = URL.createObjectURL(new Blob([body], { type: "text/calendar" }));
   document.querySelector<HTMLFormElement>("[data-extra]")!.addEventListener("submit", (e) => {
     e.preventDefault();
     set("[data-extra-done]", "Thanks. Prototype: nothing was sent.");

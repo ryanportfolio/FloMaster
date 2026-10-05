@@ -98,7 +98,7 @@ const newest = reviews[0];
               <span class="svc-body">
                 <span class="svc-title">{s.title}</span>
                 <span class="svc-short">{s.short}</span>
-                <span class="svc-price">From <strong class="num">{s.prices[0].range.split(" to ")[0]}</strong></span>
+                <span class="svc-price">From <strong class="num"><Fact k="priceRanges" plain text={s.prices[0].range.split(" to ")[0]} /></strong></span>
               </span>
             </a>
           </li>

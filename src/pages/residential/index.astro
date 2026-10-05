@@ -4,6 +4,7 @@ import PageHero from "../../components/PageHero.astro";
 import Photo from "../../components/Photo.astro";
 import CallToAction from "../../components/CallToAction.astro";
 import Icon from "../../components/Icon.astro";
+import Fact from "../../components/Fact.astro";
 import { services } from "../../data/services";
 ---
 <Base title="Home plumbing services and prices" description="Drain clearing, water heaters, leak and pipe repair, fixtures and sewer lines for homes across Hampton Roads, with typical prices for every job.">
@@ -18,7 +19,7 @@ import { services } from "../../data/services";
             <p>{s.intro}</p>
             <table class="mini">
               <caption class="visually-hidden">Typical prices for {s.title.toLowerCase()}</caption>
-              <tbody>{s.prices.map((p) => <tr><th scope="row">{p.job}</th><td class="num">{p.range}</td></tr>)}</tbody>
+              <tbody>{s.prices.map((p) => <tr><th scope="row">{p.job}</th><td class="num"><Fact k="priceRanges" text={p.range} /></td></tr>)}</tbody>
             </table>
             <a class="more" href={`/residential/${s.slug}`}>{s.title}: what's covered and what changes the price <Icon name="arrow" class="i-arrow" /></a>
           </div>
