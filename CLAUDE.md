@@ -2,11 +2,17 @@
 
 > Kernel rules. Read first. Cross-cutting only. Topical detail lives in `.claude/reference/`.
 
-<!-- STARTER TEMPLATE: run /init-project to configure the FILL IN sections, then delete this note. -->
-
 ## What this project is
 
-<!-- FILL IN (via /init-project): two or three sentences — what this is and who it serves; a short "won't compromise on" list; optional glossary of terms the team uses. Cap ~10 lines: this file loads every turn, and direction earns its weight only while it stays short. A model that knows what the product refuses to compromise on tests for it without being told. -->
+Website for an independent, one-person plumbing business in Hampton Roads, Virginia (Chesapeake, Hampton, Newport News, Norfolk, Portsmouth, Suffolk, Virginia Beach), residential and commercial. The owner is a master plumber who does every job. Current phase: a private prototype for the owner to review. Research: `docs/research.md` (do not edit). Design: `docs/design-brief.md`.
+
+Won't compromise on:
+
+- No invented business facts on a public site. Unconfirmed claims (licence, fees, prices, 24/7, warranty, reviews) stay tagged placeholders until the owner confirms them.
+- No stock photos, no fake or filtered reviews.
+- Licence number on every page; every fee listed.
+- Emergency (phone) and planned (booking) paths split from the first screen.
+- Mobile Core Web Vitals good (LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1) and WCAG 2.2 AA.
 
 ## Default prose mode: caveman ultra
 
@@ -21,9 +27,9 @@ Caveman covers chat replies only. Anything written to a file or for another read
 
 ## CRITICAL: Verification
 
-<!-- FILL IN (via /init-project): what can this sandbox verify? Installs/builds/type-checks meaningful? Can the user reach a dev server you start? What is the AUTHORITATIVE signal (CI, deploy log, local tests)? -->
+This is the user's own Windows machine (Node 24), so local installs, builds and dev servers are real and the user can open a localhost server you start. No app exists yet; once it does, the authoritative signals are a clean production build, a Lighthouse mobile run and an axe scan, plus headed-Chrome checks for anything visual. No CI yet: once the app is scaffolded, generate `.github/workflows/ci.yml` with `node .claude/scripts/write-ci-workflow.mjs` (show the user, then `--write`).
 
-Defaults until configured:
+Rules:
 
 - Inspect logs / run scripts / read code yourself before claiming anything works.
 - Never claim visual/UI verification you didn't actually perform.
@@ -60,9 +66,7 @@ Defaults until configured:
 
 ## Environment & deploy target
 
-<!-- FILL IN (via /init-project): where the app runs (host, DB, secrets); install policy (can sessions run npm/pip for app-runtime deps?); migration policy; anything that ALWAYS requires user action. -->
-
-Defaults until configured: ask before installing app-runtime dependencies; provide migrations as copy/paste-ready artifacts rather than running them blind.
+Host not chosen (see `docs/design-brief.md`, tech stack and open questions); no database or secrets yet. Any review deployment must be private (password or access control) and `noindex`, and placeholder phone numbers use the fictional 555-0100 to 555-0199 range. Ask before installing app-runtime dependencies; provide migrations as copy/paste-ready artifacts rather than running them blind. Choosing a host, publishing anything, and sending real texts or emails always need the user.
 
 ## Project reference library
 
