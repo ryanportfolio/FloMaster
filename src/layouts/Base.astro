@@ -35,6 +35,64 @@ const fullTitle = title === "home" ? `${facts.name.value} | Master plumber in Ha
         })();
       </script>
     )}
+    <script is:inline>
+      // Page transition (global.css, docs/page-transition/BRIEF.md). Picks the pass for each
+      // cross-document view transition: the band once per tab, a dissolve after that, a plain
+      // dissolve for back/forward and for reduced motion. Must run before first render, so inline.
+      (() => {
+        const d = document.documentElement, TIDE = "fm-tide", BAR = "fm-vt-bar";
+        const get = (k) => { try { return sessionStorage.getItem(k); } catch (e) { return null; } };
+        const set = (k, v) => { try { sessionStorage.setItem(k, v); return true; } catch (e) { return false; } };
+        const bar = () => document.querySelector("[data-sticky]");
+        const shown = (b) => !!b && !b.classList.contains("is-waiting") && getComputedStyle(b).display !== "none";
+        // Old page: a hidden bottom bar is left out of the transition, so it cannot pop in at time 0.
+        addEventListener("pageswap", (e) => {
+          if (!e.viewTransition) return;
+          const b = bar(), on = shown(b);
+          if (b) b.style.viewTransitionName = on ? "" : "none";
+          set(BAR, on ? "1" : "0");
+        });
+        addEventListener("pagereveal", (e) => {
+          const vt = e.viewTransition;
+          if (!vt) return;
+          const nav = window.navigation && navigation.activation;
+          let mode = matchMedia("(prefers-reduced-motion: reduce)").matches ? "calm"
+            : nav && nav.navigationType === "traverse" ? "back"
+            : get(TIDE) ? "short" : "full";
+          if (mode === "full" && !set(TIDE, "1")) mode = "short";
+          vt.types.add("fm-" + mode);
+          // The bar keeps its own group only when it shows on both pages; otherwise it goes with its page.
+          const b = bar(), on = shown(b);
+          if (b) b.style.viewTransitionName = on ? "" : "none";
+          if (!on && get(BAR) !== "0") vt.types.add("fm-bar-out");
+          if (mode === "full" || mode === "short") {
+            d.dataset.ring = mode;
+            const end = () => { if (d.dataset.ring === mode) delete d.dataset.ring; };
+            d.addEventListener("animationend", (a) => { if (a.animationName.indexOf("fm-lw-level") === 0) end(); });
+            setTimeout(end, 2500);
+          }
+          // One of the new page's first frames is slow (60-80 ms here while the GPU rasterises the
+          // page), which would make the water jump ahead. For the first 250 ms, a frame longer than
+          // 25 ms moves every transition animation's start forward, so it advances one frame instead.
+          vt.ready.then(() => {
+            let first = 0, last = 0;
+            const step = (t) => {
+              if (last && t - last > 25) {
+                for (const a of document.getAnimations()) {
+                  const pe = a.effect && a.effect.pseudoElement;
+                  if (a.startTime != null && ((pe && pe.indexOf("::view-transition") === 0) || String(a.animationName).indexOf("fm-") === 0)) a.startTime += t - last - 16;
+                }
+              }
+              first = first || t;
+              last = t;
+              if (t - first < 250) requestAnimationFrame(step);
+            };
+            requestAnimationFrame(step);
+          }, () => {});
+        });
+        addEventListener("pagehide", () => { delete d.dataset.ring; });
+      })();
+    </script>
     <slot name="head" />
   </head>
   <body>
@@ -46,6 +104,20 @@ const fullTitle = title === "home" ? `${facts.name.value} | Master plumber in Ha
     </main>
     <Footer />
     <StickyBar />
+    <div class="fm-tide" aria-hidden="true"><div class="fm-tide-sheet"><div class="fm-tide-body"></div><div class="fm-tide-edge"></div></div></div>
     <script>document.querySelectorAll("[data-needs-js]").forEach((b) => b.removeAttribute("disabled"));</script>
+    {/* Prerender likely next pages so the transition starts at once. Not the home page (its
+        repair story starts work at load), /book* and /emergency (they read sessionStorage at load). */}
+    <script type="speculationrules" is:inline set:html={JSON.stringify({
+      prerender: [{
+        source: "document",
+        where: { and: [
+          { href_matches: "/*" },
+          { not: { href_matches: ["/", "/\\?*", "/#*", "/book*", "/book*\\?*", "/book*#*", "/emergency*", "/emergency*\\?*", "/emergency*#*"] } },
+          { not: { selector_matches: "[download]" } },
+        ] },
+        eagerness: "moderate",
+      }],
+    })}></script>
   </body>
 </html>

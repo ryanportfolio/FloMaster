@@ -42,8 +42,31 @@ function word(text, x) {
   return { d, width: cursor - x };
 }
 
+// Water for the page transition (header logo only). Hidden until the page script sets
+// <html data-ring>; global.css moves .lw-level, .lw-drift and .lw-tilt and the two drops.
+// Drawn behind the arcs and the tap, clipped 0.64 units under the stroke's inner edge so no
+// anti-aliased seam shows between water and ring. .drop-fall is a copy of the drop inside the
+// clip and under the water, so it disappears into the water as it falls; the drop drawn last
+// (.drop) hides while the copy moves and re-forms at the tap. The surface is a 26-unit wave,
+// 2.5 units peak to peak, long enough for one wave of drift and the slosh. Levels in global.css
+// are y positions in this coordinate space (ring center y 65): rest 108, swell 96, half 65.
+function water(cx, cy, r, drop) {
+  const sw = r * 0.2;
+  const A = 1.25 / 0.75, x0 = cx - 113.3, f = (v) => +v.toFixed(2);
+  let surf = `M${f(x0)} 0`;
+  for (let x = x0, n = 0; x < x0 + 250; x += 13, n++) {
+    const s = n % 2 ? 1 : -1;
+    surf += `C${f(x + 3.25)} ${f(s * A)} ${f(x + 9.75)} ${f(s * A)} ${f(x + 13)} 0`;
+  }
+  const end = f(x0 + 260);
+  return {
+    defs: `<defs><clipPath id="fm-ring-water"><circle cx="${cx}" cy="${cy}" r="${(r - sw / 2 + 0.64).toFixed(2)}"/></clipPath></defs>`,
+    group: `<g class="lw" clip-path="url(#fm-ring-water)" aria-hidden="true">${drop.replace("<path ", '<path class="drop-fall" ')}<g class="lw-tilt"><g class="lw-level"><g class="lw-drift"><path d="${surf}L${end} 70L${f(x0)} 70Z" fill="#24456d"/><path d="${surf}" fill="none" stroke="#6aaed6" stroke-width="3.2" stroke-linejoin="round"/></g></g></g></g>`,
+  };
+}
+
 // The "O": a pipe ring in two blues with a tap and a drop inside.
-function mark(cx, cy, r) {
+function mark(cx, cy, r, withWater = false) {
   const sw = r * 0.2;
   const pt = (deg, rad = r) => {
     const a = (deg * Math.PI) / 180;
@@ -70,11 +93,13 @@ function mark(cx, cy, r) {
   // Drop under the spout.
   const dx = cx - r * 0.34, dy = cy + r * 0.32, ds = r * 0.2;
   const drop = `<path d="M${dx} ${(dy - ds).toFixed(2)} C${(dx + ds * 0.15).toFixed(2)} ${(dy - ds * 0.5).toFixed(2)} ${(dx + ds * 0.7).toFixed(2)} ${(dy + ds * 0.05).toFixed(2)} ${(dx + ds * 0.7).toFixed(2)} ${(dy + ds * 0.45).toFixed(2)} A${(ds * 0.7).toFixed(2)} ${(ds * 0.7).toFixed(2)} 0 0 1 ${(dx - ds * 0.7).toFixed(2)} ${(dy + ds * 0.45).toFixed(2)} C${(dx - ds * 0.7).toFixed(2)} ${(dy + ds * 0.05).toFixed(2)} ${(dx - ds * 0.15).toFixed(2)} ${(dy - ds * 0.5).toFixed(2)} ${dx} ${(dy - ds).toFixed(2)}Z" fill="var(--logo-light, #6aaed6)"/>`;
+  const w = withWater ? water(cx, cy, r, drop) : null;
   return [
+    w ? w.defs + w.group : "",
     arc(-80, 85, "var(--logo-dark, #5b7fae)"),
     arc(95, 260, "var(--logo-light, #6aaed6)"),
     collar(-90), collar(90),
-    tap, drop,
+    tap, w ? drop.replace("<path ", '<path class="drop" ') : drop,
   ].join("");
 }
 
@@ -91,9 +116,11 @@ const mid = BASE - CAP / 2;
 const top = Math.min(BASE - CAP - 6, mid - ringHalf);
 const height = Math.ceil(Math.max(BASE + 6, mid + ringHalf) - top);
 
-const wordmark = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 ${top.toFixed(1)} ${width} ${height}" role="img" aria-label="FloMasters">
+// logo.svg (header) carries the transition's ring water and its one clipPath id, so it must
+// appear once per page; logo-static.svg (footer) is the same drawing without them.
+const wordmark = (withWater) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 ${top.toFixed(1)} ${width} ${height}" role="img" aria-label="FloMasters">
 <path d="${fl.d}${masters.d}" fill="var(--logo-text, #ffffff)"/>
-${mark(ringX, BASE - CAP / 2, r)}
+${mark(ringX, BASE - CAP / 2, r, withWater)}
 </svg>
 `;
 const m = 64, mr = 26;
@@ -101,6 +128,7 @@ const favicon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${m} ${m}"
 `;
 
 fs.mkdirSync("src/assets", { recursive: true });
-fs.writeFileSync("src/assets/logo.svg", wordmark);
+fs.writeFileSync("src/assets/logo.svg", wordmark(true));
+fs.writeFileSync("src/assets/logo-static.svg", wordmark(false));
 fs.writeFileSync("public/favicon.svg", favicon.replaceAll(/var\(--logo-[a-z]+, (#[0-9a-f]+)\)/g, "$1"));
 console.log(`logo ${width}x${height}, cap ${CAP.toFixed(1)}`);

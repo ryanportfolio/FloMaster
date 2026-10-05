@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Page transition animatic: the tide, with the drop</title>
+<!-- Animatic for docs/page-transition/BRIEF.md. Final timing, rough visuals.
+     Every frame is a pure function of the timeline time T (ms): frame(T) draws the two page
+     screenshots and the band on a canvas, then sets the header, bottom bar and logo SVG from T.
+     Nothing integrates over frames, so seeking, pausing and slow motion all render the same pixels.
+     URL options for capture: ?view=phone&pass=short&t=340&paused  (t is ms from transition start).
+     window.__anim exposes seek, seekTransition, pause, play, set and frame timing for scripts. -->
+<style>
+:root{--navy-950:#0c1b30;--navy-900:#12253f;--navy:#1b3556;--navy-700:#24456d;--sky:#6aaed6;--sky-300:#a9d2ea;--sky-100:#e4f1f9;--slate:#5b7fae;--paper:#f6f8fb}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--navy-950);color:var(--paper);font:14px/1.4 system-ui,"Segoe UI",sans-serif}
+body{display:flex;flex-direction:column;gap:10px;padding:12px 16px 14px}
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.group{display:inline-flex;border:1px solid var(--navy-700);border-radius:8px;overflow:hidden}
+.group button{border:0;border-radius:0;border-right:1px solid var(--navy-700)}
+.group button:last-child{border-right:0}
+button{font:inherit;color:var(--paper);background:var(--navy-900);border:1px solid var(--navy-700);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
+button:hover{background:var(--navy)}
+button[aria-pressed="true"]{background:var(--sky-300);color:var(--navy-950);font-weight:600}
+button:focus-visible,#track:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+#wrap{flex:1;min-height:0;display:grid;place-items:center}
+#stage{position:relative;overflow:hidden;background:var(--navy-950);box-shadow:0 0 0 1px var(--navy-700)}
+#cv{position:absolute;left:0;top:0;display:block}
+#chrome{position:absolute;left:0;top:0;transform-origin:0 0;pointer-events:none}
+#hdr{position:absolute;left:0;top:0;background-repeat:no-repeat}
+#logo{position:absolute;overflow:visible}
+#bar{position:absolute;left:0;background-repeat:no-repeat;display:none}
+.scrub{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:start}
+#readout{font-variant-numeric:tabular-nums;min-width:9.5em;color:var(--sky-300);padding-top:3px}
+#track{position:relative;height:56px;cursor:pointer;touch-action:none}
+#rail{position:absolute;left:0;right:0;top:9px;height:6px;border-radius:3px;background:var(--navy-700)}
+#hold{position:absolute;left:0;top:9px;height:6px;border-radius:3px 0 0 3px;background:var(--navy)}
+#fill{position:absolute;left:0;top:9px;height:6px;border-radius:3px;background:var(--sky)}
+#head{position:absolute;top:2px;width:4px;height:20px;margin-left:-2px;border-radius:2px;background:var(--paper)}
+.tick{position:absolute;top:4px;width:2px;height:16px;margin-left:-1px;background:var(--sky-300);opacity:.8}
+.tlab{position:absolute;transform:translateX(-50%);font-size:11px;color:var(--sky-300);white-space:nowrap;cursor:pointer;font-variant-numeric:tabular-nums}
+.tlab.r0{top:24px}.tlab.r1{top:38px}
+.tick.zero{background:var(--paper);height:20px;top:2px}
+#beats{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:2px 18px;font-size:12.5px;color:#9fb3cc;grid-column:1/-1}
+#beats div{padding:2px 6px;border-radius:4px;border-left:3px solid transparent}
+#beats div.on{color:var(--paper);background:var(--navy-900);border-left-color:var(--sky)}
+#beats b{font-weight:600;font-variant-numeric:tabular-nums;color:inherit}
+.hint{font-size:12px;color:#9fb3cc}
+</style>
+</head>
+<body>
+<div class="controls">
+  <div class="group" role="group" aria-label="Screen">
+    <button type="button" data-view="desktop" aria-pressed="true">Desktop</button>
+    <button type="button" data-view="phone" aria-pressed="false">Phone</button>
+  </div>
+  <div class="group" role="group" aria-label="Which transition">
+    <button type="button" data-pass="full" aria-pressed="true">Full pass</button>
+    <button type="button" data-pass="short" aria-pressed="false">Short pass</button>
+    <button type="button" data-pass="reduced" aria-pressed="false">Reduced motion</button>
+  </div>
+  <button type="button" id="play">Pause</button>
+  <button type="button" id="replay">Replay</button>
+  <button type="button" id="slow" aria-pressed="false">Slow motion ¼ speed</button>
+  <span class="hint">Space plays or pauses; arrow keys step 10 ms</span>
+</div>
+
+<div id="wrap">
+  <div id="stage" aria-label="Animation preview">
+    <canvas id="cv"></canvas>
+    <div id="chrome">
+      <div id="hdr"></div>
+      <svg id="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 15.8 673 99" role="img" aria-label="FloMasters">
+        <defs>
+          <clipPath id="lwClip"><circle cx="163.3" cy="65" r="39.7"/></clipPath>
+          <clipPath id="dropClip"><rect id="dropClipRect" x="100" y="0" width="120" height="200"/></clipPath>
+        </defs>
+        <path d="M44.10 56.40L45.10 56.40L45.10 74.60L44.10 74.60L44.10 73.30Q44.10 70.80 42.40 69.00Q40.70 67.20 38.10 67.20L38.10 67.20L22.40 67.20L22.40 92.70Q22.50 95.30 24.35 97.15Q26.20 99.00 28.80 99.00L28.80 99.00L30.10 99.00L30.10 100.00L5.40 100.00L5.40 99.00L6.70 99.00Q9.30 99.00 11.15 97.15Q13.00 95.30 13.10 92.70L13.10 92.70L13.10 37.30Q13.10 34.70 11.20 32.85Q9.30 31.00 6.70 31.00L6.70 31.00L5.50 31.00L5.40 30.00L37.40 30.00Q39.60 30.00 42.05 29.70Q44.50 29.40 46.60 29.00Q48.70 28.60 49.60 28.20L49.60 28.20L49.60 41.40L48.60 41.40L48.60 40.00Q48.60 37.20 46.75 35.35Q44.90 33.50 42.10 33.50L42.10 33.50L22.40 33.50L22.40 63.80L38.10 63.80Q40.70 63.70 42.40 61.90Q44.10 60.10 44.10 57.60L44.10 57.60L44.10 56.40M110.60 82.40L111.60 82.40L106.20 100.00L61.30 100.00L61.30 99.00L62.60 99.00Q65.20 99.00 67.05 97.15Q68.90 95.30 69.00 92.70L69.00 92.70L69.00 37.30Q68.90 34.70 67.05 32.85Q65.20 31.00 62.60 31.00L62.60 31.00L61.30 31.00L61.30 30.00L86.00 30.00L86.00 31.00L84.70 31.00Q82.10 31.00 80.25 32.85Q78.40 34.70 78.30 37.30L78.30 37.30L78.30 96.50L92.20 96.50Q97.40 96.50 100.90 94.75Q104.40 93.00 106.70 89.80Q109.00 86.60 110.60 82.40L110.60 82.40M259.90 85.60L288.10 28.60L289.00 28.60L297.00 92.70L297.00 92.70Q297.50 95.70 299.60 97.35Q301.70 99.00 304.30 99.00L304.30 99.00L305.90 99.00L305.90 100.00L281.40 100.00L281.40 99.10L282.90 99.10Q284.60 99.10 285.70 97.75Q286.80 96.40 286.80 94.80L286.80 94.80L286.80 94.70L282.50 49.80L262.30 91.10L261.50 92.80Q260.60 94.60 259.75 97.00Q258.90 99.40 258.70 101.60L258.70 101.60L257.70 101.60L232.10 50.40L227.90 94.70L227.90 94.80Q227.90 96.40 229.05 97.75Q230.20 99.10 231.80 99.10L231.80 99.10L233.30 99.10L233.30 100.00L213.40 100.00L213.40 99.00L215.00 99.00Q217.70 99.00 219.80 97.30L219.80 97.30Q221.80 95.80 222.20 93.00L222.20 93.00L230.10 28.60L231.00 28.60L259.90 85.60M341.30 28.40L342.20 28.40L370.50 93.90Q371.90 96.40 374.00 97.50L374.00 97.50Q376.40 99.00 378.70 99.00L378.70 99.00L379.50 99.00L379.50 100.00L353.90 100.00L353.90 99.00L354.80 99.00Q356.80 99.00 358.30 97.35Q359.80 95.70 358.60 92.70L358.60 92.70L358.60 92.70L352.70 77.30L326.90 77.30L320.40 93.60Q320.10 95.00 320.50 96.10L320.50 96.10Q321.00 97.50 322.15 98.25Q323.30 99.00 324.50 99.00L324.50 99.00L325.40 99.00L325.40 100.00L304.90 100.00L304.90 99.00L305.80 99.00Q308.10 99.00 310.60 97.50L310.60 97.50Q312.60 96.40 314.00 93.90L314.00 93.90L337.20 39.60Q337.30 39.40 337.95 38.05Q338.60 36.70 339.35 34.80Q340.10 32.90 340.70 31.10Q341.30 29.30 341.30 28.40L341.30 28.40M340.10 44.30L328.30 73.90L351.40 73.90L340.10 44.30M403.90 28.60L403.90 28.60Q405.60 28.60 407.80 28.80Q410.00 29.00 412.30 29.30L412.30 29.30Q413.10 29.50 413.80 29.60L413.80 29.60L418.80 29.60L418.80 31.70L418.80 31.70L418.40 42.70L417.50 42.70Q417.50 37.80 414.00 34.90Q410.50 32.00 405.20 32.00L405.20 32.00Q399.60 32.00 396.15 35.25Q392.70 38.50 392.70 42.90L392.70 42.90Q392.60 45.10 393.85 47.55Q395.10 50.00 397.70 52.10L397.70 52.10L417.20 68.40Q420.70 71.10 422.15 74.65Q423.60 78.20 423.50 82.00L423.50 82.00Q423.30 90.80 417.60 96.10Q411.90 101.40 402.20 101.40L402.20 101.40Q399.10 101.40 395.55 100.80Q392.00 100.20 388.90 98.95Q385.80 97.70 383.90 95.70L383.90 95.70Q383.40 93.90 383.45 91.25Q383.50 88.60 384.05 85.80Q384.60 83.00 385.50 80.80L385.50 80.80L386.40 80.80Q385.90 85.90 387.85 89.90Q389.80 93.90 393.55 96.05Q397.30 98.20 402.20 98.00L402.20 98.00Q408.10 97.80 411.95 94.35Q415.80 90.90 415.80 85.30L415.80 85.30Q415.80 82.40 414.50 80.00Q413.20 77.60 410.50 75.70L410.50 75.70L391.90 59.90Q388.10 57.10 386.50 53.30Q384.90 49.50 385.10 45.70L385.10 45.70Q385.30 41.20 387.50 37.25Q389.70 33.30 393.85 30.95Q398.00 28.60 403.90 28.60M490.50 28.10L490.50 28.10L490.50 42.30L489.50 42.20L489.50 40.70Q489.50 37.50 487.45 35.45Q485.40 33.40 482.20 33.30L482.20 33.30L465.20 33.30L465.20 92.70Q465.30 95.30 467.15 97.15Q469.00 99.00 471.60 99.00L471.60 99.00L472.90 99.00L472.90 100.00L448.20 100.00L448.20 99.00L449.50 99.00Q452.10 99.00 453.95 97.15Q455.80 95.30 455.90 92.70L455.90 92.70L455.90 33.30L438.90 33.30Q435.70 33.40 433.65 35.45Q431.60 37.50 431.60 40.70L431.60 40.70L431.60 42.20L430.60 42.30L430.60 28.10Q431.60 28.50 433.65 28.90Q435.70 29.30 438.20 29.60Q440.70 29.90 442.80 29.90L442.80 29.90L478.30 29.90Q480.50 29.90 482.95 29.60Q485.40 29.30 487.50 28.90Q489.60 28.50 490.50 28.10M546.90 82.40L547.90 82.40L542.50 100.00L497.60 100.00L497.60 99.00L498.90 99.00Q501.50 99.00 503.35 97.15Q505.20 95.30 505.30 92.70L505.30 92.70L505.30 37.30Q505.30 34.70 503.40 32.85Q501.50 31.00 498.90 31.00L498.90 31.00L497.70 31.00L497.60 30.00L529.60 30.00Q531.80 30.00 534.25 29.70Q536.70 29.40 538.80 29.00Q540.90 28.60 541.80 28.20L541.80 28.20L541.80 42.40L540.80 42.40L540.80 40.80Q540.80 37.70 538.80 35.60L538.80 35.60Q537.10 33.90 534.60 33.50L534.60 33.50L514.60 33.50L514.60 63.80L530.30 63.80Q532.90 63.70 534.60 61.90Q536.30 60.10 536.30 57.60L536.30 57.60L536.30 56.40L537.30 56.40L537.30 74.60L536.30 74.60L536.30 73.30Q536.30 70.80 534.60 69.00Q532.90 67.20 530.30 67.20L530.30 67.20L514.60 67.20L514.60 96.50L528.50 96.50Q533.70 96.50 537.20 94.75Q540.70 93.00 543.00 89.80Q545.30 86.60 546.90 82.40L546.90 82.40M564.90 92.70L564.90 92.70L564.90 37.30Q564.80 34.70 562.95 32.85Q561.10 31.00 558.50 31.00L558.50 31.00L557.20 31.00L557.20 30.00L586.60 30.00Q591.10 30.00 595.00 31.20Q598.90 32.40 601.65 34.75Q604.40 37.10 606.00 40.60Q607.60 44.10 607.60 48.80L607.60 48.80Q607.60 53.40 605.50 57.75Q603.40 62.10 599.65 64.90Q595.90 67.70 590.80 67.90L590.80 67.90Q593.00 68.70 595.20 71.00Q597.40 73.30 599.00 75.50L599.00 75.50Q599.00 75.60 600.25 77.40Q601.50 79.20 603.40 81.85Q605.30 84.50 607.25 87.10Q609.20 89.70 610.70 91.40L610.70 91.40Q612.70 93.80 614.65 95.45Q616.60 97.10 618.85 98.05Q621.10 99.00 623.90 99.00L623.90 99.00L623.90 100.00L616.90 100.00Q612.10 100.00 608.40 98.75Q604.70 97.50 602.00 95.35Q599.30 93.20 597.40 90.70L597.40 90.70Q597.00 90.00 595.75 88.10Q594.50 86.20 592.95 83.75Q591.40 81.30 589.90 78.90Q588.40 76.50 587.30 74.75Q586.20 73.00 585.90 72.50L585.90 72.50Q584.20 69.80 582.10 67.85Q580.00 65.90 577.50 65.80L577.50 65.80L577.50 64.80Q577.60 64.80 578.95 64.85Q580.30 64.90 582.10 64.80L582.10 64.80Q584.70 64.70 587.65 63.90Q590.60 63.10 593.05 60.80Q595.50 58.50 596.70 54.00L596.70 54.00Q597.00 53.00 597.15 51.50Q597.30 50.00 597.20 48.40L597.20 48.40Q597.10 41.50 593.75 37.65Q590.40 33.80 585.00 33.60L585.00 33.60Q582.70 33.40 580.20 33.45Q577.70 33.50 575.90 33.50L575.90 33.50L574.20 33.50L574.20 92.70Q574.20 95.30 576.10 97.15Q578.00 99.00 580.60 99.00L580.60 99.00L581.80 99.00L581.80 100.00L557.20 100.00L557.20 99.00L558.50 99.00Q561.10 99.00 562.95 97.15Q564.80 95.30 564.90 92.70M647.70 28.60L647.70 28.60Q649.40 28.60 651.60 28.80Q653.80 29.00 656.10 29.30L656.10 29.30Q656.90 29.50 657.60 29.60L657.60 29.60L662.60 29.60L662.60 31.70L662.60 31.70L662.20 42.70L661.30 42.70Q661.30 37.80 657.80 34.90Q654.30 32.00 649.00 32.00L649.00 32.00Q643.40 32.00 639.95 35.25Q636.50 38.50 636.50 42.90L636.50 42.90Q636.40 45.10 637.65 47.55Q638.90 50.00 641.50 52.10L641.50 52.10L661.00 68.40Q664.50 71.10 665.95 74.65Q667.40 78.20 667.30 82.00L667.30 82.00Q667.10 90.80 661.40 96.10Q655.70 101.40 646.00 101.40L646.00 101.40Q642.90 101.40 639.35 100.80Q635.80 100.20 632.70 98.95Q629.60 97.70 627.70 95.70L627.70 95.70Q627.20 93.90 627.25 91.25Q627.30 88.60 627.85 85.80Q628.40 83.00 629.30 80.80L629.30 80.80L630.20 80.80Q629.70 85.90 631.65 89.90Q633.60 93.90 637.35 96.05Q641.10 98.20 646.00 98.00L646.00 98.00Q651.90 97.80 655.75 94.35Q659.60 90.90 659.60 85.30L659.60 85.30Q659.60 82.40 658.30 80.00Q657.00 77.60 654.30 75.70L654.30 75.70L635.70 59.90Q631.90 57.10 630.30 53.30Q628.70 49.50 628.90 45.70L628.90 45.70Q629.10 41.20 631.30 37.25Q633.50 33.30 637.65 30.95Q641.80 28.60 647.70 28.60" fill="#ffffff"/>
+        <!-- ring water: behind the arcs and clipped 0.64 units under the stroke's inner edge (39.06),
+             so no anti-aliased seam shows between water and ring and nothing can poke outside it -->
+        <g id="lw" clip-path="url(#lwClip)" style="display:none"><g id="lwTilt"><g id="lwLevel"><path id="lwBody" fill="#24456d"/><path id="lwSurf" fill="none" stroke="#6aaed6" stroke-width="3.2" stroke-linejoin="round"/></g></g></g>
+        <path d="M170.84 22.26A43.4 43.4 0 0 1 167.08 108.23" fill="none" stroke="#5b7fae" stroke-width="8.68" stroke-linecap="butt"/><path d="M159.52 108.23A43.4 43.4 0 0 1 155.76 22.26" fill="none" stroke="#6aaed6" stroke-width="8.68" stroke-linecap="butt"/><rect x="156.79" y="19.21" width="13.02" height="4.77" rx="1.59" fill="#6aaed6"/><rect x="156.79" y="106.01" width="13.02" height="4.77" rx="1.59" fill="#6aaed6" transform="rotate(180 163.3 108.4)"/><path d="M163.3 25.94 V57.19 Q163.3 65.87 154.62 65.87 H148.54 V71.94" fill="none" stroke="#6aaed6" stroke-width="6.51" stroke-linejoin="round"/><path d="M156.36 51.98 H170.24 M163.3 51.98 V57.19" fill="none" stroke="#6aaed6" stroke-width="4.56" stroke-linecap="round"/>
+        <g clip-path="url(#dropClip)"><g id="dropG"><path d="M148.544 70.21 C149.85 74.55 154.62 79.32 154.62 82.79 A6.08 6.08 0 0 1 142.47 82.79 C142.47 79.32 147.24 74.55 148.544 70.21Z" fill="#6aaed6"/></g></g>
+      </svg>
+      <div id="bar"></div>
+    </div>
+  </div>
+</div>
+
+<div class="scrub">
+  <div id="readout">0 ms</div>
+  <div id="track" role="slider" tabindex="0" aria-label="Time" aria-valuemin="0"><div id="rail"></div><div id="hold"></div><div id="fill"></div><div id="ticks"></div><div id="head"></div></div>
+  <div id="beats"></div>
+</div>
+
+<script>
+'use strict';
+// ---------- constants from BRIEF.md, pitch-tide.md and facts.md ----------
+const C = { navy900:'#12253f', navy:'#1b3556', cardLine:'#213f66', sky300:'#a9d2ea', slate:'#5b7fae' };
+const HOLD = 600, TAIL = 500;               // hold on the old page before t=0; settle time shown after the end
+const LOGO_H = 28, LOGO_W = 28 * 673 / 99;  // header logo is 1.75rem tall
+const VIEWS = {
+  desktop: { W:1425, H:900, old:'animatic-assets/desktop-old.jpg', neu:'animatic-assets/desktop-new.jpg', logo:{ x:122.5, y:51 }, header:146, bar:null },
+  // barOnOld: the old page (home) hides the bottom bar, so the new page's bar arrives with the new page
+  phone:   { W:375,  H:667, old:'animatic-assets/phone-old.jpg',   neu:'animatic-assets/phone-new.jpg',   logo:{ x:20,    y:51 }, header:146, bar:{ y:599, h:68 }, barOnOld:false },
+};
+// Owner review 2026-10-05: every animated pass runs at half speed; the reduced-motion dissolve stays short.
+const PASSES = {
+  full: { dur:1040, ticks:[0,120,200,280,400,600,680,840,880,920,1040,1120,1280], beats:[
+    [0,280,'The logo’s drop stretches and falls from the tap into the ring'],
+    [0,1040,'Band travels from above the screen to below it, fully off screen by about 880; the new page is uncovered behind its center line'],
+    [0,1040,'Foam and wet lines drift one wave period sideways'],
+    [200,200,'Top 240 px of the new page visible below the header'],
+    [680,680,'Whole screen visible; band leaving under the bottom bar'],
+    [120,600,'Ring water rises to about half the ring'],
+    [400,920,'One damped slosh inside the ring: -4°, +1.5°, 0°'],
+    [840,1120,'The drop re-forms at the tap'],
+    [920,1280,'Ring water drains'],
+    [1040,1040,'Transition over; the page takes taps again'] ] },
+  short: { dur:400, ticks:[0,240,360,400,640], beats:[
+    [0,400,'Page dissolve, header and bar still'],
+    [0,240,'Drop dips into the ring and re-forms'],
+    [0,360,'Ring swell, a thin sliver along the bottom of the ring'],
+    [360,640,'Swell drains'] ] },
+  reduced: { dur:200, ticks:[0,200], beats:[
+    [0,200,'Page dissolves old to new; header and bottom bar held still'],
+    [0,200,'No band, no drop, no slosh'] ] },
+};
+const BAND_GONE = 880;   // the band's top crest crosses the bottom of the screen here
+// ring water levels (logo SVG units; ring center y 65, clear inner radius about 39)
+const S_REST = 108, S_FULL = 65, S_SWELL = 96;
+
+// ---------- easing ----------
+const clamp = (x, a = 0, b = 1) => x < a ? a : x > b ? b : x;
+const lerp = (a, b, u) => a + (b - a) * u;
+function bezier(x1, y1, x2, y2) {
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx, cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+  const X = s => ((ax * s + bx) * s + cx) * s, Y = s => ((ay * s + by) * s + cy) * s, dX = s => (3 * ax * s + 2 * bx) * s + cx;
+  return x => {
+    x = clamp(x); if (x === 0 || x === 1) return x;
+    let s = x;
+    for (let i = 0; i < 8; i++) { const e = X(s) - x, d = dX(s); if (Math.abs(e) < 1e-7) return Y(s); if (Math.abs(d) < 1e-6) break; s -= e / d; }
+    let lo = 0, hi = 1; s = x;
+    for (let i = 0; i < 40; i++) { const v = X(s); if (Math.abs(v - x) < 1e-7) break; if (v < x) lo = s; else hi = s; s = (lo + hi) / 2; }
+    return Y(s);
+  };
+}
+// Band travel over 0..BAND_GONE: an ease-out whose speed settles to a steady 30% of the start speed
+// instead of falling to zero, so the tail slides off the bottom rather than creeping along it.
+// p(v) = 2.4v - 2.1v^2 + 0.7v^3, which is exactly cubic-bezier(1/3, 0.8, 2/3, 0.9) over 880 ms.
+const easeTide = v => { v = clamp(v); return ((0.7 * v - 2.1) * v + 2.4) * v; };
+const easeInOut = bezier(0.65, 0, 0.35, 1);
+const easeCss = bezier(0.25, 0.1, 0.25, 1);    // browser default "ease", for the reduced-motion dissolve
+const easeCssInOut = bezier(0.42, 0, 0.58, 1); // CSS ease-in-out, for the short pass dissolve
+const outCubic = u => 1 - (1 - clamp(u)) ** 3;
+const inCubic = u => clamp(u) ** 3;
+const inQuad = u => clamp(u) ** 2;
+
+// ---------- state ----------
+const qs = new URLSearchParams(location.search);
+let view = VIEWS[qs.get('view')] ? qs.get('view') : 'desktop';
+let pass = PASSES[qs.get('pass')] ? qs.get('pass') : 'full';
+let T = 0, playing = false, rate = 1, last = 0;
+const total = () => HOLD + PASSES[pass].dur + TAIL;
+
+// ---------- elements ----------
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d', { alpha: false }), stage = $('stage'), wrap = $('wrap'), chrome = $('chrome');
+const hdr = $('hdr'), logo = $('logo'), bar = $('bar'), lw = $('lw'), lwTilt = $('lwTilt'), lwLevel = $('lwLevel');
+const dropG = $('dropG'), dropClipRect = $('dropClipRect');
+const readout = $('readout'), track = $('track'), fill = $('fill'), head = $('head'), holdEl = $('hold'), ticksEl = $('ticks'), beatsEl = $('beats');
+const playBtn = $('play'), slowBtn = $('slow');
+
+// ring surface: 26-unit wave, 2.5 units peak to peak, wide enough for one wave of drift and the tilt
+(function buildRingWater() {
+  const A = 1.25 / 0.75; let d = 'M50 0';
+  for (let x = 50, n = 0; x < 300; x += 13, n++) { const s = n % 2 ? 1 : -1; d += ` C${x + 3.25} ${s * A} ${x + 9.75} ${s * A} ${x + 13} 0`; }
+  $('lwSurf').setAttribute('d', d);
+  $('lwBody').setAttribute('d', d + ' L310 70 L50 70 Z');
+})();
+
+// ---------- images ----------
+const IMG = {};
+function loadImg(src) { if (IMG[src]) return IMG[src].ready; const im = new Image(); im.src = src; const ready = im.decode().then(() => im); IMG[src] = { im, ready }; return ready; }
+const ready = Promise.all(Object.values(VIEWS).flatMap(v => [loadImg(v.old), loadImg(v.neu)]));
+
+// ---------- layout ----------
+let scale = 1, k = 1;
+let loaded = false;
+function layout() {
+  if (!loaded) return;
+  const V = VIEWS[view], r = wrap.getBoundingClientRect();
+  scale = Math.min(r.width / V.W, r.height / V.H);
+  const w = Math.floor(V.W * scale), h = Math.floor(V.H * scale);
+  scale = w / V.W;
+  stage.style.width = w + 'px'; stage.style.height = h + 'px';
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + 'px'; cv.style.height = h + 'px';
+  k = cv.width / V.W;
+  chrome.style.width = V.W + 'px'; chrome.style.height = V.H + 'px'; chrome.style.transform = `scale(${scale})`;
+  hdr.style.width = V.W + 'px'; hdr.style.height = V.header + 'px'; hdr.style.backgroundSize = `${V.W}px ${V.H}px`;
+  logo.style.left = V.logo.x + 'px'; logo.style.top = V.logo.y + 'px'; logo.style.width = LOGO_W + 'px'; logo.style.height = LOGO_H + 'px';
+  if (V.bar) {
+    bar.style.top = V.bar.y + 'px'; bar.style.height = V.bar.h + 'px'; bar.style.width = V.W + 'px';
+    bar.style.backgroundImage = `url(${V.neu})`; bar.style.backgroundSize = `${V.W}px ${V.H}px`; bar.style.backgroundPosition = `0 ${-V.bar.y}px`;
+  }
+  hdrSrc = '';
+  frame(T);
+}
+
+// ---------- the band ----------
+// Card wave: half-period 48 px cubics with controls 12 and 36 px in, as in the --waves tile.
+// A is the control offset; the curve's real amplitude is 0.75 * A.
+function waveFwd(p, yc, A, ph, x0, x1, move) {
+  let n = Math.floor((x0 - ph) / 48); const nEnd = Math.ceil((x1 - ph) / 48);
+  const xs0 = ph + 48 * n; if (move) p.moveTo(xs0, yc); else p.lineTo(xs0, yc);
+  for (; n < nEnd; n++) { const xs = ph + 48 * n, s = (n & 1) ? 1 : -1; p.bezierCurveTo(xs + 12, yc + s * A, xs + 36, yc + s * A, xs + 48, yc); }
+}
+function waveRev(p, yc, A, ph, x0, x1) {
+  const nStart = Math.floor((x0 - ph) / 48); let n = Math.ceil((x1 - ph) / 48) - 1;
+  p.lineTo(ph + 48 * (n + 1), yc);
+  for (; n >= nStart; n--) { const xs = ph + 48 * n, s = (n & 1) ? 1 : -1; p.bezierCurveTo(xs + 36, yc + s * A, xs + 12, yc + s * A, xs, yc); }
+}
+function drawBand(Y, h, a, drift, W) {
+  const yu = Y + a, yl = Y + a + h, A = a / 0.75, x0 = -100, x1 = W + 100;
+  const body = new Path2D();
+  waveFwd(body, yu, A, drift + 48, x0, x1, true);   // trailing edge, half a period out of step
+  waveRev(body, yl, A, drift, x0, x1);              // leading edge
+  body.closePath();
+  ctx.fillStyle = C.navy900; ctx.fill(body);
+  // the business card's wave tile, carried by the band and drifting with its edges, so it moves as one sheet
+  ctx.save(); ctx.clip(body);
+  ctx.strokeStyle = C.cardLine; ctx.lineWidth = 5;
+  for (let y = Y + 12 - 24; y < yl + 24; y += 24) { const p = new Path2D(); waveFwd(p, y, 12, drift, x0, x1, true); ctx.stroke(p); }
+  ctx.restore();
+  // leading edge: a navy ribbon along the card's wave line, foam on its front
+  const rib = new Path2D();
+  waveFwd(rib, yl - 12, A, drift, x0, x1, true);
+  waveRev(rib, yl, A, drift, x0, x1);
+  rib.closePath();
+  ctx.fillStyle = C.navy; ctx.fill(rib);
+  const foam = new Path2D(); waveFwd(foam, yl, A, drift, x0, x1, true);
+  ctx.strokeStyle = C.sky300; ctx.lineWidth = 2; ctx.stroke(foam);
+  const wet = new Path2D(); waveFwd(wet, yu, A, drift + 48, x0, x1, true);
+  ctx.strokeStyle = C.slate; ctx.lineWidth = 2; ctx.stroke(wet);
+}
+
+// ---------- the ring and the drop ----------
+function ringLevel(t) {
+  if (pass === 'full') {
+    if (t < 120) return S_REST;
+    if (t < 600) return lerp(S_REST, S_FULL, outCubic((t - 120) / 480));
+    if (t < 920) return S_FULL;
+    if (t < 1280) return lerp(S_FULL, S_REST, inCubic((t - 920) / 360));
+    return S_REST;
+  }
+  if (pass === 'short') {
+    if (t < 360) return lerp(S_REST, S_SWELL, outCubic(t / 360));
+    if (t < 640) return lerp(S_SWELL, S_REST, inCubic((t - 360) / 280));
+  }
+  return S_REST;
+}
+function ringTilt(t) {
+  if (pass !== 'full' || t <= 400 || t >= 920) return 0;
+  const keys = [0, -4, 1.5, 0], u = (t - 400) / 520 * 3, i = Math.min(2, Math.floor(u));
+  return lerp(keys[i], keys[i + 1], easeInOut(u - i));
+}
+const DX = 148.544, DY = 70.21; // drop tip, where it hangs from the tap
+function setDrop(tx, ty, sx, sy, op, clipY) {
+  dropG.setAttribute('transform', `translate(${tx} ${ty}) translate(${DX} ${DY}) scale(${sx} ${sy}) translate(${-DX} ${-DY})`);
+  dropG.setAttribute('opacity', op);
+  dropClipRect.setAttribute('height', clipY);   // the drop is hidden below the water surface while it falls in
+}
+function setLogo(t) {
+  let S = S_REST, tilt = 0, drift = 0;
+  if (t >= 0 && pass !== 'reduced') {
+    S = ringLevel(t); tilt = ringTilt(t);
+    drift = pass === 'full' ? 26 * clamp(t / 1280) : 26 * clamp(t / 640);
+  }
+  const wet = S < S_REST - 0.01;
+  lw.style.display = wet ? '' : 'none';
+  if (wet) {
+    lwTilt.setAttribute('transform', `rotate(${tilt.toFixed(4)} 163.3 65)`);
+    lwLevel.setAttribute('transform', `translate(${(drift - 26).toFixed(4)} ${S.toFixed(4)})`);
+  }
+  // drop
+  if (t < 0 || pass === 'reduced') return setDrop(0, 0, 1, 1, 1, 200);
+  if (pass === 'full') {
+    if (t < 280) { const e = inQuad(t / 280); return setDrop(0, 34 * e, 1 - 0.2 * e, 1 + 0.4 * e, 1, S); }
+    if (t < 840) return setDrop(0, 0, 1, 1, 0, 200);
+    if (t < 1120) { const u = (t - 840) / 280, e = outCubic(u), s = 0.4 + 0.6 * e; return setDrop(0, 0, s, s, clamp(u / 0.3), 200); }
+    return setDrop(0, 0, 1, 1, 1, 200);
+  }
+  if (t < 240) { const b = Math.sin(Math.PI * easeInOut(t / 240)); return setDrop(0, 10 * b, 1 - 0.1 * b, 1 + 0.18 * b, 1, S); }
+  return setDrop(0, 0, 1, 1, 1, 200);
+}
+
+// ---------- frame(T): everything from T alone ----------
+let hdrSrc = '';
+function frame(Tms) {
+  const V = VIEWS[view], t = Tms - HOLD, oldIm = IMG[V.old].im, newIm = IMG[V.neu].im;
+  ctx.setTransform(k, 0, 0, k, 0, 0); ctx.globalAlpha = 1; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(oldIm, 0, 0, V.W, V.H);
+  let reveal = t >= 0 ? V.H : 0;   // how far down the new page is uncovered (for a bar that arrives with it)
+  if (t >= 0) {
+    if (pass === 'full') {
+      if (t < BAND_GONE) {
+        const h = 0.14 * V.H, a = 8, Y = lerp(-(h + a), V.H, easeTide(t / BAND_GONE)), center = Y + a + h / 2;
+        reveal = clamp(center, 0, V.H);
+        if (center > 0) { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, V.W, center); ctx.clip(); ctx.drawImage(newIm, 0, 0, V.W, V.H); ctx.restore(); }
+        drawBand(Y, h, a, 96 * (t / PASSES.full.dur), V.W);
+      } else ctx.drawImage(newIm, 0, 0, V.W, V.H);
+    } else {
+      const P = PASSES[pass];
+      ctx.globalAlpha = (pass === 'short' ? easeCssInOut : easeCss)(t / P.dur); ctx.drawImage(newIm, 0, 0, V.W, V.H); ctx.globalAlpha = 1;
+      if (t < P.dur) reveal = 0;   // a bar new to this page dissolves in with the page on the canvas
+    }
+  }
+  // header: the new page's live copy sits above everything from t = 0.
+  // Bottom bar: if the old page showed it, it stays above the water from t = 0. If the old page hid it,
+  // it is uncovered with the new page behind the band's center line and sits above the band's tail from then on.
+  const src = t >= 0 ? V.neu : V.old;
+  if (src !== hdrSrc) { hdr.style.backgroundImage = `url(${src})`; hdrSrc = src; }
+  let barShown = 0;
+  if (V.bar && t >= 0) barShown = V.barOnOld ? V.bar.h : clamp(reveal - V.bar.y, 0, V.bar.h);
+  bar.style.display = barShown > 0 ? 'block' : 'none';
+  if (barShown > 0) bar.style.clipPath = barShown < V.bar.h ? `inset(0 0 ${(V.bar.h - barShown).toFixed(2)}px 0)` : '';
+  setLogo(t);
+  ui(Tms, t);
+}
+
+// ---------- transport ----------
+function buildTrack() {
+  const P = PASSES[pass], tot = total();
+  ticksEl.textContent = '';
+  holdEl.style.width = (HOLD / tot * 100) + '%';
+  P.ticks.forEach((tk, i) => {
+    const x = (HOLD + tk) / tot * 100;
+    const d = document.createElement('div'); d.className = 'tick' + (tk === 0 ? ' zero' : ''); d.style.left = x + '%'; ticksEl.appendChild(d);
+    const l = document.createElement('div'); l.className = 'tlab r' + (i % 2); l.style.left = x + '%'; l.textContent = tk; l.title = 'Jump to ' + tk + ' ms';
+    l.addEventListener('pointerdown', e => { e.stopPropagation(); pause(); seek(HOLD + tk); });
+    ticksEl.appendChild(l);
+  });
+  const h = document.createElement('div'); h.className = 'tlab r0'; h.style.left = '0'; h.style.transform = 'none'; h.textContent = 'old page'; ticksEl.appendChild(h);
+  track.setAttribute('aria-valuemax', tot);
+  beatsEl.textContent = '';
+  for (const [a, b, txt] of P.beats) {
+    const d = document.createElement('div'); d.dataset.a = a; d.dataset.b = b;
+    d.innerHTML = `<b>${a === b ? 'at ' + a : a + ' to ' + b} ms</b> ${txt}`;
+    beatsEl.appendChild(d);
+  }
+}
+function ui(Tms, t) {
+  const tot = total(), x = Tms / tot * 100;
+  fill.style.left = (HOLD / tot * 100) + '%'; fill.style.width = Math.max(0, x - HOLD / tot * 100) + '%';
+  head.style.left = x + '%';
+  readout.textContent = (t < 0 ? 'old page, ' + Math.round(t) : Math.round(t)) + ' ms';
+  track.setAttribute('aria-valuenow', Math.round(Tms));
+  for (const d of beatsEl.children) { const a = +d.dataset.a, b = +d.dataset.b; d.classList.toggle('on', a === b ? Math.abs(t - a) < 25 : t >= a && t <= b); }
+}
+const qt = x => Math.round(x * 1000) / 1000;
+function seek(x) { T = qt(clamp(x, 0, total())); frame(T); }
+function play() { if (T >= total()) T = 0; playing = true; last = performance.now(); playBtn.textContent = 'Pause'; }
+function pause() { playing = false; playBtn.textContent = 'Play'; }
+function replay() { T = 0; frame(0); play(); }
+function setPressed(sel, attr, val) { document.querySelectorAll(sel).forEach(b => b.setAttribute('aria-pressed', String(b.dataset[attr] === val))); }
+function set(o = {}) {
+  if (o.view) view = o.view; if (o.pass) pass = o.pass;
+  setPressed('[data-view]', 'view', view); setPressed('[data-pass]', 'pass', pass);
+  buildTrack(); layout();
+}
+document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { set({ view: b.dataset.view }); replay(); });
+document.querySelectorAll('[data-pass]').forEach(b => b.onclick = () => { set({ pass: b.dataset.pass }); replay(); });
+playBtn.onclick = () => playing ? pause() : play();
+$('replay').onclick = replay;
+slowBtn.onclick = () => { rate = rate === 1 ? 0.25 : 1; slowBtn.setAttribute('aria-pressed', String(rate !== 1)); };
+function scrubAt(e) { const r = track.getBoundingClientRect(); seek(clamp((e.clientX - r.left) / r.width) * total()); }
+track.addEventListener('pointerdown', e => { pause(); track.setPointerCapture(e.pointerId); scrubAt(e); });
+track.addEventListener('pointermove', e => { if (track.hasPointerCapture(e.pointerId)) scrubAt(e); });
+addEventListener('keydown', e => {
+  if (e.code === 'Space' && e.target.tagName !== 'BUTTON') { e.preventDefault(); playing ? pause() : play(); }
+  else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); pause(); seek(T + (e.key === 'ArrowRight' ? 10 : -10)); }
+});
+addEventListener('resize', layout);
+
+// frame timing log for verification scripts (rAF timestamps while playing, and frame() cost)
+const stats = { stamps: [], cost: [] };
+function loop(now) {
+  if (playing) {
+    T = qt(T + (now - last) * rate);
+    if (T >= total()) { T = total(); pause(); }
+    const c0 = performance.now(); frame(T); stats.cost.push(performance.now() - c0);
+    stats.stamps.push(now); if (stats.stamps.length > 4000) { stats.stamps.splice(0, 2000); stats.cost.splice(0, 2000); }
+  }
+  last = now;
+  requestAnimationFrame(loop);
+}
+
+window.__anim = {
+  ready, stats,
+  seek(x) { pause(); seek(x); }, seekTransition(t) { pause(); seek(HOLD + t); },
+  pause, play, replay, set, get T() { return T; }, get total() { return total(); }, HOLD,
+  setRate(r) { rate = r; slowBtn.setAttribute('aria-pressed', String(r !== 1)); },
+};
+
+ready.then(() => {
+  loaded = true;
+  set({});
+  if (qs.has('t')) { seek(HOLD + Number(qs.get('t'))); pause(); }
+  else if (qs.has('paused')) { seek(0); pause(); }
+  else replay();   // default: autoplay once, starting with the 600 ms hold on the old page
+  requestAnimationFrame(loop);
+}).catch(err => { document.body.insertAdjacentHTML('afterbegin', '<p>Could not load the screenshots in animatic-assets: ' + err + '</p>'); });
+</script>
+</body>
+</html>
