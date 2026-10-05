@@ -17,13 +17,17 @@ Search the changed files for:
 - `autocomplete="off"` on name, phone, email or address fields;
 - business facts typed into a page instead of read from the placeholder data file;
 - more than one format of the phone number, or a number outside 555-0100 to 555-0199 while the real one is unconfirmed;
+- a placeholder tag label nested inside an `<a>` or `<button>`;
+- a prototype page without `noindex`, or a public build that still has it;
+- address, phone or name passed in a URL;
+- `autocomplete="street-address"` where the form also needs the ZIP;
 - leftover template text, staging URLs, old years, "TODO", "Lorem", empty headings.
 
 Report each hit as `path:line`, what's wrong, the fix.
 
 ## 2. Contracts and research checklist
 
-Check the built pages against the contracts in this skill's SKILL.md and the "must" items (1-12) of section 8 in `docs/research.md`, plus any "should" items the brief adopted. For each, mark pass, fail or not yet built, with the page you checked. Departures the brief records (no financing, no "Google Verified" badge, one technician profile) are passes.
+Check the built pages against the contracts in this skill's SKILL.md and the "must" items (1-12) of section 8 in `docs/research.md`, plus any "should" items the brief adopted. For each, mark pass, fail, not yet built, or deferred to launch, with the page you checked. Departures the brief records (no financing, no "Google Verified" badge, one technician profile) are passes. Three must-items can't pass in a private prototype and are marked "deferred to launch", not fail: 4 (live review rating pulled by API; samples stand in), 9 (Core Web Vitals at the 75th percentile of real visits; only lab numbers exist) and 12 (no placeholders left).
 
 ## 3. Generic-template look
 
@@ -42,7 +46,7 @@ Report these as suggestions, not failures, unless the brief rules them out.
 
 ## 4. Accessibility (WCAG 2.2 AA)
 
-Never call a page AA-compliant without the output of steps a and b in hand.
+Never call a page AA-compliant unless all four steps below are done. An agent can't drive a screen reader reliably, so step d is listed as "for the user to run" until the user reports it; until then the claim is "no failures found in steps a to c".
 
 a. **Automated scan.** Run axe limited to WCAG 2.x A and AA tags against the built page in headed Chrome. Use a pinned, locally installed copy, not a CDN script, and ask before installing it. Report violations, and list axe's "incomplete" results as needing a manual check.
 b. **Keyboard.** Tab through the whole page: every control reachable, order follows the layout, focus always visible and never hidden under the sticky bar or header (2.4.11), no traps, radio groups move with arrow keys, the tag switch and form submit work with Enter or Space.
@@ -57,13 +61,17 @@ Write each finding as: criterion, element (`path:line` or selector), what fails,
 
 - Measure the production build served locally, on a mobile profile, three runs, and report the median. Never measure the dev server.
 - LCP and CLS: Lighthouse page-load runs. Name the LCP element and confirm it's the intended image or heading.
-- INP: a recorded interaction run through the booking flow, ZIP check and tag switch (DevTools live metrics or a Lighthouse timespan recording). Total Blocking Time is a lab stand-in, not INP.
+- INP: a recorded interaction run through the booking flow, ZIP check and tag switch (DevTools live metrics or a Lighthouse timespan recording) with the CPU slowed 4x; an unthrottled desktop run passes too easily to mean anything. Total Blocking Time is a lab stand-in, not INP.
+- Tag switch: CLS ignores shifts within half a second of a tap, so it can't catch the switch moving content. Record the bounding boxes of the main page elements with tags on and off and compare them; any difference is a failure.
+- Speed runs use stand-in images at real size in the photo slots (see build.md), and the report says so.
 - Label every number as lab data. Field data (75th percentile of real visits) exists only after launch.
 - Don't call a target failing or passing from reading code. If you couldn't measure, say "not measured".
 
 ## 6. Forms
 
-For each form: valid submit, invalid submit (focus moves to the first error, message is specific), empty submit, keyboard only, screen reader, browser autofill, and a phone-width run. Check that entered data survives a failed submit and carries into the callback form.
+For each form: valid submit, invalid submit (focus moves to the first error, message is specific), empty submit, keyboard only, and a phone-width run. Check that entered data survives a failed submit and carries into the callback form, and that the confirmation page shows the details without them appearing in the URL.
+
+A fresh browser profile has no saved addresses, so autofill can't be tested there: check the `autocomplete` attributes in the source and list a real-browser autofill test for the user. Screen reader testing of forms joins step d of the accessibility pass.
 
 ## Report format
 

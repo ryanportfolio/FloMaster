@@ -43,12 +43,14 @@ These come from `CLAUDE.md` and the brief. A change that breaks one is wrong eve
 - **Every fee shown before the customer commits**: on the pricing page and next to the booking form.
 - **No stock or AI-generated people.** Empty photo slots are labelled frames describing the shot.
 - **Placeholder phone numbers use 555-0100 to 555-0199.**
+- **Prototype builds stay private:** every page carries `noindex`, and sample reviews keep a visible "sample" label even with tags switched off. The public build removes `noindex`.
+- **No personal data in URLs.** Booking details reach the confirmation page through session storage, never the query string.
 - **Targets:** LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1 on mobile; WCAG 2.2 AA; Call button at least 44x44px, every other target at least 24x24px.
 
 ## Always-on rules
 
 - Plain HTML first. Add JavaScript only for the booking form, ZIP check, placeholder tag switch and similar interactions the brief names, and justify each one.
-- Copy on buttons, labels and errors follows the brief's voice section: first person from the owner, sentence case, straight quotes, one label per action used everywhere. Longer copy goes through `$writing`.
+- Copy on buttons, labels and errors follows the brief's voice section: sentence case, straight quotes, one label per action used everywhere. The first-person owner voice and the tag design are proposals until the brief's open questions record approval; build them as proposed, but don't describe them as settled. Longer copy goes through `$writing`.
 - Interactive elements are real `<a>` or `<button>` elements. No clickable `div`s.
 - Reserve space for anything that appears later (images, validation messages, ZIP result, tags) so nothing shifts.
 

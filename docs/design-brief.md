@@ -340,14 +340,14 @@ Accessibility details the research singles out, since most home pages fail on th
 - **Room to grow.** Astro can add server routes later, which is where our own booking system will live, without moving the static pages to another framework.
 - **Plain CSS** with a small set of variables for colour, spacing and type. The site is small enough that a CSS framework adds setup without saving work.
 
-Considered and not chosen: **Next.js** sends more JavaScript to every page and needs a server runtime the prototype doesn't need. **Hand-written HTML** has no shared components or data. A **site builder** (Wix, Squarespace) can't host our own booking system or the placeholder tags.
+Considered and not chosen: **Next.js** can export static pages too, but it ships its client-side JavaScript runtime on every page and brings build setup this site doesn't need. **Hand-written HTML** has no shared components or data. A **site builder** (Wix, Squarespace) can't host our own booking system or the placeholder tags.
 
 **The booking system is out of scope for the prototype.** The prototype's forms are front-end only, with sample arrival windows. Those choices wait until the owner has answered P29-P30 and we know how he wants to run his day. So the size of that later job is visible now, the real system will need:
 
 - a login for the owner, and a way for him to see and confirm requests from his phone;
 - his calendar and availability, with protection against double booking and correct handling of daylight saving time;
 - a database for bookings, with backups, and a privacy policy that matches what we store;
-- text messages for confirmations, reminders and "on my way". Business texting in the US requires registering the sending number with the carriers (known as A2P 10DLC registration), which takes time and carries fees, and forms need the customer's consent to texts;
+- text messages for confirmations, reminders and "on my way". Business texting from an ordinary 10-digit US number requires registering with the carriers (known as A2P 10DLC registration); toll-free numbers and short codes go through their own approval processes instead. Each route takes time and carries fees, and forms need the customer's consent to texts;
 - scheduled jobs for reminders, which a static host can't run;
 - appointment links that can't be guessed and that expire;
 - spam protection on the forms;
