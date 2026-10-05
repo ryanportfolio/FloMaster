@@ -3,6 +3,7 @@ import Base from "../layouts/Base.astro";
 import PageHero from "../components/PageHero.astro";
 import FeeTable from "../components/FeeTable.astro";
 import Fact from "../components/Fact.astro";
+import FactBlock from "../components/FactBlock.astro";
 import CallToAction from "../components/CallToAction.astro";
 import { services } from "../data/services";
 import { facts } from "../data/facts";
@@ -20,14 +21,13 @@ import { facts } from "../data/facts";
         <h2>How I charge</h2>
         <p><Fact k="pricingModel" /></p>
         <h3>How I quote</h3>
-        <ol class="quote-steps">
+        <FactBlock k="quoting"><ol class="quote-steps">
           <li><strong>I look first.</strong> I find the cause before I name a price.</li>
           <li><strong>You get the price in writing</strong> before any work starts, with repair and replacement options side by side when there's a choice.</li>
           <li><strong>Repair first.</strong> I only recommend replacing something when a repair won't last.</li>
           <li><strong>No surprises mid-job.</strong> If I find something new, I stop and show you before the price changes.</li>
           <li><strong>Pay when it's done.</strong> <Fact k="payment" />. No cash-only jobs, no full payment up front.</li>
-        </ol>
-        <p class="small"><Fact k="quoting" text="Every promise above is one I keep on every job." /></p>
+        </ol></FactBlock>
       </div>
     </div>
   </section>

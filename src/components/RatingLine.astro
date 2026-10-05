@@ -1,7 +1,7 @@
 ---
 import Fact from "./Fact.astro";
 import Icon from "./Icon.astro";
-import { reviews, ago } from "../data/reviews";
+import { reviews, shortDate } from "../data/reviews";
 interface Props { class?: string }
 const { class: cls } = Astro.props;
 const newest = reviews[0];
@@ -11,7 +11,7 @@ const newest = reviews[0];
   <span>
     <strong class="num"><Fact k="rating" plain /></strong> stars from <span class="num"><Fact k="reviewCount" plain /></span> <Fact k="reviewSource" plain /> reviews
     <span class="sep" aria-hidden="true">·</span>
-    <span class="newest">newest {ago(newest.date)}</span>
+    <span class="newest">newest review {shortDate(newest.date)}</span>
   </span>
 </a>
 

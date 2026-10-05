@@ -15,7 +15,7 @@ import { cities } from "../data/area";
         License <span class="num">#{facts.license.value}</span><br />
         <a class="num" href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a>
       </p>
-      <p class="small"><Fact k="contractorLicense" /></p>
+      <p class="small"><Fact k="contractorLicense" onlyWithTags /></p>
       <p class="small"><Fact k="insurance" /> · <Fact k="bonded" /></p>
     </div>
     <div>

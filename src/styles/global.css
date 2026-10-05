@@ -135,6 +135,12 @@ ul, ol { padding-left: 1.2em; }
 }
 .tags-on .fact-tag:hover .fact-q, .tags-on .fact-tag:focus .fact-q { display: block; }
 .tips-hidden .fact-q { display: none !important; }
+.fact-block { position: relative; }
+.tags-on .fact-block[data-open] { outline: 2px dashed #e0a100; outline-offset: 6px; border-radius: 4px; }
+.tags-on .fact-tag--block { left: -6px; bottom: auto; top: -6px; transform: translateY(-100%); }
+/* Open facts that would mislead if read as real (a credential number) show only with tags on. */
+.tags-only { display: none !important; }
+.tags-on .tags-only { display: revert !important; }
 
 .tags-on .photo-tag {
   display: block; position: absolute; left: 0.75rem; top: 0.75rem; z-index: 5;

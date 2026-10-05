@@ -3,6 +3,7 @@ import Base from "../layouts/Base.astro";
 import PageHero from "../components/PageHero.astro";
 import Photo from "../components/Photo.astro";
 import Fact from "../components/Fact.astro";
+import FactBlock from "../components/FactBlock.astro";
 import Icon from "../components/Icon.astro";
 import commercial from "../assets/photos/commercial.jpg";
 import { facts } from "../data/facts";
@@ -23,17 +24,17 @@ import { facts } from "../data/facts";
           <li>Sewer camera inspections with video for your records</li>
         </ul>
         <h2>How it works with a business</h2>
-        <ul class="ticks">
+        <FactBlock k="commercialOffer"><ul class="ticks">
           <li><strong>Scheduled around you:</strong> early mornings, after close or weekends, so customers and staff aren't disturbed.</li>
           <li><strong>Paperwork:</strong> a certificate of insurance on request, a written quote before work, and an itemized invoice.</li>
           <li><strong>One contact:</strong> you deal with me directly, every time.</li>
-        </ul>
-        <p class="small"><Fact k="commercialOffer" text="Services and terms above are a starting point." /> <Fact k="insurance" />. <Fact k="contractorLicense" />.</p>
+        </ul></FactBlock>
+        <p class="small"><Fact k="insurance" />. <Fact k="contractorLicense" onlyWithTags /></p>
       </div>
 
       <form class="visit panel" data-visit novalidate>
         <h2 class="v-h">Request a site visit</h2>
-        <p class="small muted">I'll call within one working day to set a time.</p>
+        <p class="small muted"><Fact k="commercialOffer" text="I'll call within one working day to set a time." /></p>
         <div class="field">
           <label for="biz">Business name</label>
           <input id="biz" name="biz" type="text" autocomplete="organization" aria-describedby="err-biz" />

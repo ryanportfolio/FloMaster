@@ -49,13 +49,9 @@ export const reviews: Review[] = [
   },
 ];
 
-export function ago(iso: string, now = new Date("2026-10-05T12:00:00-04:00")): string {
-  const days = Math.round((now.getTime() - new Date(iso + "T12:00:00-04:00").getTime()) / 86400000);
-  if (days <= 0) return "today";
-  if (days === 1) return "yesterday";
-  if (days < 14) return `${days} days ago`;
-  if (days < 60) return `${Math.round(days / 7)} weeks ago`;
-  return `${Math.round(days / 30)} months ago`;
+// Absolute dates only: a static build can't keep "3 days ago" true.
+export function shortDate(iso: string): string {
+  return new Date(iso + "T12:00:00-04:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 export function longDate(iso: string): string {

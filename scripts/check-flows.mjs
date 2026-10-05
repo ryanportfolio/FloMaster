@@ -85,6 +85,18 @@ try {
   check("tag switch moves nothing on the page", on === off);
   check("switch updates aria-pressed", (await page.getAttribute("[data-tag-switch]", "aria-pressed")) === "false");
 
+  // 5b. Misleading placeholders (the contractor licence number) appear only with tags on.
+  for (const p of ["/about", "/commercial", "/"]) {
+    await page.goto(`${base}${p}?tags=off`);
+    const offVisible = await page.evaluate(() => document.body.innerText.includes("2705-"));
+    await page.goto(`${base}${p}?tags=on`);
+    const onVisible = await page.evaluate(() => document.body.innerText.includes("2705-"));
+    check(`placeholder contractor licence hidden with tags off, shown with tags on (${p})`, !offVisible && onVisible);
+  }
+  await page.goto(`${base}/reviews?tags=off`);
+  check("reviews page makes no 'I don't pick and choose' claim", !(await page.evaluate(() => document.body.innerText.includes("pick and choose"))));
+  check("no relative 'days ago' dates anywhere on home", !(await page.goto(`${base}/`).then(() => page.evaluate(() => /days? ago|weeks? ago/.test(document.body.innerText)))));
+
   // 6. Sticky bar waits on the home page, shows on inner pages.
   await page.goto(`${base}/`);
   check("sticky bar hidden while hero buttons visible", await page.evaluate(() => document.querySelector("[data-sticky]").classList.contains("is-waiting")));

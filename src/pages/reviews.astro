@@ -8,7 +8,8 @@ import CallToAction from "../components/CallToAction.astro";
 import { reviews } from "../data/reviews";
 ---
 <Base title="Reviews" description="What FloMasters customers across Hampton Roads say, newest first, with Antonio's replies.">
-  <PageHero title="Reviews, newest first" lead="Every review, good or bad, straight from the review site. I don't pick and choose.">
+  <PageHero title="Reviews, newest first">
+    <p class="lead"><Fact k="reviewPolicy" /></p>
     <RatingLine class="rl" />
   </PageHero>
   <section class="section">

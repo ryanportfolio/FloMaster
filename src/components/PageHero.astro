@@ -14,7 +14,7 @@ const { title, lead, crumb, actions = false, emergency = false } = Astro.props;
     <slot />
     {actions && (
       <div class="ph-actions" data-hero-actions>
-        <a class={`btn ${emergency ? "btn--signal" : "btn--signal"}`} href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> Call {facts.phone.value}</a>
+        <a class={`btn ${emergency ? "btn--signal" : "btn--ghost"}`} href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> Call {facts.phone.value}</a>
         {!emergency && <a class="btn btn--primary" href="/book"><Icon name="calendar" /> Book a time</a>}
         {emergency && <a class="btn btn--ghost" href="/book#callback"><Icon name="text" /> Ask for a callback</a>}
       </div>

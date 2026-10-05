@@ -12,8 +12,8 @@ const { title = "Need a plumber?" } = Astro.props;
       <p class="lead">Call, book online, or leave your number and I'll call you back <Fact k="callback" />.</p>
     </div>
     <div class="cta-actions">
-      <a class="btn btn--signal" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> Call {facts.phone.value}</a>
-      <a class="btn btn--navy" href="/book"><Icon name="calendar" /> Book a time</a>
+      <a class="btn btn--primary" href="/book"><Icon name="calendar" /> Book a time</a>
+      <a class="btn btn--ghost" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> Call {facts.phone.value}</a>
       <a class="btn btn--ghost" href="/book#callback"><Icon name="text" /> Ask for a callback</a>
     </div>
   </div>

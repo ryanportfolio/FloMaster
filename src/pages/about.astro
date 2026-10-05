@@ -3,6 +3,7 @@ import Base from "../layouts/Base.astro";
 import PageHero from "../components/PageHero.astro";
 import Photo from "../components/Photo.astro";
 import Fact from "../components/Fact.astro";
+import FactBlock from "../components/FactBlock.astro";
 import CardBack from "../components/CardBack.astro";
 import CallToAction from "../components/CallToAction.astro";
 import hero from "../assets/photos/hero.jpg";
@@ -15,23 +16,23 @@ import { facts } from "../data/facts";
     <div class="wrap ab">
       <div class="story">
         <p class="lead">I've been a plumber for <Fact k="yearsInTrade" />. I started FloMasters in {facts.established.value} because I wanted customers to get what I'd want in my own house: a straight answer, a fair price written down before the work starts, and the same person from the phone call to the clean-up.</p>
-        <p>There's no call center and no sales team. When you call, I pick up, or I call you back as soon as I'm out from under the sink. When you book, I'm the one who turns up, and I'm the one who stands behind the work.</p>
+        <FactBlock k="workPromises"><p>There's no call center and no sales team. When you call, I pick up, or I call you back as soon as I'm out from under the sink. When you book, I'm the one who turns up, and I'm the one who stands behind the work.</p></FactBlock>
         <h2>How I work</h2>
-        <ul class="ticks">
+        <FactBlock k="workPromises"><ul class="ticks">
           <li>I find the cause before I name a price.</li>
           <li>You get repair and replacement prices side by side, and you choose.</li>
           <li>I show you the old part and explain what failed.</li>
           <li>Drop cloths down, mess cleaned up, everything tested before I leave.</li>
           <li><Fact k="laborWarranty" /> on every job.</li>
-        </ul>
+        </ul></FactBlock>
         <h2>Licensed and insured</h2>
         <ul class="creds">
           <li><strong>Virginia Master Plumber</strong><span class="num">License #{facts.license.value}</span></li>
-          <li><strong>Contractor license</strong><span><Fact k="contractorLicense" /></span></li>
+          {facts.contractorLicense.status === "confirmed" ? <li><strong>Contractor license</strong><span>{facts.contractorLicense.value}</span></li> : <li class="tags-only"><strong>Contractor license</strong><span><Fact k="contractorLicense" /></span></li>}
           <li><strong>Insurance</strong><span><Fact k="insurance" /></span></li>
           <li><strong>Bonding</strong><span><Fact k="bonded" /></span></li>
         </ul>
-        <p class="small muted">You can check a Virginia license on the Department of Professional and Occupational Regulation (DPOR) license lookup.</p>
+        <p class="small">Check my license yourself on the <a href="https://www.dpor.virginia.gov/LicenseLookup" rel="noopener">Virginia DPOR license lookup</a>: search for license <span class="num">{facts.license.value}</span>.</p>
       </div>
       <div class="pics">
         <Photo src={portrait} fact="portrait" alt="Antonio Spence in his navy FloMasters work shirt" widths={[480, 768, 1024]} sizes="(min-width: 1000px) 420px, 100vw" class="ab-portrait" shot="portrait" />
@@ -48,6 +49,7 @@ import { facts } from "../data/facts";
   @media (min-width: 1000px) { .ab { grid-template-columns: minmax(0, 1fr) 26rem; align-items: start; } }
   .story h2 { font-size: var(--step-2); margin-top: var(--space-4); }
   .creds { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: 0; }
+  :global(.tags-on) .creds li.tags-only { display: grid !important; }
   .creds li { display: grid; grid-template-columns: 12rem 1fr; gap: 1rem; padding: 0.7rem 0; border-bottom: 1px solid var(--line); }
   @media (max-width: 560px) { .creds li { grid-template-columns: 1fr; gap: 0; } }
   .pics { display: grid; gap: 1.5rem; justify-items: center; }

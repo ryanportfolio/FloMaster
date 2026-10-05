@@ -2,6 +2,7 @@
 import Base from "../layouts/Base.astro";
 import Photo from "../components/Photo.astro";
 import Fact from "../components/Fact.astro";
+import FactBlock from "../components/FactBlock.astro";
 import Icon from "../components/Icon.astro";
 import CardBack from "../components/CardBack.astro";
 import RatingLine from "../components/RatingLine.astro";
@@ -14,7 +15,7 @@ import portrait from "../assets/photos/portrait.jpg";
 import emergency from "../assets/photos/emergency.jpg";
 import { facts } from "../data/facts";
 import { services } from "../data/services";
-import { reviews, ago } from "../data/reviews";
+import { reviews, shortDate } from "../data/reviews";
 import { cities } from "../data/area";
 const newest = reviews[0];
 ---
@@ -64,7 +65,7 @@ const newest = reviews[0];
   <section class="section">
     <div class="wrap split">
       <div class="quote">
-        <p class="quote-k muted">Newest review · {ago(newest.date)} · <span class="sample-label">Sample review</span></p>
+        <p class="quote-k muted">Newest review · {shortDate(newest.date)} · <span class="sample-label">Sample review</span></p>
         <blockquote>
           <p>“{newest.text}”</p>
         </blockquote>
@@ -73,11 +74,11 @@ const newest = reviews[0];
       </div>
       <div class="price-promise panel">
         <h2>How I price</h2>
-        <ol class="steps">
+        <FactBlock k="quoting"><ol class="steps">
           <li><strong>You see the price before I start.</strong> A written, flat price for the job. No hourly meter.</li>
           <li><strong>Every fee is on the website.</strong> Call-out <Fact k="calloutFee" />, <Fact k="calloutCredited" />. No card fee.</li>
           <li><strong>Repair first.</strong> If a repair will do, I'll say so before quoting a replacement.</li>
-        </ol>
+        </ol></FactBlock>
         <a class="btn btn--navy" href="/pricing">See prices and fees</a>
       </div>
     </div>
@@ -121,12 +122,12 @@ const newest = reviews[0];
       <div>
         <h2>One plumber. The same one, every time.</h2>
         <p class="lead">I'm Antonio Spence. I started FloMasters in {facts.established.value} after <Fact k="yearsInTrade" /> working for other companies, because I wanted to do the job the way I'd want it done in my own house.</p>
-        <ul class="ticks">
+        <FactBlock k="workPromises"><ul class="ticks">
           <li>The person who answers the phone is the person who shows up.</li>
           <li>I explain what I find and show you the old part.</li>
           <li>Drop cloths down, mess cleaned up, water tested before I leave.</li>
           <li>Virginia Master Plumber, license <span class="num">#{facts.license.value}</span>.</li>
-        </ul>
+        </ul></FactBlock>
         <a href="/about">More about me <Icon name="arrow" class="i-arrow" /></a>
       </div>
     </div>
@@ -196,8 +197,8 @@ const newest = reviews[0];
         <p class="lead">Call, book online, or leave your number and I'll call you back <Fact k="callback" />.</p>
       </div>
       <div class="closing-actions">
-        <a class="btn btn--signal" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> Call {facts.phone.value}</a>
         <a class="btn btn--primary" href="/book"><Icon name="calendar" /> Book a time</a>
+        <a class="btn btn--ghost" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> Call {facts.phone.value}</a>
         <a class="btn btn--ghost" href="/book#callback"><Icon name="text" /> Ask for a callback</a>
       </div>
     </div>

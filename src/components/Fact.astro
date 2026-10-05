@@ -1,16 +1,18 @@
 ---
 // Renders one business fact. Open facts get a "confirm this" tag in the
 // prototype. Use `plain` inside links and buttons: outline only, no focusable
-// label (the question still appears on /review).
+// label (the question still appears on /review). Use `onlyWithTags` for open
+// facts that would mislead if read as real (a credential number): they render
+// only while tags are on.
 import { facts, isPublicBuild, type FactKey } from "../data/facts";
-interface Props { k: FactKey; plain?: boolean; text?: string }
-const { k, plain = false, text } = Astro.props;
+interface Props { k: FactKey; plain?: boolean; text?: string; onlyWithTags?: boolean }
+const { k, plain = false, text, onlyWithTags = false } = Astro.props;
 const fact = facts[k];
 const open = fact.status === "open" && !isPublicBuild;
 const value = text ?? fact.value;
 ---
 {open ? (
-  <span class="fact" data-open>{value}{!plain && (
+  <span class:list={["fact", { "tags-only": onlyWithTags }]} data-open>{value}{!plain && (
     <span class="fact-tag" tabindex="0">Confirm {fact.code}<span class="fact-q" role="tooltip">{fact.question}</span></span>
   )}</span>
 ) : value}

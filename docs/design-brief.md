@@ -374,6 +374,13 @@ The user's direction: build the best possible version of the site as a base to s
 9. **Licence:** the header line leaves room for two numbers (business contractor licence and master plumber licence) until the owner confirms which he holds.
 10. **Stack:** Astro with plain CSS, as section 11 recommends.
 
+### Decided after the first build (2026-10-05)
+
+11. **Visuals are the priority.** Antonio's feedback will mostly be the real numbers and facts, not design direction, so the base design has to be finished and compelling on its own. The first build was judged too flat; the next passes add structure, depth and one trade-tied interactive moment.
+12. **Art:** drawn line art (valve states, an X-ray of pipes in a wall, a house of problem spots) and AI-generated images are both acceptable, as are advanced 2D/3D effects where they make sense, as long as mobile Core Web Vitals stay good and every effect has a reduced-motion state.
+13. **Orange marks the emergency path only.** Planned-service pages use an outlined Call button; the mobile sticky bar's Call stays orange because it is the emergency route on every page.
+14. **Misleading placeholders stay hidden.** An open fact that would read as a real credential (the contractor licence number) shows only while tags are on. Promises written into page copy (how quotes work, how jobs run) are tagged as blocks, the same as single facts.
+
 ### Still open
 
 1. **Hosting** for the private review link (password or access control, `noindex`).

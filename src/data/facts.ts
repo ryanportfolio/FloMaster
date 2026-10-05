@@ -51,6 +51,8 @@ export const facts = {
   reviewSource: f("P21", "Review source", "Google", "Where are your reviews (Google, Yelp, Nextdoor, Angi)?", ["Hero", "Reviews"]),
   rating: f("P22", "Rating", "4.9", "What is your current star rating?", ["Hero", "Reviews"]),
   reviewCount: f("P22", "Review count", "86", "How many reviews do you have?", ["Hero", "Reviews"]),
+  reviewPolicy: f("P23", "Review policy", "Newest first, every review shown in full, good or bad, with my replies.", "Will the site show all your reviews in full, including low ratings? (Recommended: yes, pulled live from the review site.)", ["Reviews"]),
+  workPromises: f("P38", "How I work", "", "Are you comfortable promising each of these on every job: you answer the phone and do the work yourself; you show the customer the old part; drop cloths down and clean-up; everything tested before you leave?", ["Home", "About"]),
   reviewReplies: f("P24", "Review replies", "I read and reply to every review myself.", "Who replies to your reviews?", ["Reviews"]),
   yearsInTrade: f("P31", "Years in the trade", "18 years", "How many years have you worked as a plumber, including before FloMasters?", ["Trust strip", "About"]),
   bookingConfirm: f("P30", "Booking confirmation", "I'll text you within an hour during working hours to confirm this time.", "Should online bookings confirm instantly, or wait for you to confirm by text? How fast can you confirm?", ["Book", "Confirmation"]),
