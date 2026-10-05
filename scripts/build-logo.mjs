@@ -84,7 +84,12 @@ const r = CAP * 0.62;
 const ringX = fl.width + gap + r;
 const masters = word("MASTERS", ringX + r + gap);
 const width = Math.ceil(ringX + r + gap + masters.width);
-const top = BASE - CAP - 6, height = Math.ceil(CAP + 12);
+// The ring (plus half its stroke) stands taller than the capitals; size the
+// box from whichever is taller so neither gets clipped.
+const ringHalf = r + (r * 0.2) / 2 + 1.5;
+const mid = BASE - CAP / 2;
+const top = Math.min(BASE - CAP - 6, mid - ringHalf);
+const height = Math.ceil(Math.max(BASE + 6, mid + ringHalf) - top);
 
 const wordmark = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 ${top.toFixed(1)} ${width} ${height}" role="img" aria-label="FloMasters">
 <path d="${fl.d}${masters.d}" fill="var(--logo-text, #ffffff)"/>
