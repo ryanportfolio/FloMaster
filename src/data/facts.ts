@@ -33,6 +33,7 @@ export const facts = {
   bonded: f("P06", "Bonding", "Bonded", "Are you bonded? If so, for how much?", ["Trust strip", "Footer"]),
   emergency247: f("P07", "24/7 service", "24/7 emergency line", "Do you take emergency calls 24 hours a day, 7 days a week? If not, what hours?", ["Hero", "Emergency", "Footer"]),
   afterHoursAnswer: f("P08", "Who answers after hours", "You reach me directly, day or night", "Who answers the phone after hours: you, or an answering service?", ["Emergency"]),
+  valveTypes: f("P39", "Shut-off valve types", "Wheel valve: turn it right (clockwise) until it stops. Lever valve: a quarter turn, lever across the pipe means off.", "Which shut-off valves do you see most in Hampton Roads homes, and is 'turn right until it stops' / 'lever across the pipe' the advice you give?", ["Home", "Emergency"]),
   emergencyArrival: f("P09", "Emergency arrival time", "usually there within 60 minutes", "How fast can you usually reach an emergency in the 7 cities?", ["Emergency", "FAQ"]),
   hours: f("P10", "Working hours", "Mon to Fri 7 a.m. to 6 p.m., Sat 8 a.m. to 1 p.m.", "What are your regular working hours?", ["Footer", "Service area", "FAQ"]),
   callback: f("P11", "Callback time", "within 30 minutes during working hours", "When someone leaves their number, how fast can you call back?", ["Book", "Emergency"]),
@@ -63,6 +64,7 @@ export const facts = {
   commercialOffer: f("P33", "Commercial offer", "", "What do you offer commercial customers (scheduling around opening hours, certificate of insurance, invoicing terms, backflow testing)?", ["Commercial"]),
   serviceList: f("P32", "Service pages", "", "Which jobs should have their own page, and which do you want fewer of?", ["Residential", "Book"]),
   windows: f("P29", "Arrival windows", "", "Which arrival windows can you commit to (for example two-hour windows, weekdays)?", ["Book"]),
+  sampleJob: f("P40", "Sample job (repair story)", "Norfolk kitchen: rusted sink trap found, replaced with PVC, leak-tested dry, price from the listed range", "Can you give me one real job to show here: what failed, how you found it, what you changed, how you tested it, and the written price? A sink or water heater job works best.", ["Home"]),
   zipList: f("P32", "Service area ZIP codes", "", "Which ZIP codes do you cover fully, and which only sometimes?", ["Service area", "Book"]),
 } satisfies Record<string, Fact>;
 
@@ -73,7 +75,7 @@ export const photoFacts = {
   portrait: f("P25", "Owner portrait", "AI-generated stand-in", "Can we take a portrait of you in work clothes, outside, in morning light?", ["Hero", "About", "Confirmation"]),
   hero: f("P26", "Owner with van", "AI-generated stand-in", "Can we photograph you beside your van on a residential street?", ["Home", "About"]),
   jobs: f("P27", "Job photos", "AI-generated stand-ins", "Can we photograph real jobs (drain, water heater, repipe, fixture, sewer camera, commercial)?", ["Service pages", "Home"]),
-  beforeAfter: f("P28", "Before and after", "AI-generated stand-in", "Do you have before/after photos, and will those customers agree to them being shown?", ["Home", "Service pages"]),
+  beforeAfter: f("P28", "Before and after", "AI-generated stand-in", "Can you photograph one real job in four shots from the same spot (the problem, the cause up close, the repair, the finished test), and will that customer agree to them being shown?", ["Home", "Service pages"]),
 };
 
 export const allFacts: Fact[] = (() => {

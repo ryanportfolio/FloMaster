@@ -1,0 +1,25 @@
+---
+// Heading block for a home page section: an optional small label, the h2, and
+// an optional lead or link in the slot. `split` puts the slot beside the heading
+// on wide screens.
+interface Props { eyebrow?: string; title: string; id?: string; split?: boolean; class?: string }
+const { eyebrow, title, id, split = false, class: cls } = Astro.props;
+---
+<div class:list={["sh", { "sh--split": split }, cls]}>
+  <div class="sh-title">
+    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+    <h2 id={id}>{title}</h2>
+  </div>
+  {Astro.slots.has("default") && <div class="sh-aside"><slot /></div>}
+</div>
+
+<style>
+  .sh { margin-bottom: var(--space-4); }
+  .sh h2 { margin: 0; max-width: 20ch; }
+  .sh-aside { margin-top: 0.85rem; }
+  .sh-aside :global(p) { margin: 0; }
+  @media (min-width: 900px) {
+    .sh--split { display: flex; align-items: end; justify-content: space-between; gap: 1rem 3rem; }
+    .sh--split .sh-aside { margin-top: 0; max-width: 30rem; padding-bottom: 0.35rem; }
+  }
+</style>

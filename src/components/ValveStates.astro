@@ -1,0 +1,172 @@
+---
+// First emergency step: turn off the main water shut-off. Two line-art valves
+// (wheel and lever, seen from above) are real toggle buttons: pressing one plays
+// its turn once and switches its label from "Open" to "Off"; pressing again turns
+// it back. Under reduced motion the global rule removes the transitions, so a
+// press jumps straight to the drawn end state. The valve advice is an open fact
+// (valveTypes) until Antonio confirms it.
+import FactBlock from "./FactBlock.astro";
+interface Props { tone?: "navy" | "light"; level?: 2 | 3; step?: string; class?: string }
+const { tone = "light", level = 2, step, class: cls } = Astro.props;
+const Title = level === 3 ? "h3" : "h2";
+---
+<div class:list={["vs", `vs--${tone}`, cls]}>
+  <Title class="vs-title">{step && <span class="vs-step">{step}</span>}<span>Turn off the main water shut-off</span></Title>
+  <p class="vs-where">It's usually where the water line comes into the house: garage, utility room, under the kitchen sink or crawlspace.</p>
+  <FactBlock k="valveTypes">
+    <p class="vs-hint">Press a valve to see which way it turns.</p>
+    <div class="vs-grid">
+      <button type="button" class="vs-valve vs-valve--wheel" aria-pressed="false" data-valve>
+        <svg class="vs-art" viewBox="0 0 240 150" width="240" height="150" aria-hidden="true" focusable="false">
+          <g class="vs-pipe">
+            <path d="M14 72H64M14 96H64M176 72H226M176 96H226" />
+            <rect x="64" y="66" width="12" height="36" rx="3" />
+            <rect x="164" y="66" width="12" height="36" rx="3" />
+          </g>
+          <path class="vs-water" d="M22 84H58" />
+          <path class="vs-water vs-water--down" d="M182 84H218" />
+          <g class="vs-dir">
+            <path d="M66.3 53A62 62 0 0 1 173.7 53" />
+            <path d="M162.6 47.8L173.7 53L174.8 40.8" />
+          </g>
+          <g class="vs-move vs-wheel">
+            <circle class="vs-rim" cx="120" cy="84" r="44" />
+            <circle cx="120" cy="84" r="34" />
+            <circle cx="120" cy="84" r="8" />
+            <path d="M120 76V50M127.6 81.5L152.3 73.5M124.7 90.5L140 111.5M115.3 90.5L100 111.5M112.4 81.5L87.7 73.5" />
+            <circle class="vs-knob" cx="120" cy="40" r="5" />
+          </g>
+          <circle class="vs-ghost" cx="120" cy="40" r="7" />
+        </svg>
+        <span class="vs-text">
+          <span class="vs-name">Wheel valve</span>
+          <span class="vs-how">Turn it right, clockwise, until it stops.</span>
+          <span class="vs-state" data-valve-state>Open</span>
+        </span>
+      </button>
+      <button type="button" class="vs-valve vs-valve--lever" aria-pressed="false" data-valve>
+        <svg class="vs-art" viewBox="0 0 240 150" width="240" height="150" aria-hidden="true" focusable="false">
+          <g class="vs-pipe">
+            <path d="M14 72H72M14 96H72M168 72H226M168 96H226" />
+            <rect x="72" y="68" width="12" height="32" rx="3" />
+            <rect x="156" y="68" width="12" height="32" rx="3" />
+            <rect class="vs-body" x="84" y="64" width="72" height="40" rx="12" />
+          </g>
+          <path class="vs-water" d="M22 84H64" />
+          <path class="vs-water vs-water--down" d="M176 84H218" />
+          <g class="vs-dir">
+            <path d="M69.2 60.3A56 56 0 0 1 105.5 29.9" />
+            <path d="M98.5 38.5L105.5 29.9L95.1 25.9" />
+          </g>
+          <rect class="vs-ghost" x="46" y="76" width="82" height="16" rx="8" />
+          <g class="vs-move vs-lever">
+            <rect class="vs-rim" x="46" y="76" width="82" height="16" rx="8" />
+            <path d="M54 84H80" />
+          </g>
+          <circle class="vs-pivot" cx="120" cy="84" r="6" />
+        </svg>
+        <span class="vs-text">
+          <span class="vs-name">Lever valve</span>
+          <span class="vs-how">A quarter turn. Lever across the pipe means off.</span>
+          <span class="vs-state" data-valve-state>Open</span>
+        </span>
+      </button>
+    </div>
+  </FactBlock>
+  <slot />
+</div>
+
+<script>
+  for (const btn of document.querySelectorAll<HTMLButtonElement>("[data-valve]")) {
+    btn.addEventListener("click", () => {
+      const off = btn.getAttribute("aria-pressed") !== "true";
+      btn.setAttribute("aria-pressed", String(off));
+      const label = btn.querySelector("[data-valve-state]");
+      if (label) label.textContent = off ? "Off" : "Open";
+    });
+  }
+</script>
+
+<style>
+  /* Colours per surface. Every stroke that carries meaning is 3:1 or better on its tile. */
+  .vs--navy {
+    --vs-bg: var(--navy-950); --vs-edge: var(--slate); --vs-line: var(--sky); --vs-pipe: var(--slate);
+    --vs-water: var(--sky-300); --vs-arrow: var(--sky-300); --vs-text: var(--white); --vs-soft: var(--sky-300);
+    background: var(--navy-900); border-radius: var(--radius-lg); padding: var(--space-3) 1.25rem;
+    box-shadow: 0 0 0 1px rgb(169 210 234 / 0.2), var(--shadow-3);
+  }
+  @media (min-width: 640px) { .vs--navy { padding: var(--space-4) var(--space-3) var(--space-3); } }
+  .vs--light {
+    --vs-bg: var(--white); --vs-edge: var(--line); --vs-line: var(--navy); --vs-pipe: var(--slate);
+    --vs-water: var(--sky); --vs-arrow: var(--navy); --vs-text: var(--ink); --vs-soft: var(--ink-soft);
+  }
+  .vs { container-type: inline-size; }
+
+  .vs-title { display: flex; align-items: flex-start; gap: 0.85rem; margin: 0 0 0.5rem; font-size: var(--step-2); line-height: 1.15; color: var(--vs-text); }
+  .vs--light .vs-title { color: var(--navy-900); }
+  .vs-step { flex: none; display: grid; place-content: center; width: 2.5rem; height: 2.5rem; margin-top: -0.1rem; border-radius: 50%; background: var(--sky); color: var(--navy-950); font-size: 1.25rem; line-height: 1; }
+  .vs-where { margin: 0 0 1.25rem; font-size: var(--step--1); line-height: 1.5; color: var(--vs-soft); }
+  .vs-hint { margin: 0 0 0.6rem; font-size: var(--step--1); font-weight: 600; color: var(--vs-soft); }
+
+  .vs-grid { display: grid; gap: 0.75rem; margin-bottom: 0.25rem; }
+  /* Tiles: stacked in a very narrow column, drawing beside the text on a phone, two across when there is room. */
+  .vs-valve {
+    display: grid; grid-template-columns: 1fr; align-items: center; gap: 0.5rem;
+    width: 100%; min-height: 44px; margin: 0; padding: 0.6rem 0.9rem 0.6rem 0.5rem;
+    font: inherit; text-align: left; color: var(--vs-text); cursor: pointer;
+    background: var(--vs-bg); border: 2px solid var(--vs-edge); border-radius: var(--radius);
+    transition: border-color 0.15s;
+  }
+  .vs--light .vs-valve { box-shadow: var(--ring), var(--shadow-1); }
+  .vs-valve:hover, .vs-valve[aria-pressed="true"] { border-color: var(--vs-line); }
+  .vs--light .vs-valve:hover { border-color: var(--slate); }
+  .vs--light .vs-valve[aria-pressed="true"] { border-color: var(--vs-line); }
+  .vs-art { display: block; width: 100%; max-width: 11rem; justify-self: center; height: auto; overflow: visible; }
+  .vs-text { display: flex; flex-direction: column; align-items: flex-start; gap: 0.2rem; }
+  .vs-name { font: 700 1.125rem/1.2 var(--font-slab); }
+  .vs-how { font-size: var(--step--1); line-height: 1.4; color: var(--vs-soft); }
+  .vs-state {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-width: 4.75rem; margin-top: 0.35rem;
+    padding: 0.2rem 0.7rem; border: 2px solid var(--vs-line); border-radius: 999px;
+    font: 700 0.9375rem/1.3 var(--font-body); color: var(--vs-line);
+  }
+  .vs-state::before { content: ""; width: 0.55rem; height: 0.55rem; border-radius: 50%; border: 2px solid currentColor; background: currentColor; }
+  [aria-pressed="true"] .vs-state { background: var(--vs-line); color: var(--vs-bg); }
+  [aria-pressed="true"] .vs-state::before { background: transparent; }
+
+  @container (min-width: 18rem) {
+    .vs-valve { grid-template-columns: minmax(7rem, 9rem) 1fr; gap: 0.75rem; }
+    .vs-art { max-width: none; }
+  }
+  @container (min-width: 30rem) {
+    .vs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .vs-valve { grid-template-columns: 1fr; align-content: start; gap: 0.5rem; padding: 0.9rem 1rem 1rem; }
+    .vs-art { max-width: 15rem; justify-self: center; }
+  }
+
+  /* Line art: even strokes with round caps, as in the logo. */
+  .vs-art * { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .vs-pipe { stroke: var(--vs-pipe); stroke-width: 4; }
+  .vs-pipe rect { fill: var(--vs-bg); }
+  .vs-water { stroke: var(--vs-water); stroke-width: 5; stroke-dasharray: 9 9; }
+  .vs-dir { stroke: var(--vs-arrow); stroke-width: 4; }
+  .vs-move { stroke: var(--vs-line); stroke-width: 4.5; transform-box: view-box; transform-origin: 120px 84px; }
+  .vs-move .vs-rim { fill: var(--vs-bg); stroke-width: 5; }
+  .vs-knob { fill: var(--vs-line); }
+  .vs-pivot { fill: var(--vs-bg); stroke: var(--vs-line); stroke-width: 4; }
+  .vs-ghost { stroke: var(--vs-line); stroke-width: 2.5; stroke-dasharray: 3 6; opacity: 0; }
+
+  /* The turn: plays once per press, never on load. The water past the valve
+     drains once the turn ends; the arrow dims and a dashed ghost marks where the
+     handle started. Reduced motion: global.css drops the transitions, so the
+     same end state appears at once. */
+  .vs-valve--wheel { --vs-turn: 1.4s; }
+  .vs-valve--lever { --vs-turn: 0.6s; }
+  .vs-move { transition: transform var(--vs-turn) cubic-bezier(0.3, 0.6, 0.2, 1); }
+  .vs-water--down, .vs-dir, .vs-ghost { transition: opacity 0.25s; }
+  .vs-valve--wheel[aria-pressed="true"] .vs-wheel { transform: rotate(810deg); }
+  .vs-valve--lever[aria-pressed="true"] .vs-lever { transform: rotate(90deg); }
+  [aria-pressed="true"] .vs-water--down { opacity: 0; transition-delay: calc(var(--vs-turn) * 0.8); }
+  [aria-pressed="true"] .vs-dir { opacity: 0.3; }
+  [aria-pressed="true"] .vs-ghost { opacity: 0.7; transition-delay: calc(var(--vs-turn) * 0.8); }
+</style>

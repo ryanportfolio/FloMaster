@@ -1,4 +1,4 @@
-// Drives the booking, callback and tag-switch flows in headed Chrome and
+// Drives the booking, callback, tag-switch and repair-story flows in headed Chrome and
 // reports pass/fail for each check. Run after `astro build`.
 import { launchPlacedChrome } from "./lib/launch-chrome.mjs";
 import { startPreview } from "./lib/preview.mjs";
@@ -106,12 +106,120 @@ try {
   await page.goto(`${base}/faq`);
   check("sticky bar shows from load on FAQ", await page.evaluate(() => !document.querySelector("[data-sticky]").classList.contains("is-waiting")));
 
-  // 7. Before/after slider responds to the keyboard.
-  await page.goto(`${base}/`);
-  await page.focus("[data-ba-range]");
-  await page.keyboard.press("ArrowLeft");
-  await page.keyboard.press("ArrowLeft");
-  check("before/after slider moves with arrow keys", (await page.evaluate(() => document.querySelector("[data-ba]").style.getPropertyValue("--pos"))) === "48%");
+  // 7. Repair story: press anywhere, drag, arrow keys, touch scroll and drag, peek.
+  {
+    const stageSel = "[data-story] [data-story-stage]";
+    const read = (p) => p.evaluate(() => {
+      const root = document.querySelector("[data-story]");
+      const line = root.querySelector(".rs-divider").getBoundingClientRect();
+      return { v: parseFloat(root.style.getPropertyValue("--v")), value: Number(root.querySelector("[data-story-range]").value), stage: root.dataset.stage, lineX: line.left + line.width / 2, peeked: "peeked" in root.dataset, scrollY };
+    });
+    const near = (a, b, tol) => Math.abs(a - b) <= tol;
+
+    // Mouse: desktop width.
+    const dctx = await browser.newContext({ viewport: { width: 1280, height: 860 } });
+    const d = await dctx.newPage();
+    await d.goto(`${base}/`);
+    await d.locator(stageSel).scrollIntoViewIfNeeded();
+    await d.waitForTimeout(2200); // let the first-view peek finish
+    let box = await d.locator(stageSel).boundingBox();
+    const at = (f) => box.x + box.width * f;
+    const midY = box.y + box.height / 2;
+    await d.mouse.click(at(0.25), midY);
+    let r = await read(d);
+    check("repair story: pressing anywhere moves the split there", near(r.v, 25, 0.6) && near(r.lineX, at(0.25), 1.5) && r.value === 25, `v=${r.v} line=${r.lineX.toFixed(1)} pointer=${at(0.25).toFixed(1)}`);
+    await d.mouse.move(at(0.3), midY);
+    await d.mouse.down();
+    let follows = true;
+    for (const f of [0.38, 0.51, 0.66, 0.88]) {
+      await d.mouse.move(at(f), midY + 20, { steps: 4 });
+      r = await read(d);
+      if (!near(r.lineX, at(f), 1.5)) follows = false;
+    }
+    await d.mouse.up();
+    r = await read(d);
+    check("repair story: dragging follows the pointer", follows && near(r.v, 88, 0.6) && r.stage === "3", `v=${r.v} stage=${r.stage}`);
+    await d.focus("[data-story-range]");
+    const before = (await read(d)).value;
+    await d.keyboard.press("ArrowLeft");
+    await d.keyboard.press("ArrowLeft");
+    r = await read(d);
+    check("repair story: arrow keys move the split", r.value === before - 2 && near(r.v, before - 2, 0.01), `${before} -> ${r.value}, --v ${r.v}`);
+    await d.click("[data-story] [data-go='0']");
+    await d.waitForTimeout(800);
+    check("repair story: step buttons move the split", (await read(d)).v === 0);
+    await dctx.close();
+
+    // Touch: phone width, real touch input through the DevTools protocol.
+    const tctx = await browser.newContext({ viewport: { width: 375, height: 740 }, isMobile: true, hasTouch: true });
+    const t = await tctx.newPage();
+    const cdp = await tctx.newCDPSession(t);
+    await t.goto(`${base}/`);
+    await t.locator(stageSel).scrollIntoViewIfNeeded();
+    await t.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: "center" }), stageSel);
+    await t.waitForTimeout(2200);
+    box = await t.locator(stageSel).boundingBox();
+    const touch = async (pts) => {
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [pts[0]] });
+      for (const p of pts.slice(1)) { await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [p] }); await t.waitForTimeout(16); }
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+      await t.waitForTimeout(400);
+    };
+    const tx = (f) => box.x + box.width * f;
+    const ty = box.y + box.height / 2;
+    const s0 = await read(t);
+    await touch(Array.from({ length: 12 }, (_, i) => ({ x: tx(0.3) + i * 0.3, y: ty - i * 18 })));
+    let s1 = await read(t);
+    check("repair story: a vertical touch swipe scrolls the page, split stays", s1.scrollY > s0.scrollY + 60 && s1.v === s0.v, `scrollY ${s0.scrollY} -> ${s1.scrollY}, v ${s0.v} -> ${s1.v}`);
+    box = await t.locator(stageSel).boundingBox();
+    await touch(Array.from({ length: 12 }, (_, i) => ({ x: tx(0.3) + (tx(0.75) - tx(0.3)) * (i / 11), y: box.y + box.height / 2 + i * 0.5 })));
+    s1 = await read(t);
+    check("repair story: a horizontal touch drag moves the split to the finger", near(s1.v, 75, 0.8), `v=${s1.v}`);
+    await touch([{ x: tx(0.2), y: box.y + box.height / 2 }]);
+    s1 = await read(t);
+    check("repair story: a tap moves the split there", near(s1.v, 20, 0.8), `v=${s1.v}`);
+    await tctx.close();
+
+    // Peek: once on first view, never under reduced motion.
+    for (const motion of ["no-preference", "reduce"]) {
+      const mctx = await browser.newContext({ viewport: { width: 375, height: 740 }, reducedMotion: motion });
+      const m = await mctx.newPage();
+      await m.goto(`${base}/`);
+      const start = (await read(m)).v;
+      await m.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: "center" }), stageSel);
+      const seen = new Set();
+      for (let i = 0; i < 25; i++) { seen.add((await read(m)).v); await m.waitForTimeout(80); }
+      await m.waitForTimeout(800);
+      const end = await read(m);
+      if (motion === "reduce") check("repair story: reduced motion shows no peek", seen.size === 1 && !end.peeked && end.v === start, `${seen.size} positions seen`);
+      else check("repair story: first view peeks once and settles", seen.size > 3 && end.peeked && end.v === start, `${seen.size} positions seen, settled at ${end.v}`);
+      await mctx.close();
+    }
+
+    // Reduced motion switched on after load: before the peek starts, and mid-peek.
+    for (const when of ["before", "during"]) {
+      const mctx = await browser.newContext({ viewport: { width: 375, height: 740 }, reducedMotion: "no-preference" });
+      const m = await mctx.newPage();
+      await m.goto(`${base}/`);
+      const start = (await read(m)).v;
+      if (when === "before") await m.emulateMedia({ reducedMotion: "reduce" });
+      await m.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: "center" }), stageSel);
+      if (when === "during") {
+        let moving = false;
+        for (let i = 0; i < 100 && !moving; i++) { moving = (await read(m)).v !== start; if (!moving) await m.waitForTimeout(20); }
+        await m.emulateMedia({ reducedMotion: "reduce" });
+        await m.waitForTimeout(50);
+        const seen = new Set();
+        for (let i = 0; i < 15; i++) { seen.add((await read(m)).v); await m.waitForTimeout(60); }
+        check("repair story: reduced motion switched on mid-peek stops it at rest", moving && seen.size === 1 && seen.has(start), `moving=${moving}, positions after switch: ${[...seen].join(", ")}`);
+      } else {
+        const seen = new Set();
+        for (let i = 0; i < 25; i++) { seen.add((await read(m)).v); await m.waitForTimeout(80); }
+        check("repair story: reduced motion switched on after load blocks the peek", seen.size === 1 && seen.has(start), `${seen.size} positions seen`);
+      }
+      await mctx.close();
+    }
+  }
 
   await ctx.close();
 

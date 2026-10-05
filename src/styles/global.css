@@ -8,6 +8,7 @@
   --sky-300: #a9d2ea;
   --sky-100: #e4f1f9;
   --slate: #5b7fae;         /* logo ring, darker arc */
+  --slate-ink: #3d5f8c;     /* slate deepened for small text on light surfaces (6.5:1 on white) */
   --paper: #f6f8fb;
   --white: #ffffff;
   --ink: #13233a;
@@ -33,6 +34,22 @@
   --space-4: 2.5rem;
   --space-5: 4rem;
   --space-6: 6rem;
+
+  /* Section surfaces: paper page, raised white panel, navy band with the card's waves, pale sky tint. */
+  --surface-paper: var(--paper);
+  --surface-raised: var(--white);
+  --surface-navy: var(--navy);
+  --surface-tint: var(--sky-100);
+
+  /* Two section spacings: the standard band and a roomier one for feature sections. */
+  --band-space: clamp(3.5rem, 2.6rem + 3vw, 5.25rem);
+  --band-space-lg: clamp(4.5rem, 3rem + 5vw, 7.5rem);
+
+  /* Shadows scaled down from the business card's own shadow (level 3 is the card itself). */
+  --shadow-1: 0 1px 2px rgb(6 14 26 / 0.06), 0 6px 16px -8px rgb(6 14 26 / 0.2);
+  --shadow-2: 0 2px 6px rgb(6 14 26 / 0.1), 0 18px 36px -14px rgb(6 14 26 / 0.34);
+  --shadow-3: 0 4px 10px rgb(6 14 26 / 0.3), 0 24px 48px -12px rgb(6 14 26 / 0.55);
+  --ring: 0 0 0 1px rgb(27 53 86 / 0.07);
 
   --radius: 10px;
   --radius-lg: 18px;
@@ -97,6 +114,22 @@ ul, ol { padding-left: 1.2em; }
 .navy a { color: var(--white); }
 .navy .muted, .navy .lead { color: var(--sky-300); }
 
+/* Section bands. Pick a surface and, for feature sections, the roomier spacing. */
+.band { position: relative; padding-block: var(--band-space); }
+.band--lg { padding-block: var(--band-space-lg); }
+.band--paper { background: var(--surface-paper); }
+.band--raised { background: var(--surface-raised); box-shadow: 0 -1px 0 var(--line), 0 1px 0 var(--line); }
+.band--tint { background: var(--surface-tint); }
+/* .band--navy pairs with .navy, which carries the wave pattern and white text. */
+
+/* Small label above a section heading. */
+.eyebrow {
+  display: flex; align-items: center; gap: 0.6rem; margin: 0 0 0.85rem;
+  font: 700 0.8125rem/1.2 var(--font-body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate-ink);
+}
+.eyebrow::before { content: ""; width: 1.75rem; height: 3px; border-radius: 2px; background: var(--sky); flex: none; }
+.navy .eyebrow { color: var(--sky-300); }
+
 /* Buttons */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
@@ -152,8 +185,9 @@ ul, ol { padding-left: 1.2em; }
   color: #6b4e00; background: #fff4cc; border: 1px solid #f0d27a; padding: 0.25em 0.45em; border-radius: 4px;
 }
 
-/* Cards that hold a set of equal items. */
-.panel { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: var(--space-3); }
+/* Raised panel: white, lifted by shadow instead of a border. */
+.panel { background: var(--surface-raised); border-radius: var(--radius-lg); padding: var(--space-3); box-shadow: var(--ring), var(--shadow-1); }
+.panel--lift { box-shadow: var(--ring), var(--shadow-2); }
 
 .grid { display: grid; gap: var(--space-3); }
 @media (min-width: 760px) {

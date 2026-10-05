@@ -1,6 +1,6 @@
 # Visual overhaul plan
 
-Status: ready to run, 2026-10-05. Nothing in this plan is built yet.
+Status, 2026-10-05: Round 1 is built and waiting for the user's review. Rounds 2 to 4 are not started.
 
 ## Goal
 

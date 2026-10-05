@@ -1,0 +1,108 @@
+---
+// Proof bar: the license first, with a link to check it on the state's
+// lookup, then insurance, years in the trade, fees, warranty and reviews.
+// Open facts render through <Fact>, so the review tags still mark them.
+//
+// A page can make room for something that overlaps the bar's top edge
+// (the home page's hanging business card) by setting these on .proofbar:
+//   --proof-inset-top   extra space above everything (phone layout)
+//   --proof-inset-left  space left of the license block (desktop layout)
+//   --proof-lead-min    minimum height of the license row (desktop layout)
+import Fact from "./Fact.astro";
+import Icon from "./Icon.astro";
+import { facts } from "../data/facts";
+interface Props { class?: string }
+const { class: cls } = Astro.props;
+const dpor = "https://www.dpor.virginia.gov/LicenseLookup";
+---
+<section class:list={["proofbar", cls]} aria-labelledby="proofbar-h">
+  <h2 id="proofbar-h" class="visually-hidden">License, insurance and guarantees</h2>
+  <div class="wrap proofbar-in">
+    <div class="proofbar-lead">
+      <span class="proofbar-badge"><Icon name="license" /></span>
+      <p class="proofbar-lic">
+        <span class="proofbar-lic-k">Virginia Master Plumber license</span>
+        <span class="proofbar-lic-n num">#{facts.license.value}</span>
+      </p>
+      <a class="proofbar-check" href={dpor} rel="noopener">Check it on the Virginia DPOR license lookup<Icon name="external" /></a>
+    </div>
+    <ul class="proofbar-list" role="list">
+      <li>
+        <span class="proofbar-ico"><Icon name="shield" /></span>
+        <span><strong><Fact k="insurance" /></strong><span class="proofbar-sub"><Fact k="bonded" /></span></span>
+      </li>
+      <li>
+        <span class="proofbar-ico"><Icon name="clock" /></span>
+        <span><strong><Fact k="yearsInTrade" /> in the trade</strong><span class="proofbar-sub">FloMasters est. {facts.established.value}</span></span>
+      </li>
+      <li>
+        <span class="proofbar-ico"><Icon name="receipt" /></span>
+        <span><strong>Every fee listed</strong><span class="proofbar-sub"><a href="/pricing">See prices and fees</a></span></span>
+      </li>
+      <li>
+        <span class="proofbar-ico"><Icon name="warranty" /></span>
+        <span><strong><Fact k="laborWarranty" /></strong><span class="proofbar-sub">In writing</span></span>
+      </li>
+      <li>
+        <span class="proofbar-ico"><Icon name="star" /></span>
+        <span><strong><span class="num"><Fact k="rating" /></span> star rating</strong><span class="proofbar-sub"><a href="/reviews">Read all <span class="num"><Fact k="reviewCount" plain /></span> reviews</a></span></span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<style>
+  .proofbar { position: relative; background: var(--surface-raised); box-shadow: 0 1px 0 var(--line); }
+  .proofbar-in { display: grid; gap: var(--space-3); padding-block: calc(var(--proof-inset-top, 0px) + 1.75rem) var(--space-4); }
+
+  /* License: the first and heaviest item, on the pale sky tint. */
+  .proofbar-lead {
+    display: grid; grid-template-columns: auto 1fr; column-gap: 1rem; row-gap: 0.6rem; align-items: center;
+    padding: 1.1rem 1rem 0.9rem 1.15rem; border-radius: var(--radius-lg);
+    background: var(--surface-tint); box-shadow: inset 4px 0 0 var(--navy);
+  }
+  .proofbar-badge { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; background: var(--navy); color: var(--white); }
+  .proofbar-badge :global(svg) { width: 1.5rem; height: 1.5rem; }
+  .proofbar-lic { margin: 0; display: flex; flex-direction: column; font-family: var(--font-slab); color: var(--navy-900); line-height: 1.2; }
+  .proofbar-lic-k { font-size: 1.0625rem; font-weight: 600; text-wrap: balance; }
+  .proofbar-lic-n { font-size: var(--step-2); font-weight: 700; letter-spacing: -0.005em; white-space: nowrap; }
+  .proofbar-check {
+    grid-column: 1 / -1; justify-self: start; display: inline-block; padding-block: 0.3rem;
+    font-weight: 700; font-size: 1rem; line-height: 1.5; color: var(--navy);
+  }
+  .proofbar-check :global(svg) { width: 1.1em; height: 1.1em; margin-left: 0.35em; vertical-align: -0.2em; }
+
+  /* The other five: icon in a small tinted disc, a bold line, a short second line. */
+  .proofbar-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); font-size: 0.9375rem; line-height: 1.35; }
+  .proofbar-list li { display: flex; gap: 0.85rem; align-items: flex-start; }
+  .proofbar-list strong { display: block; font-size: 1rem; color: var(--navy-900); }
+  .proofbar-sub { display: block; margin-top: 0.15rem; color: var(--ink-soft); }
+  .proofbar-sub a { display: inline-block; padding-block: 0.1rem; line-height: 1.5; font-weight: 600; }
+  /* A review tag on a second line sits beside its value, so it doesn't cover the bold line above. */
+  :global(.tags-on) .proofbar-sub :global(.fact-tag) { left: 100%; bottom: auto; top: 50%; transform: translate(8px, -50%); }
+  .proofbar-ico { display: grid; place-items: center; flex: none; width: 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--surface-tint); color: var(--slate-ink); }
+  .proofbar-ico :global(svg) { width: 1.3rem; height: 1.3rem; }
+
+  @media (min-width: 640px) {
+    .proofbar-lead { grid-template-columns: auto 1fr auto; column-gap: 1.25rem; padding: 1.25rem 1.5rem; }
+    .proofbar-badge { width: 3.25rem; height: 3.25rem; }
+    .proofbar-badge :global(svg) { width: 1.7rem; height: 1.7rem; }
+    .proofbar-check { grid-column: auto; justify-self: end; }
+  }
+
+  @media (min-width: 900px) {
+    .proofbar-in { padding-block: 1.5rem var(--space-4); row-gap: 1.75rem; }
+    .proofbar-lead { margin-left: var(--proof-inset-left, 0px); min-height: var(--proof-lead-min, 0px); grid-template-columns: auto 1fr; }
+    .proofbar-check { grid-column: 2; justify-self: start; padding-block: 0.15rem; }
+    /* Five equal columns with hairline dividers, icon above the text. */
+    .proofbar-list { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; }
+    .proofbar-list li { flex-direction: column; gap: 0.7rem; padding: 0.25rem 1.25rem; border-left: 1px solid var(--line); }
+    .proofbar-list li:first-child { padding-left: 0; border-left: 0; }
+    .proofbar-list li:last-child { padding-right: 0; }
+  }
+  @media (min-width: 1200px) {
+    .proofbar-lead { grid-template-columns: auto 1fr auto; padding-inline: 1.75rem; }
+    .proofbar-check { grid-column: auto; justify-self: end; }
+    .proofbar-lic-k { font-size: 1.125rem; }
+  }
+</style>

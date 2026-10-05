@@ -45,7 +45,10 @@ try {
   await page.goto(`${server.base}/`, { waitUntil: "load" });
   await page.tap("#zip-home"); await page.keyboard.type("23320");
   await page.tap("form[data-zipcheck] button");
-  await page.focus("[data-ba-range]"); await page.keyboard.press("ArrowLeft");
+  await page.focus("[data-story-range]"); await page.keyboard.press("ArrowLeft");
+  await page.locator("[data-story] [data-story-stage]").scrollIntoViewIfNeeded();
+  await page.tap("[data-story] [data-story-stage]");
+  await page.tap("[data-story] [data-go='100']");
   await page.waitForTimeout(500);
   const home = await page.evaluate(() => window.__inp);
   const all = [...book, ...home];
