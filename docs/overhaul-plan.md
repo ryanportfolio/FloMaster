@@ -34,7 +34,7 @@ The before/after becomes the site's main creative moment and moves up the home p
 
 ## Round 1: home page structure, emergency, signature moment
 
-1. Section system: three surface tones (paper, raised panel, navy band), two spacing sizes, two or three shadow levels taken from the business card's shadow, varied layouts so no two neighbouring sections look the same, and less wave pattern behind long copy. Fewer bordered cards.
+1. Section system: three surface tones (paper, raised panel, navy band), two spacing sizes, two or three shadow levels taken from the business card's shadow, varied layouts so no two neighbouring sections look the same, and fewer bordered cards. The wave pattern is the business card's own texture and stays as a brand element on navy surfaces; text over it keeps AA contrast.
 2. Hero: move the business card so it doesn't cover Antonio. Keep the call and book fork exactly as it is.
 3. Emergency panel with visual weight: one compact first instruction, then line-art valve states (a wheel valve turned right until it stops; a lever valve across the pipe means off), with a quarter-turn that plays when tapped. Antonio confirms the valve types before launch.
 4. Proof bar in place of the small trust strip: the licence number first, linked to the DPOR lookup, then insurance, warranty and reviews, each with its own icon and tag.
