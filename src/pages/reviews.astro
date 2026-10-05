@@ -1,0 +1,28 @@
+---
+import Base from "../layouts/Base.astro";
+import PageHero from "../components/PageHero.astro";
+import ReviewCard from "../components/ReviewCard.astro";
+import RatingLine from "../components/RatingLine.astro";
+import Fact from "../components/Fact.astro";
+import CallToAction from "../components/CallToAction.astro";
+import { reviews } from "../data/reviews";
+---
+<Base title="Reviews" description="What FloMasters customers across Hampton Roads say, newest first, with Antonio's replies.">
+  <PageHero title="Reviews, newest first" lead="Every review, good or bad, straight from the review site. I don't pick and choose.">
+    <RatingLine class="rl" />
+  </PageHero>
+  <section class="section">
+    <div class="wrap">
+      <p class="note small muted"><Fact k="reviewReplies" /> Reviews on this page come from <Fact k="reviewSource" /> and are shown in full.</p>
+      <div class="grid grid--2">
+        {reviews.map((r) => <ReviewCard review={r} />)}
+      </div>
+    </div>
+  </section>
+  <CallToAction title="Want to be the next review?" />
+</Base>
+
+<style>
+  :global(.rl) { color: var(--sky-100); margin-top: 0.5rem; }
+  .note { margin-bottom: 1.5rem; max-width: none; }
+</style>

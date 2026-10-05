@@ -1,0 +1,73 @@
+---
+import Base from "../layouts/Base.astro";
+import PageHero from "../components/PageHero.astro";
+import Photo from "../components/Photo.astro";
+import Fact from "../components/Fact.astro";
+import CallbackForm from "../components/CallbackForm.astro";
+import emergency from "../assets/photos/emergency.jpg";
+import { facts } from "../data/facts";
+---
+<Base title="Emergency plumber" description="Burst pipe, flooding or no water in Hampton Roads? Turn off your main shut-off, then call Antonio directly.">
+  <PageHero title="Water leaking now? Do this first." emergency actions>
+    <p class="lead now">Then call me: <a class="num" href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a>. <Fact k="afterHoursAnswer" />.</p>
+  </PageHero>
+
+  <section class="section">
+    <div class="wrap steps-wrap">
+      <ol class="big-steps">
+        <li>
+          <h2>Turn off the main water shut-off</h2>
+          <p>Find where the water line comes into the house: usually the garage, a utility room, under the kitchen sink, or the crawlspace. Turn the handle clockwise until it stops. A lever valve turns a quarter turn, across the pipe.</p>
+          <p class="small muted">Can't find it or can't turn it? Most houses also have a shut-off at the water meter near the street, in a box marked "water". Tell me when you call and I'll talk you through it.</p>
+        </li>
+        <li>
+          <h2>Turn off the water heater if the leak is near it</h2>
+          <p>Electric: switch off its breaker. Gas: turn the dial to "pilot" or "off". Then close the cold-water valve on top of the tank.</p>
+        </li>
+        <li>
+          <h2>Keep people and power away from the water</h2>
+          <p>If water is near outlets, cords or the electrical panel, stay out of it and switch the power off at the panel only if you can reach it from a dry spot.</p>
+        </li>
+        <li>
+          <h2>Call me</h2>
+          <p><Fact k="emergency247" />. I'm <Fact k="emergencyArrival" /> in the 7 cities.</p>
+          <a class="btn btn--signal" href={`tel:${facts.phoneHref.value}`}>Call {facts.phone.value}</a>
+        </li>
+      </ol>
+      <aside>
+        <Photo src={emergency} fact="jobs" priority alt="A gloved hand turning a red-handled main water shut-off valve" widths={[480, 768, 1080]} sizes="(min-width: 1000px) 440px, 100vw" class="em-photo" shot="hand on a main shut-off valve" />
+        <div class="panel fee">
+          <h2 class="fee-h">What an emergency visit costs</h2>
+          <p>Normal prices, plus <strong><Fact k="afterHoursFee" /></strong> <Fact k="afterHoursWhen" />. The call-out fee is <Fact k="calloutFee" />, <Fact k="calloutCredited" />.</p>
+          <p class="small muted">I'll tell you the after-hours cost on the phone before I drive out.</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section section--alt" id="callback">
+    <div class="wrap cb">
+      <div>
+        <h2>Can't get through?</h2>
+        <p class="lead">If I'm on a job and can't pick up, leave your number. I'll call you back <Fact k="callback" />.</p>
+      </div>
+      <CallbackForm id="cb-emergency" urgent />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .now a { color: var(--white); font-weight: 700; }
+  .steps-wrap { display: grid; gap: var(--space-4); }
+  @media (min-width: 1000px) { .steps-wrap { grid-template-columns: 1fr 26rem; align-items: start; } }
+  .big-steps { list-style: none; counter-reset: s; padding: 0; margin: 0; display: grid; gap: var(--space-3); }
+  .big-steps li { counter-increment: s; position: relative; padding-left: 4rem; }
+  .big-steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 2.75rem; height: 2.75rem; border-radius: 50%; display: grid; place-content: center; background: var(--navy); color: var(--white); font: 700 1.25rem/1 var(--font-slab); }
+  .big-steps li:last-child::before { background: var(--signal); }
+  .big-steps h2 { font-size: var(--step-1); margin-bottom: 0.35rem; }
+  aside :global(.em-photo) { border-radius: var(--radius-lg); aspect-ratio: 4 / 3; margin-bottom: 1.25rem; }
+  .fee { border-top: 5px solid var(--signal); }
+  .fee-h { font-size: 1.25rem; }
+  .cb { display: grid; gap: var(--space-4); }
+  @media (min-width: 900px) { .cb { grid-template-columns: 1fr 1fr; align-items: start; } }
+</style>

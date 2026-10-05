@@ -1,0 +1,49 @@
+---
+// Before/after comparison. A native range input drives the split, so it works
+// with keyboard, touch and screen readers.
+import { Image } from "astro:assets";
+import before from "../assets/photos/before.jpg";
+import after from "../assets/photos/after.jpg";
+import { isPublicBuild, photoFacts } from "../data/facts";
+---
+<figure class="ba" data-ba style="--pos: 50%">
+  <div class="ba-stage">
+    <Image src={after} alt="After: new white drain pipework, new shut-off valves and a dry cabinet floor" widths={[480, 760]} sizes="(min-width: 900px) 560px, 100vw" format="webp" quality={72} loading="lazy" class="ba-img" />
+    <div class="ba-before" aria-hidden="false">
+      <Image src={before} alt="Before: corroded galvanized drain pipes, a dripping joint and a water-stained cabinet floor" widths={[480, 760]} sizes="(min-width: 900px) 560px, 100vw" format="webp" quality={72} loading="lazy" class="ba-img" />
+    </div>
+    <span class="ba-label ba-label--l" aria-hidden="true">Before</span>
+    <span class="ba-label ba-label--r" aria-hidden="true">After</span>
+    <span class="ba-handle" aria-hidden="true"></span>
+    {!isPublicBuild && <span class="photo-tag">Replace with a real photo · {photoFacts.beforeAfter.code}: real job, customer's permission</span>}
+  </div>
+  <label class="ba-range">
+    <span class="visually-hidden">Slide to compare before and after</span>
+    <input type="range" min="0" max="100" value="50" data-ba-range />
+  </label>
+  <figcaption class="small muted">Norfolk kitchen. Sample job.</figcaption>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-ba]").forEach((el) => {
+    const r = el.querySelector<HTMLInputElement>("[data-ba-range]")!;
+    const set = () => el.style.setProperty("--pos", `${r.value}%`);
+    r.addEventListener("input", set);
+    set();
+  });
+</script>
+
+<style>
+  .ba { margin: 0; }
+  .ba-stage { position: relative; aspect-ratio: 762 / 1024; overflow: hidden; border-radius: var(--radius-lg); background: var(--navy-900); }
+  .ba-stage :global(.ba-img) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .ba-before { position: absolute; inset: 0; clip-path: inset(0 calc(100% - var(--pos)) 0 0); }
+  .ba-handle { position: absolute; top: 0; bottom: 0; left: var(--pos); width: 3px; margin-left: -1.5px; background: var(--white); box-shadow: 0 0 0 1px rgb(0 0 0 / 0.2); pointer-events: none; }
+  .ba-handle::after { content: ""; position: absolute; top: 50%; left: 50%; width: 2.75rem; height: 2.75rem; transform: translate(-50%, -50%); border-radius: 50%; background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6l-6 6 6 6M15 6l6 6-6 6' fill='none' stroke='%231b3556' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/60% no-repeat; box-shadow: 0 4px 14px rgb(0 0 0 / 0.3); }
+  .ba-label { position: absolute; bottom: 0.9rem; padding: 0.3rem 0.65rem; border-radius: 6px; background: rgb(12 27 48 / 0.85); color: var(--white); font-weight: 700; font-size: 0.875rem; }
+  .ba-label--l { left: 0.9rem; }
+  .ba-label--r { right: 0.9rem; }
+  .ba-range { display: block; margin: 0.9rem 0 0.4rem; }
+  .ba-range input { width: 100%; accent-color: var(--navy); min-height: 2.75rem; }
+  figcaption { margin-top: 0.25rem; }
+</style>

@@ -1,0 +1,91 @@
+---
+import Logo from "./Logo.astro";
+import Icon from "./Icon.astro";
+import { facts } from "../data/facts";
+const path = Astro.url.pathname.replace(/\/$/, "") || "/";
+const nav = [
+  { href: "/residential", label: "Home services" },
+  { href: "/commercial", label: "Commercial" },
+  { href: "/pricing", label: "Prices" },
+  { href: "/reviews", label: "Reviews" },
+  { href: "/service-area", label: "Service area" },
+  { href: "/about", label: "About" },
+];
+---
+<header class="site-header on-navy">
+  <div class="bar wrap">
+    <a class="brand" href="/" aria-label="FloMasters Plumbing and Drains, home">
+      <Logo class="brand-logo" />
+      <span class="brand-sub">Plumbing and Drains</span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <ul>
+        {nav.map((n) => <li><a href={n.href} aria-current={path.startsWith(n.href) ? "page" : undefined}>{n.label}</a></li>)}
+      </ul>
+    </nav>
+    <div class="actions">
+      <a class="phone" href={`tel:${facts.phoneHref.value}`}>
+        <Icon name="phone" />
+        <span class="phone-num num">{facts.phone.value}</span>
+        <span class="visually-hidden">Call Antonio</span>
+      </a>
+      <a class="btn btn--primary book" href="/book">Book a time</a>
+      <details class="menu">
+        <summary aria-label="Menu"><span></span><span></span><span></span></summary>
+        <ul>
+          {nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}
+          <li><a href="/emergency">Emergency</a></li>
+          <li><a href="/faq">Questions</a></li>
+        </ul>
+      </details>
+    </div>
+  </div>
+  <p class="license wrap">
+    <span>Virginia Master Plumber</span>
+    <span aria-hidden="true">·</span>
+    <span>License <span class="num">#{facts.license.value}</span></span>
+    <span class="est" aria-hidden="true">·</span>
+    <span class="est">Est. {facts.established.value}</span>
+  </p>
+</header>
+
+<style>
+  .site-header { background: var(--navy-950); color: var(--white); position: relative; z-index: 40; }
+  .bar { display: flex; align-items: center; gap: 1rem; min-height: 4rem; }
+  .brand { display: flex; flex-direction: column; text-decoration: none; color: var(--white); padding-block: 0.6rem; }
+  .brand :global(.brand-logo) { height: 1.45rem; }
+  .brand-sub { font-size: 0.625rem; letter-spacing: 0.34em; text-transform: uppercase; color: var(--sky-300); margin-top: 0.3rem; padding-left: 0.1em; }
+  .nav { display: none; margin-left: auto; }
+  .nav ul { display: flex; gap: 0.25rem; list-style: none; margin: 0; padding: 0; }
+  .nav a { display: block; padding: 0.6rem 0.7rem; color: var(--white); text-decoration: none; font-weight: 600; font-size: 0.975rem; border-radius: 6px; }
+  .nav a:hover, .nav a[aria-current="page"] { background: var(--navy); }
+  .nav a[aria-current="page"] { box-shadow: inset 0 -2px 0 var(--sky); }
+  .actions { display: flex; align-items: center; gap: 0.5rem; margin-left: auto; }
+  .phone { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-width: 3rem; min-height: 3rem; padding: 0 0.6rem; color: var(--white); text-decoration: none; font-weight: 700; border-radius: var(--radius); background: var(--navy); }
+  .phone :global(svg) { width: 1.3rem; height: 1.3rem; color: var(--sky); }
+  .phone-num { display: none; }
+  .book { display: none; min-height: 3rem; }
+  .menu { position: relative; }
+  .menu summary { list-style: none; width: 3rem; height: 3rem; display: grid; place-content: center; gap: 5px; cursor: pointer; border-radius: var(--radius); }
+  .menu summary::-webkit-details-marker { display: none; }
+  .menu summary span { display: block; width: 22px; height: 2px; background: var(--white); }
+  .menu ul { position: absolute; right: 0; top: calc(100% + 0.5rem); background: var(--navy-950); list-style: none; margin: 0; padding: 0.5rem; border-radius: var(--radius); min-width: 14rem; box-shadow: 0 16px 40px rgb(0 0 0 / 0.35); }
+  .menu a { display: block; padding: 0.75rem 0.9rem; color: var(--white); text-decoration: none; font-weight: 600; border-radius: 6px; }
+  .menu a:hover { background: var(--navy); }
+  .license { display: flex; flex-wrap: wrap; gap: 0.15rem 0.5rem; margin: 0 auto; padding: 0.4rem 0 0.55rem; font-size: 0.8125rem; color: var(--sky-300); border-top: 1px solid rgb(255 255 255 / 0.08); max-width: none; }
+  .license .num { color: var(--white); font-weight: 700; }
+  .est { display: none; }
+  @media (max-width: 359px) {
+    .brand :global(.brand-logo) { height: 1.15rem; }
+    .brand-sub { font-size: 0.5625rem; letter-spacing: 0.26em; }
+    .bar { gap: 0.5rem; }
+    .actions { gap: 0.25rem; }
+  }
+  @media (min-width: 560px) { .phone-num { display: inline; } .est { display: inline; } }
+  @media (min-width: 720px) { .book { display: inline-flex; } }
+  @media (min-width: 1100px) {
+    .nav { display: block; }
+    .actions { margin-left: 0.5rem; }
+    .menu { display: none; }
+  }
+</style>

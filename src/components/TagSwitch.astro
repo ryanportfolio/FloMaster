@@ -1,0 +1,53 @@
+---
+// Prototype only: a slim review bar above the header. Shows or hides every
+// "confirm this" tag and links to the full list. It sits in the page flow, so
+// it never covers content.
+---
+<div class="review-bar">
+  <div class="wrap rb-inner">
+    <span class="rb-note">Prototype for review</span>
+    <button type="button" aria-pressed="false" data-tag-switch>
+      <span class="dot" aria-hidden="true"></span>
+      Items to confirm: <span data-tag-state>Off</span>
+    </button>
+    <a href="/review">See the full list</a>
+  </div>
+</div>
+
+<script>
+  const root = document.documentElement;
+  const btn = document.querySelector<HTMLButtonElement>("[data-tag-switch]")!;
+  const state = document.querySelector("[data-tag-state]")!;
+  const sync = () => {
+    const on = root.classList.contains("tags-on");
+    btn.setAttribute("aria-pressed", String(on));
+    state.textContent = on ? "On" : "Off";
+  };
+  sync();
+  btn.addEventListener("click", () => {
+    const on = root.classList.toggle("tags-on");
+    try { localStorage.setItem("fm-tags", on ? "on" : "off"); } catch {}
+    const url = new URL(location.href);
+    url.searchParams.delete("tags");
+    history.replaceState(null, "", url);
+    sync();
+  });
+  // WCAG 1.4.13: Escape dismisses an open question; it returns on the next hover or focus.
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") root.classList.add("tips-hidden"); });
+  const show = (e: Event) => { if ((e.target as Element).closest?.(".fact-tag")) root.classList.remove("tips-hidden"); };
+  document.addEventListener("focusin", show);
+  document.addEventListener("pointerover", show);
+</script>
+
+<style>
+  .review-bar { background: #eef1f5; color: var(--ink); border-bottom: 1px solid var(--line); font-size: 0.8125rem; }
+  .rb-inner { display: flex; align-items: center; gap: 0.25rem 1rem; min-height: 2.5rem; flex-wrap: wrap; }
+  .rb-note { color: var(--ink-soft); }
+  button { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 2.25rem; padding: 0 0.7rem; border: 1px solid #c3cddb; border-radius: 999px; background: var(--white); font: inherit; font-weight: 700; color: inherit; cursor: pointer; }
+  button:hover { border-color: var(--slate); }
+  .dot { width: 0.65rem; height: 0.65rem; border-radius: 50%; background: #9fb0c4; }
+  button[aria-pressed="true"] { background: #fff4cc; border-color: #e0a100; }
+  button[aria-pressed="true"] .dot { background: #e0a100; }
+  a { color: var(--navy); font-weight: 600; padding: 0.4rem 0; }
+  @media (max-width: 480px) { .rb-note { display: none; } }
+</style>

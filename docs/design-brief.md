@@ -265,6 +265,8 @@ Every item below appears on the site with a "confirm this" tag until the owner s
 | P33 | Commercial offer | Scheduling around opening hours, certificate of insurance, invoiced billing | Commercial |
 | P34 | Quoting promises | Written price first, repair options first, no cash-only, no full payment up front | Pricing, FAQ |
 | P35 | Payment methods | "Card, check, cash" | Pricing, FAQ |
+| P36 | Permit costs | "At cost, only when the city requires one" | Pricing |
+| P37 | Consent wording for booking texts | Standard opt-out line | Booking form |
 
 Items P07-P20 and P21-P28 are claims about the business. The research warns that an unconfirmed "24/7", warranty or price on a live site is a false-advertising risk (research section 11), so none of them can go public tagged.
 

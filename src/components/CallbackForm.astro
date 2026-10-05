@@ -1,0 +1,74 @@
+---
+// Callback request: one required field. Prototype only: nothing is sent.
+// Working hours are judged in Virginia time, not the visitor's clock.
+import Fact from "./Fact.astro";
+import { workingHours } from "../data/facts";
+interface Props { id: string; urgent?: boolean }
+const { id, urgent = false } = Astro.props;
+---
+<form class="cbf panel" data-callback novalidate data-hours={JSON.stringify(workingHours)}>
+  <h3 class="cbf-h">Ask for a callback</h3>
+  <div class="field">
+    <label for={`${id}-phone`}>Mobile number</label>
+    <input id={`${id}-phone`} name="phone" type="tel" autocomplete="tel" inputmode="tel" aria-describedby={`${id}-phone-hint ${id}-phone-err`} required data-carry-phone />
+    <span class="hint" id={`${id}-phone-hint`}>I'll call this number. I may text first if I'm under a sink.</span>
+    <span class="error" id={`${id}-phone-err`} aria-live="polite"></span>
+  </div>
+  <div class="field">
+    <label for={`${id}-what`}>What's going on? <span class="muted">(optional)</span></label>
+    <textarea id={`${id}-what`} name="what" rows="3"></textarea>
+  </div>
+  <button class="btn btn--navy btn--block" type="submit" data-label="Call me back">Call me back</button>
+  <p class="cbf-when small" data-when></p>
+  <p class="cbf-done" role="status" data-done></p>
+  <template data-in>I'll call you back <Fact k="callback" text="within 30 minutes" />.</template>
+  <template data-out>It's outside working hours right now. I'll call you first thing when I start, at 7 a.m. For a flood, call instead.</template>
+</form>
+
+<script>
+  const isOpen = (spec: { weekday: number[]; saturday: number[] | null; sunday: number[] | null }) => {
+    const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", hour12: false }).formatToParts(new Date());
+    const day = parts.find((p) => p.type === "weekday")!.value;
+    const hour = Number(parts.find((p) => p.type === "hour")!.value) % 24;
+    const range = day === "Sun" ? spec.sunday : day === "Sat" ? spec.saturday : spec.weekday;
+    return !!range && hour >= range[0] && hour < range[1];
+  };
+  const validPhone = (v: string) => v.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "").length === 10;
+
+  document.querySelectorAll<HTMLFormElement>("[data-callback]").forEach((form) => {
+    const when = form.querySelector<HTMLElement>("[data-when]")!;
+    when.innerHTML = form.querySelector<HTMLTemplateElement>(isOpen(JSON.parse(form.dataset.hours!)) ? "[data-in]" : "[data-out]")!.innerHTML;
+    const phone = form.querySelector<HTMLInputElement>("input[name=phone]")!;
+    const err = form.querySelector<HTMLElement>(".error")!;
+    const btn = form.querySelector<HTMLButtonElement>("button[type=submit]")!;
+    const done = form.querySelector<HTMLElement>("[data-done]")!;
+    try { const saved = sessionStorage.getItem("fm-phone"); if (saved && !phone.value) phone.value = saved; } catch {}
+    let tried = false;
+    const check = () => {
+      const ok = validPhone(phone.value);
+      if (ok) phone.removeAttribute("aria-invalid"); else phone.setAttribute("aria-invalid", "true");
+      err.textContent = ok ? "" : "Enter a 10-digit mobile number so I can call you back.";
+      return ok;
+    };
+    phone.addEventListener("input", () => { if (tried) check(); try { sessionStorage.setItem("fm-phone", phone.value); } catch {} });
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      tried = true;
+      if (!check()) { phone.focus(); return; }
+      btn.disabled = true;
+      btn.textContent = "Sending...";
+      setTimeout(() => {
+        btn.textContent = "Sent";
+        done.textContent = "Got it. I'll call you back soon. (Prototype: nothing was sent.)";
+      }, 600);
+    });
+  });
+</script>
+
+<style>
+  .cbf { border-top: 5px solid var(--sky); }
+  .cbf-h { font-size: 1.375rem; }
+  .cbf-when { margin: 0.75rem 0 0; color: var(--ink-soft); }
+  .cbf-done { margin: 0.5rem 0 0; font-weight: 700; color: var(--ok); }
+  .cbf-done:empty { display: none; }
+</style>

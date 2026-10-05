@@ -1,0 +1,29 @@
+---
+import Icon from "./Icon.astro";
+import { type Review, ago, longDate } from "../data/reviews";
+import { facts } from "../data/facts";
+interface Props { review: Review; showReply?: boolean }
+const { review, showReply = true } = Astro.props;
+---
+<article class="rv">
+  <header class="rv-head">
+    <span class="stars" role="img" aria-label="5 out of 5 stars">{[1, 2, 3, 4, 5].map(() => <Icon name="star" />)}</span>
+    <span class="sample-label">Sample review</span>
+  </header>
+  <blockquote class="rv-text"><p>{review.text}</p></blockquote>
+  <p class="rv-meta"><strong>{review.name}</strong>, {review.city} · {review.service} · <time datetime={review.date} title={longDate(review.date)}>{ago(review.date)}</time></p>
+  {showReply && review.reply && (
+    <p class="rv-reply"><strong>Reply from {facts.ownerFirst.value}:</strong> {review.reply}</p>
+  )}
+</article>
+
+<style>
+  .rv { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1.4rem 1.5rem; display: flex; flex-direction: column; }
+  .rv-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem; }
+  .stars { display: inline-flex; gap: 1px; color: #e3a008; }
+  .stars :global(svg) { width: 1.05rem; height: 1.05rem; }
+  .rv-text { margin: 0 0 1rem; font-size: 1.0625rem; }
+  .rv-text p { margin: 0; }
+  .rv-meta { margin: auto 0 0; font-size: 0.9375rem; color: var(--ink-soft); }
+  .rv-reply { margin: 0.9rem 0 0; padding: 0.75rem 0.9rem; background: var(--sky-100); border-radius: var(--radius); font-size: 0.9375rem; }
+</style>

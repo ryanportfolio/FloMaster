@@ -1,0 +1,53 @@
+---
+// Prototype only: every item for the owner to confirm, generated from
+// src/data/facts.ts. Excluded from the public build.
+import Base from "../layouts/Base.astro";
+import { allFacts } from "../data/facts";
+const open = allFacts.filter((f) => f.status === "open").sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
+const confirmed = allFacts.filter((f) => f.status === "confirmed");
+---
+<Base title="Items to confirm" description="Prototype review checklist.">
+  <section class="section">
+    <div class="wrap">
+      <h1>Items to confirm</h1>
+      <p class="lead">Everything on the site that needs Antonio's answer. Each one shows on the page with a yellow "Confirm" tag when "Items to confirm" is on. Write the real answer, a change, or "take it out".</p>
+      <p class="no-print"><button class="btn btn--navy" type="button" onclick="window.print()">Print this list</button></p>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Items to confirm"><table class="checklist">
+        <caption class="visually-hidden">Open items</caption>
+        <thead><tr><th scope="col">Code</th><th scope="col">Question</th><th scope="col">Shown now</th><th scope="col">Where</th><th scope="col">Answer</th></tr></thead>
+        <tbody>
+          {open.map((f) => (
+            <tr>
+              <td class="code">{f.code}</td>
+              <th scope="row"><span class="lbl">{f.label}</span>{f.question}</th>
+              <td>{f.value || "(blank)"}</td>
+              <td class="small">{f.pages.join(", ")}</td>
+              <td class="answer"></td>
+            </tr>
+          ))}
+        </tbody>
+      </table></div>
+      <h2>Already confirmed</h2>
+      <ul class="small">{confirmed.map((f) => <li><strong>{f.label}:</strong> {f.value} <span class="muted">({f.source})</span></li>)}</ul>
+      <h2>Also on this site, for later</h2>
+      <ul class="small">
+        <li>All photos are AI-generated stand-ins and must be replaced with real photos before going public.</li>
+        <li>All reviews are samples and must be replaced with real reviews before going public.</li>
+        <li>ZIP code lists were written from memory and need checking.</li>
+        <li>The privacy page is a draft.</li>
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .table-scroll { overflow-x: auto; margin: 1.5rem 0 2.5rem; }
+  .checklist { min-width: 44rem; width: 100%; border-collapse: collapse; background: var(--white); font-size: 0.9375rem; }
+  .checklist th, .checklist td { border: 1px solid var(--line); padding: 0.6rem 0.7rem; text-align: left; vertical-align: top; }
+  .checklist thead th { background: var(--navy); color: var(--white); }
+  .checklist tbody th { font-weight: 400; }
+  .lbl { display: block; font-weight: 700; }
+  .code { font-weight: 700; white-space: nowrap; }
+  .answer { min-width: 12rem; }
+  @media print { .checklist { font-size: 9pt; } .answer { min-width: 16rem; } }
+</style>

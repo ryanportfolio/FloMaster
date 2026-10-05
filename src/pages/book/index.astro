@@ -1,0 +1,287 @@
+---
+import Base from "../../layouts/Base.astro";
+import Fact from "../../components/Fact.astro";
+import Icon from "../../components/Icon.astro";
+import CallbackForm from "../../components/CallbackForm.astro";
+import { Image } from "astro:assets";
+import portrait from "../../assets/photos/portrait.jpg";
+import { services } from "../../data/services";
+import { facts } from "../../data/facts";
+import { zips, sometimes } from "../../data/area";
+
+// Sample arrival windows (P29): the next 5 working days from the build date, Virginia time.
+const slots = ["8 to 10 a.m.", "10 a.m. to 12 p.m.", "1 to 3 p.m.", "3 to 5 p.m."];
+const days: { iso: string; label: string; windows: string[] }[] = [];
+const d = new Date();
+while (days.length < 5) {
+  d.setDate(d.getDate() + 1);
+  const dow = d.getDay();
+  if (dow === 0) continue;
+  const label = d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: "America/New_York" });
+  const windows = dow === 6 ? slots.slice(0, 2) : days.length % 2 ? slots.filter((_, i) => i !== 1) : slots;
+  days.push({ iso: d.toISOString().slice(0, 10), label, windows });
+}
+const jobs = [...services.map((s) => ({ id: s.slug, label: s.bookLabel, from: s.prices[0].range })), { id: "other", label: "Something else", from: "" }];
+const priceMap = Object.fromEntries(services.map((s) => [s.slug, s.prices]));
+---
+<Base title="Book a time" description="Book a FloMasters plumbing visit online in four quick steps. Antonio confirms by text.">
+  <section class="book-head navy on-navy">
+    <div class="wrap bh">
+      <Image src={portrait} alt="" width={120} height={120} class="bh-pic" format="webp" loading="eager" />
+      <div>
+        <h1>Book a time</h1>
+        <p class="lead">Four quick questions. <Fact k="bookingConfirm" /></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap layout">
+      <form class="bookform" data-book novalidate data-zips={JSON.stringify(zips)} data-sometimes={JSON.stringify(sometimes)} data-prices={JSON.stringify(priceMap)}>
+        <p class="error-summary" role="alert" data-summary></p>
+
+        <fieldset class="step" id="f-job" aria-describedby="err-job">
+          <legend><span class="n">1</span> What needs doing?</legend>
+          <div class="choices">
+            {jobs.map((j) => (
+              <label class="choice">
+                <input type="radio" name="job" value={j.id} data-label={j.label} />
+                <span>{j.label}</span>
+              </label>
+            ))}
+          </div>
+          <div class="field other" data-other hidden>
+            <label for="other-note">Tell me in a few words</label>
+            <input id="other-note" name="note" type="text" autocomplete="off" />
+          </div>
+          <span class="error" id="err-job"></span>
+        </fieldset>
+
+        <fieldset class="step" id="f-when" aria-describedby="err-when">
+          <legend><span class="n">2</span> When suits you? <span class="tagwrap"><Fact k="windows" text="" /></span></legend>
+          <p class="hint">Pick an arrival window. I'll text when I'm on my way.</p>
+          <div class="days">
+            {days.map((day) => (
+              <div class="day" role="group" aria-label={day.label}>
+                <p class="day-h">{day.label}</p>
+                <div class="choices">
+                  {day.windows.map((w) => (
+                    <label class="choice">
+                      <input type="radio" name="window" value={`${day.label}, ${w}`} />
+                      <span>{w}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <span class="error" id="err-when"></span>
+        </fieldset>
+
+        <fieldset class="step" id="f-where">
+          <legend><span class="n">3</span> Where is the job?</legend>
+          <div class="addr">
+            <div class="field">
+              <label for="street">Street address</label>
+              <input id="street" name="street" type="text" autocomplete="address-line1" aria-describedby="err-street" />
+              <span class="error" id="err-street"></span>
+            </div>
+            <div class="field zip">
+              <label for="zip">ZIP code</label>
+              <input id="zip" name="zip" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="5" aria-describedby="zip-status err-zip" />
+              <span class="error" id="err-zip"></span>
+            </div>
+          </div>
+          <p class="zip-status small" id="zip-status" role="status" data-zip-status></p>
+        </fieldset>
+
+        <fieldset class="step" id="f-phone">
+          <legend><span class="n">4</span> Your mobile number</legend>
+          <div class="field">
+            <label for="phone" class="visually-hidden">Mobile number</label>
+            <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" aria-describedby="phone-hint err-phone" data-carry-phone />
+            <span class="hint" id="phone-hint">For the confirmation and "on my way" texts about this visit only. <Fact k="textConsent" /></span>
+            <span class="error" id="err-phone"></span>
+          </div>
+        </fieldset>
+
+        <button class="btn btn--navy submit" type="submit" data-submit>Book this time</button>
+        <p class="small muted after">Prototype: nothing is sent. You'll see the confirmation screen.</p>
+      </form>
+
+      <aside class="side">
+        <div class="summary">
+          <h2 class="sum-h">What it costs</h2>
+          <div data-price-none>
+            <p class="small">Pick a job to see typical prices.</p>
+          </div>
+          <div data-price hidden>
+            <p class="sum-job" data-price-job></p>
+            <table><tbody data-price-rows></tbody></table>
+          </div>
+          <ul class="fees-mini">
+            <li><span>Call-out</span><strong class="num"><Fact k="calloutFee" /></strong></li>
+            <li class="small muted"><Fact k="calloutCredited" /></li>
+            <li><span>Card fee</span><strong><Fact k="cardFee" /></strong></li>
+            <li><span>Cancel or move</span><strong>Free</strong></li>
+            <li class="small muted"><Fact k="cancellation" /></li>
+          </ul>
+          <p class="small">You'll get a written, flat price before I start. <a href="/pricing">All prices and fees</a></p>
+        </div>
+        <div class="panel urgent">
+          <p><strong>Water leaking now?</strong> Don't book: call.</p>
+          <a class="btn btn--signal btn--block" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> {facts.phone.value}</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section section--alt" id="callback">
+    <div class="wrap cb">
+      <div>
+        <h2>Rather talk first?</h2>
+        <p class="lead">Leave your number and I'll call you. Good for bigger jobs, questions about price, or if none of the times suit.</p>
+      </div>
+      <CallbackForm id="cb-book" />
+    </div>
+  </section>
+</Base>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("[data-book]")!;
+  const zips: Record<string, string> = JSON.parse(form.dataset.zips!);
+  const sometimes: string[] = JSON.parse(form.dataset.sometimes!);
+  const prices: Record<string, { job: string; range: string }[]> = JSON.parse(form.dataset.prices!);
+  const $ = <T extends Element = HTMLElement>(s: string) => form.querySelector<T>(s)!;
+  const other = $("[data-other]");
+  const zipStatus = $("[data-zip-status]");
+  const summary = $("[data-summary]");
+  let tried = false;
+
+  // Pre-select a job from ?job=slug (service page "Book" buttons).
+  const pre = new URLSearchParams(location.search).get("job");
+  if (pre) { const r = form.querySelector<HTMLInputElement>(`input[name=job][value="${CSS.escape(pre)}"]`); if (r) r.checked = true; }
+  // Carry the phone number between the booking and callback forms (WCAG 3.3.7).
+  try { const saved = sessionStorage.getItem("fm-phone"); if (saved) $<HTMLInputElement>("#phone").value = saved; } catch {}
+  $<HTMLInputElement>("#phone").addEventListener("input", (e) => { try { sessionStorage.setItem("fm-phone", (e.target as HTMLInputElement).value); } catch {} });
+
+  const showPrice = () => {
+    const job = form.querySelector<HTMLInputElement>("input[name=job]:checked");
+    other.hidden = job?.value !== "other";
+    const rows = job && prices[job.value];
+    document.querySelector<HTMLElement>("[data-price-none]")!.hidden = !!rows;
+    document.querySelector<HTMLElement>("[data-price]")!.hidden = !rows;
+    if (rows) {
+      document.querySelector("[data-price-job]")!.textContent = job!.dataset.label!;
+      document.querySelector("[data-price-rows]")!.innerHTML = rows.map((r) => `<tr><th scope="row">${r.job}</th><td class="num">${r.range}</td></tr>`).join("");
+    }
+  };
+  form.addEventListener("change", (e) => { if ((e.target as HTMLInputElement).name === "job") showPrice(); if (tried) validate(false); });
+  showPrice();
+
+  const zipCheck = () => {
+    const z = $<HTMLInputElement>("#zip").value.trim();
+    if (!/^\d{5}$/.test(z)) { zipStatus.textContent = ""; return null; }
+    const city = zips[z];
+    zipStatus.className = `zip-status small ${city ? "ok" : "no"}`;
+    zipStatus.textContent = !city ? "That ZIP is outside my area. Call me and I'll tell you honestly if I can help." : sometimes.includes(z) ? `${city}: I'll confirm I can reach you when I text.` : `${city}: yes, I cover that.`;
+    return city ?? null;
+  };
+  $("#zip").addEventListener("input", zipCheck);
+
+  const setErr = (id: string, msg: string, field?: Element | null) => {
+    document.getElementById(id)!.textContent = msg;
+    if (field) msg ? field.setAttribute("aria-invalid", "true") : field.removeAttribute("aria-invalid");
+    return !msg;
+  };
+  const validate = (focus: boolean) => {
+    const job = form.querySelector<HTMLInputElement>("input[name=job]:checked");
+    const win = form.querySelector<HTMLInputElement>("input[name=window]:checked");
+    const street = $<HTMLInputElement>("#street"), zip = $<HTMLInputElement>("#zip"), phone = $<HTMLInputElement>("#phone");
+    const digits = phone.value.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
+    const checks: [boolean, HTMLElement][] = [
+      [setErr("err-job", job ? "" : "Pick the job closest to yours, or Something else."), form.querySelector<HTMLElement>("input[name=job]")!],
+      [setErr("err-when", win ? "" : "Pick an arrival window, or ask for a callback below."), form.querySelector<HTMLElement>("input[name=window]")!],
+      [setErr("err-street", street.value.trim().length > 3 ? "" : "Enter the street address where the job is.", street), street],
+      [setErr("err-zip", /^\d{5}$/.test(zip.value.trim()) ? (zipCheck() ? "" : "I don't cover that ZIP online. Please call so we can talk about it.") : "Enter a 5-digit ZIP code.", zip), zip],
+      [setErr("err-phone", digits.length === 10 ? "" : "Enter a 10-digit mobile number so I can text you the confirmation.", phone), phone],
+    ];
+    const bad = checks.filter(([ok]) => !ok);
+    summary.textContent = bad.length && focus ? `${bad.length === 1 ? "One thing needs" : `${bad.length} things need`} fixing before I can book this.` : "";
+    if (bad.length && focus) bad[0][1].focus();
+    return bad.length === 0;
+  };
+
+  form.addEventListener("input", () => { if (tried) validate(false); });
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    tried = true;
+    if (!validate(true)) return;
+    const btn = $<HTMLButtonElement>("[data-submit]");
+    btn.disabled = true;
+    btn.textContent = "Booking...";
+    const job = form.querySelector<HTMLInputElement>("input[name=job]:checked")!;
+    const booking = {
+      job: job.value === "other" && $<HTMLInputElement>("#other-note").value.trim() ? $<HTMLInputElement>("#other-note").value.trim() : job.dataset.label,
+      jobId: job.value,
+      window: form.querySelector<HTMLInputElement>("input[name=window]:checked")!.value,
+      street: $<HTMLInputElement>("#street").value.trim(),
+      zip: $<HTMLInputElement>("#zip").value.trim(),
+      city: zipCheck(),
+      phone: $<HTMLInputElement>("#phone").value.trim(),
+    };
+    // Session storage only: no personal details in the URL.
+    try { sessionStorage.setItem("fm-booking", JSON.stringify(booking)); } catch {}
+    setTimeout(() => { location.href = "/book/confirmed"; }, 500);
+  });
+</script>
+
+<style>
+  .book-head { padding-block: 2rem 2.25rem; }
+  .bh { display: flex; align-items: center; gap: 1.25rem; }
+  .bh :global(.bh-pic) { width: 4.5rem; height: 4.5rem; border-radius: 50%; object-fit: cover; border: 3px solid var(--sky); flex: none; }
+  .bh h1 { margin: 0 0 0.25rem; font-size: var(--step-3); }
+  .bh .lead { margin: 0; color: var(--sky-100); font-size: 1.0625rem; }
+  .layout { display: grid; gap: var(--space-4); }
+  @media (min-width: 1000px) { .layout { grid-template-columns: minmax(0, 1fr) 21rem; align-items: start; } }
+  .step { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1.25rem 1.25rem 0.75rem; margin-bottom: 1rem; }
+  @media (min-width: 700px) { .step { padding: 1.5rem 1.75rem 1rem; } }
+  legend { float: left; width: 100%; font-family: var(--font-slab); font-size: 1.375rem; font-weight: 700; color: var(--navy-900); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem; }
+  legend + * { clear: both; }
+  .n { display: inline-grid; place-content: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--navy); color: var(--white); font-size: 1rem; flex: none; }
+  .step .error { margin: 0.5rem 0 0.5rem; }
+  .other { margin-top: 1rem; }
+  .days { display: grid; gap: 1rem; margin-bottom: 0.5rem; }
+  .day-h { font-weight: 700; margin: 0 0 0.4rem; font-size: 1rem; }
+  .day .choices { grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr)); }
+  .day .choice span { min-height: 2.9rem; justify-content: center; font-variant-numeric: tabular-nums; }
+  .addr { display: grid; gap: 0 1rem; }
+  @media (min-width: 640px) { .addr { grid-template-columns: 1fr 9rem; } }
+  .addr .field { margin-bottom: 0.75rem; }
+  .zip-status { min-height: 1.6em; margin: 0 0 0.75rem; font-weight: 600; }
+  .zip-status.ok { color: var(--ok); }
+  .zip-status.no { color: #b42318; }
+  .hint { margin-bottom: 0.75rem; }
+  .submit { width: 100%; min-height: 3.75rem; font-size: 1.1875rem; margin-top: 0.5rem; }
+  @media (min-width: 700px) { .submit { width: auto; padding-inline: 2.5rem; } }
+  .after { margin-top: 0.75rem; }
+  .error-summary { margin: 0 0 1rem; font-weight: 700; color: #b42318; }
+  .error-summary:empty { display: none; }
+  .tagwrap { font-family: var(--font-body); font-size: 0.8rem; font-weight: 400; }
+  .side { display: grid; gap: 1rem; position: sticky; top: 1rem; }
+  .summary { background: var(--navy) var(--waves); background-size: 72px 36px; color: var(--white); border-radius: var(--radius-lg); padding: 1.5rem; }
+  .summary a { color: var(--white); }
+  .sum-h { color: var(--white); font-size: 1.375rem; }
+  .sum-job { font-weight: 700; color: var(--sky-300); margin-bottom: 0.25rem; }
+  .summary table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+  .summary :global(th), .summary :global(td) { text-align: left; padding: 0.45rem 0; border-bottom: 1px solid rgb(255 255 255 / 0.15); font-size: 0.9375rem; font-weight: 400; vertical-align: top; }
+  .summary :global(td) { text-align: right; font-family: var(--font-slab); font-weight: 700; white-space: nowrap; padding-left: 0.75rem; }
+  .fees-mini { list-style: none; padding: 0; margin: 0 0 1rem; }
+  .fees-mini li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.3rem 0; }
+  .fees-mini li.small { display: block; padding-top: 0; color: var(--sky-300); }
+  .fees-mini strong { font-family: var(--font-slab); }
+  .urgent { border-top: 5px solid var(--signal); }
+  .urgent p { margin-bottom: 0.75rem; }
+  .cb { display: grid; gap: var(--space-4); }
+  @media (min-width: 900px) { .cb { grid-template-columns: 1fr 1fr; align-items: start; } }
+</style>

@@ -1,0 +1,52 @@
+---
+// "Do you cover my ZIP?" Answers yes, no, or "call me to check" from src/data/area.ts.
+import Fact from "./Fact.astro";
+import { zips, sometimes } from "../data/area";
+import { facts } from "../data/facts";
+interface Props { id?: string }
+const { id = "zip" } = Astro.props;
+---
+<form class="zipcheck" data-zipcheck novalidate data-zips={JSON.stringify(zips)} data-sometimes={JSON.stringify(sometimes)}>
+  <label for={id}>Check your ZIP code <span class="tagwrap"><Fact k="zipList" text="" /></span></label>
+  <div class="row">
+    <input id={id} name="zip" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="5" pattern="[0-9]{5}" aria-describedby={`${id}-result`} />
+    <button class="btn btn--navy" type="submit">Check</button>
+  </div>
+  <p class="result" id={`${id}-result`} role="status" data-result></p>
+  <template data-yes><strong>Yes, I cover {"{city}"}.</strong> <a href="/book">Book a time</a> or call <a href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a>.</template>
+  <template data-maybe><strong>Call me to check.</strong> Parts of {"{city}"} are a longer drive, so it depends on the job: <a href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a>.</template>
+  <template data-no><strong>That's outside my area.</strong> I work in the 7 cities of Hampton Roads. If you're close to the edge, call and ask: <a href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a>.</template>
+  <template data-bad>Enter a 5-digit ZIP code, for example 23510.</template>
+</form>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>("[data-zipcheck]").forEach((form) => {
+    const zips: Record<string, string> = JSON.parse(form.dataset.zips!);
+    const sometimes: string[] = JSON.parse(form.dataset.sometimes!);
+    const input = form.querySelector("input")!;
+    const out = form.querySelector<HTMLElement>("[data-result]")!;
+    const tpl = (name: string, city = "") => (form.querySelector<HTMLTemplateElement>(`[data-${name}]`)!.innerHTML).replaceAll("{city}", city);
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const z = input.value.trim();
+      if (!/^\d{5}$/.test(z)) { input.setAttribute("aria-invalid", "true"); out.innerHTML = tpl("bad"); out.className = "result is-bad"; return; }
+      input.removeAttribute("aria-invalid");
+      const city = zips[z];
+      out.innerHTML = !city ? tpl("no") : sometimes.includes(z) ? tpl("maybe", city) : tpl("yes", city);
+      out.className = `result ${city ? "is-yes" : "is-no"}`;
+    });
+  });
+</script>
+
+<style>
+  .zipcheck { max-width: 32rem; }
+  label { display: block; font-weight: 700; margin-bottom: 0.4rem; }
+  .row { display: flex; gap: 0.5rem; }
+  input { flex: 1; max-width: 12rem; font-size: 1.125rem; letter-spacing: 0.08em; }
+  .result { min-height: 3.2em; margin: 0.6rem 0 0; font-size: 1rem; }
+  .result.is-yes strong { color: var(--ok); }
+  .result.is-bad { color: #b42318; font-weight: 600; }
+  :global(.navy) .result.is-yes strong { color: #86efac; }
+  :global(.navy) .result.is-bad { color: #fecaca; }
+  .tagwrap { font-weight: 400; }
+</style>

@@ -1,0 +1,315 @@
+---
+import Base from "../layouts/Base.astro";
+import Photo from "../components/Photo.astro";
+import Fact from "../components/Fact.astro";
+import Icon from "../components/Icon.astro";
+import CardBack from "../components/CardBack.astro";
+import RatingLine from "../components/RatingLine.astro";
+import ReviewCard from "../components/ReviewCard.astro";
+import ZipCheck from "../components/ZipCheck.astro";
+import BeforeAfter from "../components/BeforeAfter.astro";
+import { Image } from "astro:assets";
+import hero from "../assets/photos/hero.jpg";
+import portrait from "../assets/photos/portrait.jpg";
+import emergency from "../assets/photos/emergency.jpg";
+import { facts } from "../data/facts";
+import { services } from "../data/services";
+import { reviews, ago } from "../data/reviews";
+import { cities } from "../data/area";
+const newest = reviews[0];
+---
+<Base title="home" description="Antonio Spence, Virginia master plumber, fixes plumbing and drains across Chesapeake, Hampton, Newport News, Norfolk, Portsmouth, Suffolk and Virginia Beach. Every price and fee listed. Call or book online.">
+
+  <!-- First screen: call, book, emergency, rating, license (license is in the header). -->
+  <section class="hero navy on-navy">
+    <div class="hero-photo">
+      <Photo src={hero} fact="hero" priority alt="Antonio Spence standing beside his navy FloMasters van on a tree-lined street" widths={[640, 960, 1280, 1536]} sizes="(min-width: 900px) 70vw, 100vw" shot="Antonio beside the van, street on the left" />
+    </div>
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <h1>Plumbing and drains across Hampton Roads, fixed by a master plumber.</h1>
+        <p class="owner">
+          <Image src={portrait} alt="" width={96} height={96} class="owner-pic" loading="eager" format="webp" />
+          <span>When you call, you get me: <strong>{facts.owner.value}</strong>. No call center, no sales team.</span>
+        </p>
+        <RatingLine class="hero-rating" />
+        <div class="fork" data-hero-actions>
+          <a class="btn btn--signal fork-btn" href={`tel:${facts.phoneHref.value}`}>
+            <Icon name="phone" />
+            <span><span class="fork-k">Water leaking now?</span> Call <Fact k="emergency247" plain text="24/7" /></span>
+          </a>
+          <a class="btn btn--primary fork-btn" href="/book">
+            <Icon name="calendar" />
+            <span><span class="fork-k">Planned repair or install?</span> Book a time</span>
+          </a>
+        </div>
+        <p class="commercial-link"><a href="/commercial">Business or rental property? Commercial service <Icon name="arrow" class="i-arrow" /></a></p>
+      </div>
+    </div>
+    <CardBack class="hero-card" />
+  </section>
+
+  <!-- Trust strip -->
+  <section class="trust" aria-label="Why customers trust FloMasters">
+    <ul class="wrap trust-list">
+      <li><Icon name="shield" /><span><strong>Licensed master plumber</strong><br /><span class="num">#{facts.license.value}</span></span></li>
+      <li><Icon name="shield" /><span><strong><Fact k="insurance" /></strong><br /><Fact k="bonded" /></span></li>
+      <li><Icon name="clock" /><span><strong><Fact k="yearsInTrade" /> in the trade</strong><br />FloMasters est. {facts.established.value}</span></li>
+      <li><Icon name="receipt" /><span><strong>Every fee listed</strong><br /><a href="/pricing">See prices</a></span></li>
+      <li><Icon name="star" /><span><strong><Fact k="laborWarranty" /></strong><br />In writing</span></li>
+    </ul>
+  </section>
+
+  <!-- Newest review, then how I price -->
+  <section class="section">
+    <div class="wrap split">
+      <div class="quote">
+        <p class="quote-k muted">Newest review · {ago(newest.date)} · <span class="sample-label">Sample review</span></p>
+        <blockquote>
+          <p>“{newest.text}”</p>
+        </blockquote>
+        <p class="quote-who"><strong>{newest.name}</strong>, {newest.city}</p>
+        <a href="/reviews">Read all <Fact k="reviewCount" plain /> reviews</a>
+      </div>
+      <div class="price-promise panel">
+        <h2>How I price</h2>
+        <ol class="steps">
+          <li><strong>You see the price before I start.</strong> A written, flat price for the job. No hourly meter.</li>
+          <li><strong>Every fee is on the website.</strong> Call-out <Fact k="calloutFee" />, <Fact k="calloutCredited" />. No card fee.</li>
+          <li><strong>Repair first.</strong> If a repair will do, I'll say so before quoting a replacement.</li>
+        </ol>
+        <a class="btn btn--navy" href="/pricing">See prices and fees</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section class="section section--alt">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>What I fix</h2>
+        <p class="lead">Typical prices are listed with every job, so you know the range before you call.</p>
+      </div>
+      <ul class="svc-grid">
+        {services.map((s) => (
+          <li class="svc">
+            <a href={`/residential/${s.slug}`} class="svc-link">
+              <Photo src={s.photo} alt="" fact="jobs" widths={[480, 768]} sizes="(min-width: 1180px) 380px, (min-width: 760px) 45vw, 100vw" class="svc-photo" />
+              <span class="svc-body">
+                <span class="svc-title">{s.title}</span>
+                <span class="svc-short">{s.short}</span>
+                <span class="svc-price">From <strong class="num">{s.prices[0].range.split(" to ")[0]}</strong></span>
+              </span>
+            </a>
+          </li>
+        ))}
+        <li class="svc svc--more">
+          <div>
+            <p class="svc-title">Something else?</p>
+            <p>Gas lines, sump pumps, outdoor spigots, water pressure. If it carries water or waste, call and ask.</p>
+            <a class="btn btn--navy" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> {facts.phone.value}</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Meet Antonio -->
+  <section class="section">
+    <div class="wrap meet">
+      <Photo src={portrait} fact="portrait" alt="Antonio Spence, owner of FloMasters, in his navy work shirt" widths={[480, 768, 1024]} sizes="(min-width: 900px) 440px, 100vw" class="meet-photo" shot="portrait outside, morning light" />
+      <div>
+        <h2>One plumber. The same one, every time.</h2>
+        <p class="lead">I'm Antonio Spence. I started FloMasters in {facts.established.value} after <Fact k="yearsInTrade" /> working for other companies, because I wanted to do the job the way I'd want it done in my own house.</p>
+        <ul class="ticks">
+          <li>The person who answers the phone is the person who shows up.</li>
+          <li>I explain what I find and show you the old part.</li>
+          <li>Drop cloths down, mess cleaned up, water tested before I leave.</li>
+          <li>Virginia Master Plumber, license <span class="num">#{facts.license.value}</span>.</li>
+        </ul>
+        <a href="/about">More about me <Icon name="arrow" class="i-arrow" /></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Before / after -->
+  <section class="section section--alt">
+    <div class="wrap ba-wrap">
+      <div>
+        <h2>Before and after</h2>
+        <p class="lead">Corroded drain and supply lines under a kitchen sink, replaced in one visit. Drag the slider to compare.</p>
+        <p>Every job ends the same way: water on, everything tested, the cabinet dry, and the old pipe shown to you before it goes in the trash.</p>
+        <a class="btn btn--navy" href="/book">Book a time</a>
+      </div>
+      <BeforeAfter />
+    </div>
+  </section>
+
+  <!-- Emergency -->
+  <section class="emerg navy on-navy">
+    <div class="wrap emerg-grid">
+      <div>
+        <h2>Water where it shouldn't be?</h2>
+        <ol class="emerg-steps">
+          <li><strong>Turn off your main water shut-off.</strong> It's usually where the water line enters the house: garage, utility room or crawlspace. Turn it clockwise.</li>
+          <li><strong>Turn off the water heater</strong> if the leak is near it.</li>
+          <li><strong>Call me.</strong> <Fact k="afterHoursAnswer" />, <Fact k="emergencyArrival" />.</li>
+        </ol>
+        <a class="btn btn--signal" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> Call {facts.phone.value}</a>
+        <p class="small muted emerg-fee">After-hours visits cost <Fact k="afterHoursFee" /> (<Fact k="afterHoursWhen" />). I'll tell you before I drive out.</p>
+      </div>
+      <Photo src={emergency} fact="jobs" alt="A gloved hand turning a red-handled main water shut-off valve" widths={[480, 768, 1080]} sizes="(min-width: 900px) 520px, 100vw" class="emerg-photo" shot="hand on a main shut-off valve" />
+    </div>
+  </section>
+
+  <!-- Service area -->
+  <section class="section">
+    <div class="wrap area">
+      <div>
+        <h2>Where I work</h2>
+        <p class="lead">All 7 cities of Hampton Roads.</p>
+        <ul class="cities">{cities.map((c) => <li><Icon name="pin" />{c}</li>)}</ul>
+      </div>
+      <div class="panel"><ZipCheck id="zip-home" /></div>
+    </div>
+  </section>
+
+  <!-- Reviews -->
+  <section class="section section--alt">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>What customers say</h2>
+        <RatingLine />
+      </div>
+      <div class="grid grid--3">
+        {reviews.slice(1, 4).map((r) => <ReviewCard review={r} showReply={false} />)}
+      </div>
+      <p class="more"><a href="/reviews">Read every review <Icon name="arrow" class="i-arrow" /></a></p>
+    </div>
+  </section>
+
+  <!-- Final call to action -->
+  <section class="closing">
+    <div class="wrap closing-grid">
+      <div>
+        <h2>Need a plumber?</h2>
+        <p class="lead">Call, book online, or leave your number and I'll call you back <Fact k="callback" />.</p>
+      </div>
+      <div class="closing-actions">
+        <a class="btn btn--signal" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> Call {facts.phone.value}</a>
+        <a class="btn btn--primary" href="/book"><Icon name="calendar" /> Book a time</a>
+        <a class="btn btn--ghost" href="/book#callback"><Icon name="text" /> Ask for a callback</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* Hero */
+  .hero { position: relative; overflow: hidden; }
+  .hero-photo { position: relative; aspect-ratio: 3 / 2; }
+  .hero-photo :global(.photo) { position: absolute; inset: 0; }
+  .hero-photo :global(img) { object-position: 62% 40%; }
+  .hero-grid { position: relative; padding-block: 1.75rem 2.5rem; }
+  .hero h1 { font-size: clamp(1.9rem, 1.2rem + 3.4vw, 3.5rem); margin-bottom: 1rem; max-width: 18ch; }
+  .owner { display: flex; align-items: center; gap: 0.85rem; margin: 0 0 0.75rem; font-size: 1.0625rem; line-height: 1.4; }
+  .owner :global(.owner-pic) { width: 3.25rem; height: 3.25rem; border-radius: 50%; object-fit: cover; flex: none; border: 2px solid var(--sky); }
+  .hero :global(.hero-rating) { color: var(--sky-100); margin-bottom: 1.25rem; }
+  .fork { display: grid; gap: 0.7rem; max-width: 34rem; }
+  .fork-btn { justify-content: flex-start; text-align: left; min-height: 3.75rem; font-size: 1.125rem; padding-inline: 1.1rem; }
+  .fork-k { display: block; font-weight: 600; font-size: 0.875rem; opacity: 0.92; }
+  .commercial-link { margin: 1rem 0 0; }
+  .commercial-link a { color: var(--sky-300); font-weight: 600; padding: 0.4rem 0; display: inline-block; }
+  :global(.i-arrow) { width: 1.05em; height: 1.05em; vertical-align: -0.15em; }
+
+  /* Mobile: copy first, then the photo with the card overlapping it. */
+  .hero { display: flex; flex-direction: column; }
+  .hero-photo { order: 2; }
+  .hero-grid { order: 1; }
+  .hero :global(.hero-card) { order: 3; position: relative; z-index: 2; width: min(100% - 2.5rem, 19.5rem); margin: -4.5rem auto 2rem; transform: rotate(-2deg); }
+
+  @media (min-width: 900px) {
+    .hero { display: block; min-height: min(46rem, 88vh); }
+    .hero-photo { position: absolute; inset: 0 0 0 30%; aspect-ratio: auto; }
+    .hero-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, var(--navy) 0%, rgb(27 53 86 / 0.92) 22%, rgb(27 53 86 / 0.55) 38%, rgb(27 53 86 / 0) 58%); pointer-events: none; }
+    .hero-grid { display: grid; align-items: center; padding-block: 4.5rem 3.5rem; min-height: inherit; }
+    .hero-copy { align-self: center; max-width: 36rem; }
+    .hero :global(.hero-card) { position: absolute; margin: 0; width: 20rem; right: max(1.25rem, (100% - var(--wrap)) / 2); bottom: 2.5rem; transform: rotate(-3deg); }
+  }
+  @media (min-width: 1200px) {
+    .hero :global(.hero-card) { width: 22rem; }
+  }
+
+  /* Trust strip */
+  .trust { background: var(--white); border-bottom: 1px solid var(--line); }
+  .trust-list { list-style: none; margin: 0 auto; padding: 1.25rem 0; display: grid; gap: 1rem 1.5rem; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); font-size: 0.9375rem; line-height: 1.35; }
+  .trust-list li { display: flex; gap: 0.7rem; align-items: flex-start; }
+  .trust-list :global(svg) { width: 1.6rem; height: 1.6rem; color: var(--slate); flex: none; margin-top: 0.1rem; }
+
+  .section--alt { background: var(--white); border-block: 1px solid var(--line); }
+  .sec-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 0.5rem 2rem; margin-bottom: var(--space-4); }
+  .sec-head h2 { margin: 0; }
+  .sec-head .lead { margin: 0; }
+
+  .split { display: grid; gap: var(--space-4); }
+  @media (min-width: 900px) { .split { grid-template-columns: 1.15fr 1fr; align-items: center; } }
+  .quote blockquote { margin: 0.5rem 0 1rem; }
+  .quote blockquote p { font-family: var(--font-slab); font-size: var(--step-2); line-height: 1.35; color: var(--navy-900); max-width: 30ch; font-weight: 500; }
+  .quote-k { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0; font-size: 0.9375rem; }
+  .quote-who { margin-bottom: 0.5rem; }
+  .price-promise { padding: var(--space-4) var(--space-3); border-top: 5px solid var(--sky); }
+  .steps { padding-left: 1.3rem; margin: 0 0 1.5rem; }
+  .steps li { margin-bottom: 0.75rem; padding-left: 0.3rem; }
+  .steps li::marker { font-family: var(--font-slab); font-weight: 700; color: var(--slate); }
+
+  /* Services */
+  .svc-grid { list-style: none; padding: 0; margin: 0; display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); }
+  .svc-link { display: flex; flex-direction: column; height: 100%; text-decoration: none; color: inherit; border-radius: var(--radius-lg); overflow: hidden; background: var(--paper); border: 1px solid var(--line); transition: border-color 0.15s; }
+  .svc-link:hover { border-color: var(--slate); }
+  .svc-link:hover .svc-title { text-decoration: underline; }
+  .svc-link :global(.svc-photo) { aspect-ratio: 3 / 2; }
+  .svc-body { display: flex; flex-direction: column; gap: 0.3rem; padding: 1.1rem 1.25rem 1.3rem; flex: 1; }
+  .svc-title { font-family: var(--font-slab); font-weight: 700; font-size: 1.25rem; color: var(--navy-900); margin: 0; }
+  .svc-short { color: var(--ink-soft); font-size: 1rem; }
+  .svc-price { margin-top: auto; padding-top: 0.5rem; font-size: 1rem; }
+  .svc-price strong { font-family: var(--font-slab); font-size: 1.25rem; color: var(--navy); }
+  .svc--more { display: flex; align-items: center; background: var(--navy) var(--waves); background-size: 72px 36px; color: var(--white); border-radius: var(--radius-lg); padding: 1.5rem; }
+  .svc--more .svc-title { color: var(--white); margin-bottom: 0.5rem; }
+  .svc--more p { color: var(--sky-100); }
+
+  /* Meet */
+  .meet { display: grid; gap: var(--space-4); align-items: center; }
+  @media (min-width: 900px) { .meet { grid-template-columns: 440px 1fr; } }
+  .meet :global(.meet-photo) { border-radius: var(--radius-lg); aspect-ratio: 1; }
+
+  .ba-wrap { display: grid; gap: var(--space-4); align-items: center; }
+  @media (min-width: 900px) { .ba-wrap { grid-template-columns: 1fr minmax(0, 30rem); } }
+
+  /* Emergency */
+  .emerg { padding-block: var(--space-5); }
+  .emerg-grid { display: grid; gap: var(--space-4); align-items: center; }
+  @media (min-width: 900px) { .emerg-grid { grid-template-columns: 1.1fr 1fr; } }
+  .emerg-steps { margin: 0 0 1.75rem; padding-left: 1.4rem; font-size: 1.0625rem; }
+  .emerg-steps li { margin-bottom: 0.85rem; padding-left: 0.3rem; }
+  .emerg-steps li::marker { font-family: var(--font-slab); font-weight: 700; color: var(--sky); }
+  .emerg :global(.emerg-photo) { border-radius: var(--radius-lg); aspect-ratio: 4 / 3; }
+  .emerg-fee { margin-top: 1rem; }
+
+  /* Area */
+  .area { display: grid; gap: var(--space-4); align-items: start; }
+  @media (min-width: 900px) { .area { grid-template-columns: 1fr 1fr; align-items: center; } }
+  .cities { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem 1rem; }
+  .cities li { display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-slab); font-weight: 600; font-size: 1.125rem; color: var(--navy-900); }
+  .cities :global(svg) { width: 1.2rem; height: 1.2rem; color: var(--sky); }
+
+  .more { margin-top: 1.5rem; }
+
+  .closing { padding-block: var(--space-5); background: var(--sky-100); border-top: 1px solid #c9e0ef; }
+  .closing .lead { color: var(--ink-soft); }
+  .closing .btn--ghost { color: var(--navy); }
+  .closing-grid { display: grid; gap: var(--space-3); align-items: center; }
+  @media (min-width: 900px) { .closing-grid { grid-template-columns: 1fr auto; } }
+  .closing-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .closing h2 { margin-bottom: 0.4rem; }
+  .closing .lead { margin: 0; }
+</style>

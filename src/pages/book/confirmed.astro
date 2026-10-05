@@ -1,0 +1,118 @@
+---
+import Base from "../../layouts/Base.astro";
+import Fact from "../../components/Fact.astro";
+import Icon from "../../components/Icon.astro";
+import Photo from "../../components/Photo.astro";
+import portrait from "../../assets/photos/portrait.jpg";
+import { facts } from "../../data/facts";
+---
+<Base title="Booking requested" description="Your FloMasters booking request.">
+  <section class="section conf-wrap">
+    <div class="wrap conf">
+      <div class="who">
+        <Photo src={portrait} fact="portrait" priority alt="Antonio Spence" widths={[320, 480]} sizes="16rem" class="who-photo" shot="portrait" />
+        <div class="who-card">
+          <p class="who-name">{facts.owner.value}</p>
+          <p>Virginia Master Plumber</p>
+          <p>License <span class="num">#{facts.license.value}</span></p>
+          <a class="num" href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a>
+        </div>
+      </div>
+
+      <div class="main">
+        <p class="status"><Icon name="clock" /> <span data-status>Requested</span></p>
+        <h1>Thanks. Your visit is requested.</h1>
+        <p class="lead"><Fact k="bookingConfirm" /></p>
+
+        <div class="window">
+          <p class="w-k">Arrival window</p>
+          <p class="w-v" data-window>Thursday, October 8, 10 a.m. to 12 p.m.</p>
+          <p class="small">I'll text you when I'm on my way, with how long I'll be.</p>
+        </div>
+
+        <dl class="details">
+          <div><dt>Job</dt><dd data-job>Water heater</dd></div>
+          <div><dt>Address</dt><dd data-address>1200 Colonial Ave, Norfolk 23517</dd></div>
+          <div><dt>Texts go to</dt><dd class="num" data-phone>(757) 555-0142</dd></div>
+          <div><dt>Call-out</dt><dd><Fact k="calloutFee" />, <Fact k="calloutCredited" /></dd></div>
+          <div><dt>Changes</dt><dd><Fact k="cancellation" /></dd></div>
+        </dl>
+        <p class="sample-note small muted" data-sample>Showing a sample booking. Fill in the booking form to see your own details here.</p>
+
+        <div class="actions">
+          <a class="btn btn--navy" href="#" data-ics download="flomasters-visit.ics"><Icon name="calendar" /> Add to calendar</a>
+          <a class="btn btn--ghost" href="/book">Change the time</a>
+          <a class="btn btn--ghost" href="/appointment">See how updates look</a>
+        </div>
+
+        <form class="extra panel" data-extra>
+          <h2 class="ex-h">Two optional extras</h2>
+          <div class="field">
+            <label for="name">What should I call you?</label>
+            <input id="name" name="name" type="text" autocomplete="given-name" />
+          </div>
+          <div class="field">
+            <label for="photo">Send a photo of the problem</label>
+            <input id="photo" name="photo" type="file" accept="image/*" />
+            <span class="hint">Helps me bring the right parts.</span>
+          </div>
+          <button class="btn btn--navy" type="submit">Send</button>
+          <p class="small ok" role="status" data-extra-done></p>
+        </form>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  type Booking = { job: string; window: string; street: string; zip: string; city: string | null; phone: string };
+  let b: Booking | null = null;
+  try { b = JSON.parse(sessionStorage.getItem("fm-booking") || "null"); } catch {}
+  const set = (sel: string, v: string) => { const el = document.querySelector(sel); if (el) el.textContent = v; };
+  if (b) {
+    set("[data-window]", b.window);
+    set("[data-job]", b.job);
+    set("[data-address]", `${b.street}, ${b.city ?? ""} ${b.zip}`.replace(/\s+/g, " "));
+    set("[data-phone]", b.phone);
+    document.querySelector<HTMLElement>("[data-sample]")!.hidden = true;
+  }
+  // Calendar file built in the browser from the window text.
+  const ics = document.querySelector<HTMLAnchorElement>("[data-ics]")!;
+  ics.addEventListener("click", () => {
+    const text = document.querySelector("[data-window]")!.textContent!;
+    const body = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//FloMasters//Booking//EN", "BEGIN:VEVENT", `UID:${Date.now()}@flomasters`, `SUMMARY:FloMasters plumbing visit (Antonio)`, `DESCRIPTION:Arrival window: ${text}. Antonio will text when he's on his way. (757) 277-6194`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").slice(0, 15)}Z`, "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+    ics.href = URL.createObjectURL(new Blob([body], { type: "text/calendar" }));
+  });
+  document.querySelector<HTMLFormElement>("[data-extra]")!.addEventListener("submit", (e) => {
+    e.preventDefault();
+    set("[data-extra-done]", "Thanks. Prototype: nothing was sent.");
+  });
+</script>
+
+<style>
+  .conf-wrap { background: linear-gradient(var(--sky-100), var(--paper) 22rem); }
+  .conf { display: grid; gap: var(--space-4); }
+  @media (min-width: 900px) { .conf { grid-template-columns: 17rem minmax(0, 1fr); align-items: start; } }
+  .who { display: grid; gap: 0; max-width: 17rem; }
+  .who :global(.who-photo) { aspect-ratio: 1; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .who-card { background: var(--navy) var(--waves); background-size: 60px 30px; color: var(--white); padding: 1rem 1.25rem 1.25rem; border-radius: 0 0 var(--radius-lg) var(--radius-lg); font-family: var(--font-slab); }
+  .who-card p { margin: 0; }
+  .who-name { font-size: 1.3rem; font-weight: 700; }
+  .who-card a { color: var(--white); font-weight: 700; display: inline-block; margin-top: 0.3rem; }
+  .status { display: inline-flex; align-items: center; gap: 0.4rem; background: #fff4cc; color: #6b4e00; font-weight: 700; border-radius: 999px; padding: 0.3rem 0.8rem; margin-bottom: 1rem; font-size: 0.9375rem; }
+  .status :global(svg) { width: 1.1rem; height: 1.1rem; }
+  h1 { font-size: var(--step-3); }
+  .window { background: var(--white); border: 2px solid var(--navy); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin: 1.5rem 0; }
+  .w-k { margin: 0; font-weight: 700; color: var(--ink-soft); font-size: 0.9375rem; }
+  .w-v { margin: 0.2rem 0 0.4rem; font-family: var(--font-slab); font-size: var(--step-2); font-weight: 700; color: var(--navy-900); line-height: 1.25; }
+  .window .small { margin: 0; }
+  .details { display: grid; gap: 0; margin: 0 0 0.75rem; }
+  .details div { display: grid; grid-template-columns: 8rem 1fr; gap: 1rem; padding: 0.6rem 0; border-bottom: 1px solid var(--line); }
+  dt { font-weight: 700; }
+  dd { margin: 0; }
+  .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.5rem 0 2rem; }
+  .actions .btn--ghost { color: var(--navy); }
+  .ex-h { font-size: 1.375rem; }
+  .ok { color: var(--ok); font-weight: 700; margin-top: 0.75rem; }
+  input[type="file"] { font: inherit; max-width: 100%; }
+</style>

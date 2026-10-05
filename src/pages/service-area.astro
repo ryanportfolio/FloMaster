@@ -1,0 +1,51 @@
+---
+import Base from "../layouts/Base.astro";
+import PageHero from "../components/PageHero.astro";
+import ZipCheck from "../components/ZipCheck.astro";
+import Fact from "../components/Fact.astro";
+import Icon from "../components/Icon.astro";
+import CallToAction from "../components/CallToAction.astro";
+import { cities, zips } from "../data/area";
+const byCity = cities.map((c) => ({ city: c, zips: Object.entries(zips).filter(([, v]) => v === c).map(([z]) => z) }));
+---
+<Base title="Service area" description="FloMasters works across all 7 cities of Hampton Roads: Chesapeake, Hampton, Newport News, Norfolk, Portsmouth, Suffolk and Virginia Beach. Check your ZIP.">
+  <PageHero title="All 7 cities of Hampton Roads" lead="Chesapeake, Hampton, Newport News, Norfolk, Portsmouth, Suffolk and Virginia Beach." />
+  <section class="section">
+    <div class="wrap sa">
+      <div class="panel zipbox">
+        <ZipCheck id="zip-area" />
+      </div>
+      <div class="hours">
+        <h2>Hours</h2>
+        <p><Fact k="hours" /></p>
+        <p><strong><Fact k="emergency247" /></strong> for leaks, floods, no water and sewage backups. "24/7" means I answer the phone and come out any hour, every day of the year. After-hours visits cost <Fact k="afterHoursFee" />.</p>
+      </div>
+    </div>
+  </section>
+  <section class="section section--alt">
+    <div class="wrap">
+      <h2>ZIP codes I cover</h2>
+      <div class="cities">
+        {byCity.map((c) => (
+          <section class="city">
+            <h3><Icon name="pin" /> {c.city}</h3>
+            <p class="num">{c.zips.join(", ")}</p>
+          </section>
+        ))}
+      </div>
+      <p class="small muted">Near the edge of one of these? Call and ask: <Fact k="zipList" text="I'll tell you honestly whether I can get to you." /></p>
+    </div>
+  </section>
+  <CallToAction />
+</Base>
+
+<style>
+  .sa { display: grid; gap: var(--space-4); }
+  @media (min-width: 900px) { .sa { grid-template-columns: 1fr 1fr; align-items: start; } }
+  .zipbox { border-top: 5px solid var(--sky); }
+  .cities { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); margin: 1.5rem 0; }
+  .city { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1rem 1.25rem; }
+  .city h3 { display: flex; align-items: center; gap: 0.4rem; font-size: 1.1875rem; margin-bottom: 0.3rem; }
+  .city h3 :global(svg) { width: 1.1rem; height: 1.1rem; color: var(--sky); }
+  .city p { margin: 0; font-size: 0.9375rem; color: var(--ink-soft); }
+</style>

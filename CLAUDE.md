@@ -27,7 +27,7 @@ Caveman covers chat replies only. Anything written to a file or for another read
 
 ## CRITICAL: Verification
 
-This is the user's own Windows machine (Node 24), so local installs, builds and dev servers are real and the user can open a localhost server you start. No app exists yet; once it does, the authoritative signals are a clean production build, a Lighthouse mobile run, a recorded interaction run for INP (a page-load run doesn't measure it) and an axe scan, plus headed-Chrome checks for anything visual. No CI yet: once the app is scaffolded, generate `.github/workflows/ci.yml` with `node .claude/scripts/write-ci-workflow.mjs` (show the user, then `--write`).
+This is the user's own Windows machine (Node 24), so local installs, builds and dev servers are real and the user can open a localhost server you start. The authoritative signals are a clean `npm run build` plus the check scripts in `.claude/reference/commands.md` (flows, axe, keyboard, overflow, Lighthouse with a recorded INP run), all on the production build in headed Chrome. No CI yet: generate `.github/workflows/ci.yml` with `node .claude/scripts/write-ci-workflow.mjs` (show the user, then `--write`).
 
 Rules:
 
