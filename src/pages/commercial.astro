@@ -32,7 +32,7 @@ import { facts } from "../data/facts";
         <p class="small"><Fact k="insurance" />. <Fact k="contractorLicense" onlyWithTags /></p>
       </div>
 
-      <form class="visit panel" data-visit novalidate>
+      <form class="visit panel" data-visit novalidate method="post" action="/commercial">
         <h2 class="v-h">Request a site visit</h2>
         <p class="small muted"><Fact k="commercialOffer" text="I'll call within one working day to set a time." /></p>
         <div class="field">
@@ -55,7 +55,7 @@ import { facts } from "../data/facts";
           <textarea id="need" name="need" rows="4" aria-describedby="err-need"></textarea>
           <span class="error" id="err-need"></span>
         </div>
-        <button class="btn btn--navy btn--block" type="submit" data-vsubmit>Request a visit</button>
+        <button class="btn btn--navy btn--block" type="submit" data-vsubmit disabled data-needs-js>Request a visit</button>
         <p class="small ok" role="status" data-vdone></p>
         <p class="small">Urgent? Call <a href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a>.</p>
       </form>

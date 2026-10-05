@@ -6,7 +6,7 @@ import { facts } from "../data/facts";
 interface Props { id?: string }
 const { id = "zip" } = Astro.props;
 ---
-<form class="zipcheck" data-zipcheck novalidate data-zips={JSON.stringify(zips)} data-sometimes={JSON.stringify(sometimes)}>
+<form class="zipcheck" data-zipcheck novalidate method="post" action="/service-area" data-zips={JSON.stringify(zips)} data-sometimes={JSON.stringify(sometimes)}>
   <label for={id}>Check your ZIP code <span class="tagwrap"><Fact k="zipList" text="" /></span></label>
   <div class="row">
     <input id={id} name="zip" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="5" pattern="[0-9]{5}" aria-describedby={`${id}-result`} />

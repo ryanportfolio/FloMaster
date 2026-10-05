@@ -6,7 +6,7 @@ import { workingHours } from "../data/facts";
 interface Props { id: string; urgent?: boolean }
 const { id, urgent = false } = Astro.props;
 ---
-<form class="cbf panel" data-callback novalidate data-hours={JSON.stringify(workingHours)}>
+<form class="cbf panel" data-callback novalidate method="post" action="/book#callback" data-hours={JSON.stringify(workingHours)}>
   <h3 class="cbf-h">Ask for a callback</h3>
   <div class="field">
     <label for={`${id}-phone`}>Mobile number</label>
@@ -18,7 +18,7 @@ const { id, urgent = false } = Astro.props;
     <label for={`${id}-what`}>What's going on? <span class="muted">(optional)</span></label>
     <textarea id={`${id}-what`} name="what" rows="3"></textarea>
   </div>
-  <button class="btn btn--navy btn--block" type="submit" data-label="Call me back">Call me back</button>
+  <button class="btn btn--navy btn--block" type="submit" data-label="Call me back" disabled data-needs-js>Call me back</button>
   <p class="cbf-when small" data-when></p>
   <p class="cbf-done" role="status" data-done></p>
   <template data-in>I'll call you back <Fact k="callback" />.</template>

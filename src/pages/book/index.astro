@@ -44,7 +44,7 @@ const priceMap = Object.fromEntries(services.map((s) => [s.slug, s.prices]));
 
   <section class="section">
     <div class="wrap layout">
-      <form class="bookform" data-book novalidate data-zips={JSON.stringify(zips)} data-sometimes={JSON.stringify(sometimes)} data-prices={JSON.stringify(priceMap)} data-price-open={String(!isPublicBuild && facts.priceRanges.status === "open")}>
+      <form class="bookform" data-book novalidate method="post" action="/book" data-zips={JSON.stringify(zips)} data-sometimes={JSON.stringify(sometimes)} data-prices={JSON.stringify(priceMap)} data-price-open={String(!isPublicBuild && facts.priceRanges.status === "open")}>
         <p class="error-summary" role="alert" data-summary></p>
 
         <fieldset class="step" id="f-job" aria-describedby="err-job">
@@ -112,12 +112,12 @@ const priceMap = Object.fromEntries(services.map((s) => [s.slug, s.prices]));
           </div>
         </fieldset>
 
-        <button class="btn btn--navy submit" type="submit" data-submit>Book this time</button>
+        <button class="btn btn--navy submit" type="submit" data-submit disabled data-needs-js>Book this time</button>
         <p class="small muted after">Prototype: nothing is sent. You'll see the confirmation screen.</p>
       </form>
 
       <aside class="side">
-        <div class="summary">
+        <div class="summary on-navy">
           <h2 class="sum-h">What it costs</h2>
           <div data-price-none>
             <p class="small">Pick a job to see typical prices.</p>
