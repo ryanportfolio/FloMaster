@@ -41,7 +41,7 @@ These come from `CLAUDE.md` and the brief. A change that breaks one is wrong eve
 - **Mobile sticky bar holds Call and Book only.** Nothing else ever joins it.
 - **Booking form: at most four fields.** A fifth field is a brief change.
 - **Every fee shown before the customer commits**: on the pricing page and next to the booking form.
-- **No stock or AI-generated people.** Empty photo slots are labelled frames describing the shot.
+- **No stock photos.** In the prototype every photo slot holds an AI-generated stand-in (brief section 12) tagged "replace with a real photo" and listed on `/review`. A public build fails while any stand-in remains.
 - **Placeholder phone numbers use 555-0100 to 555-0199.**
 - **Prototype builds stay private:** every page carries `noindex`, and sample reviews keep a visible "sample" label even with tags switched off. The public build removes `noindex`.
 - **No personal data in URLs.** Booking details reach the confirmation page through session storage, never the query string.

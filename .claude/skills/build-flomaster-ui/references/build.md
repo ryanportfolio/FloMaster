@@ -42,10 +42,10 @@ The brief's section 8 describes the behaviour (still a proposal; build it as wri
 
 - Name the LCP element for each screen size before optimising. In the brief's layout it is likely the headline or the owner line on mobile (the owner photo is a small circle there) and the van photo (P26) on desktop. Check in the browser rather than assuming.
 - The LCP image, when it is an image, is a plain `<img>` in the initial HTML with `width`, `height` and `fetchpriority="high"`, never lazy-loaded, served in AVIF or WebP at the sizes the layout needs (`srcset` and `sizes`). Add a preload only if a trace shows it being found late.
-- Photo slots in the prototype are empty frames, so the measured LCP will be text and look better than launch. For speed checks, drop in a stand-in image at the real file size and dimensions.
+- Prototype photo slots hold AI-generated stand-ins. Export them at the size and compression the real photos will have, so speed numbers carry over to launch.
 - Every image below the first screen gets `loading="lazy"` and explicit dimensions.
 - Real photos get alt text that says what's in them ("[Owner] fitting a water heater in a garage"). Decorative images get `alt=""` and nothing else.
-- Empty photo slots are labelled frames with the shot description from the brief, at the final aspect ratio, so swapping in the real photo changes nothing around it.
+- Each AI stand-in is a placeholder like any other fact: it lives in the placeholder data file with the shot description (which doubles as the brief for the real photo session), renders with a "replace with a real photo" tag, and keeps the final aspect ratio so swapping in the real photo changes nothing around it. Generated people must look like ordinary working tradespeople, never like stock models, and must not carry other companies' logos or invented text.
 
 ## Styling
 

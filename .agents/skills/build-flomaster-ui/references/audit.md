@@ -38,7 +38,7 @@ The brief asks for a plain, local, owner-run site. Flag patterns that make it re
 - arrows or icons decorating every button;
 - 01/02/03 numbering on things that aren't steps;
 - a decorative gradient or blob background;
-- stock-style or AI-looking people;
+- stock photos, or an AI stand-in missing its "replace with a real photo" tag;
 - several competing accent colours, or the emergency colour used off the emergency path;
 - marketing filler copy ("Your trusted partner for all your plumbing needs").
 
@@ -63,7 +63,7 @@ Write each finding as: criterion, element (`path:line` or selector), what fails,
 - LCP and CLS: Lighthouse page-load runs. Name the LCP element and confirm it's the intended image or heading.
 - INP: a recorded interaction run through the booking flow, ZIP check and tag switch (DevTools live metrics or a Lighthouse timespan recording) with the CPU slowed 4x; an unthrottled desktop run passes too easily to mean anything. Total Blocking Time is a lab stand-in, not INP.
 - Tag switch: CLS ignores shifts within half a second of a tap, so it can't catch the switch moving content. Record the bounding boxes of the main page elements with tags on and off and compare them; any difference is a failure.
-- Speed runs use stand-in images at real size in the photo slots (see build.md), and the report says so.
+- Speed runs use the photo slots' stand-in images at their final size and compression (see build.md), and the report says so.
 - Label every number as lab data. Field data (75th percentile of real visits) exists only after launch.
 - Don't call a target failing or passing from reading code. If you couldn't measure, say "not measured".
 

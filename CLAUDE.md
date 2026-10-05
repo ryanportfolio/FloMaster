@@ -9,7 +9,7 @@ Website for an independent, one-person plumbing business in Hampton Roads, Virgi
 Won't compromise on:
 
 - No invented business facts on a public site. Unconfirmed claims (licence, fees, prices, 24/7, warranty, reviews) stay tagged placeholders until the owner confirms them.
-- No stock photos, no fake or filtered reviews.
+- No stock photos, no fake or filtered reviews. AI-generated images appear only as tagged stand-ins in the prototype and are replaced by real photos before any public launch.
 - Licence number on every page; every fee listed.
 - Emergency (phone) and planned (booking) paths split from the first screen.
 - Mobile Core Web Vitals good (LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1) and WCAG 2.2 AA.

@@ -50,7 +50,7 @@ Design questions:
 ### Prototype safety rules
 
 - Every page carries `noindex`, and the review link is private (host to be decided; see [section 11](#11-recommended-tech-stack)).
-- The placeholder phone number is `+1-757-555-0123`. Numbers from 555-0100 to 555-0199 are reserved for fictional use, so a tap on "Call" during review cannot ring a stranger.
+- The site uses Antonio's real number from his business card, `+1-757-277-6194`, so a tap on "Call" during review rings him. Any other placeholder number uses the range 555-0100 to 555-0199, which is reserved for fictional use and can't ring a stranger.
 - Booking and callback forms do not send anything. Submitting shows the confirmation screens with the details entered.
 - Sample reviews are marked as samples. They must never reach a public site: the FTC rule bans fake reviews (research section 4, Checklist 11).
 
@@ -121,8 +121,8 @@ The first screen has to do five things before any scrolling: offer a call, offer
 
 From top to bottom:
 
-1. **Header bar.** Business name placeholder (P01) on the left; phone icon button on the right (`tel:` link, 48x48px). Directly under it, one line in readable type: "Virginia Master Plumber · Licence [P04]". The owner asked for the licence to be prominent on every page; it sits in the header, not the footer.
-2. **Headline in plain words.** Draft: "Plumbing repairs across Hampton Roads, done by a master plumber." One line under it: "When you call, you get me: [Owner name]." with a small round photo of the owner (P25).
+1. **Header bar.** FloMasters name and logo (P01, P02) on the left; phone icon button on the right (`tel:` link, 48x48px). Directly under it, one line in readable type: "Virginia Master Plumber · Licence [P04]". The owner asked for the licence to be prominent on every page; it sits in the header, not the footer.
+2. **Headline in plain words.** Draft: "Plumbing repairs across Hampton Roads, done by a master plumber." One line under it: "When you call, you get me: Antonio Spence." with a small round photo of the owner (P25).
 3. **Rating line.** "[4.9] stars from [86] Google reviews · newest [3 days] ago" (P21-P23). Tapping it goes to `/reviews`. Showing the newest review's age answers the 74% who want recent reviews (Finding 1).
 4. **The emergency fork.** Two large stacked buttons, full width, at least 48px tall:
    - "Water leaking now? Call [P07: 24/7]" in the emergency colour. Opens the dialler.
@@ -136,7 +136,7 @@ Just below the first screen: one recent dated review with the reviewer's first n
 ### Desktop (1280 wide as the main target)
 
 - **Header:** business name, navigation (Residential, Commercial, Prices, Reviews, Service area, About), phone number written out in full as a link, a Book button, and the licence line under the business name.
-- **Hero, two columns.** Left: headline, owner line, rating line, the most recent review quoted in full with its date, and the two fork buttons side by side (emergency call, book a time). Right: a real photo of the owner with his van (P26). This photo is the page's largest image, so it is sized and compressed to keep LCP under 2.5s (Finding 7).
+- **Hero, two columns.** Left: headline, owner line, rating line, the most recent review quoted in full with its date, and the two fork buttons side by side (emergency call, book a time). Right: a photo of Antonio with his van (P26; an AI-generated stand-in in the prototype). This photo is the page's largest image, so it is sized and compressed to keep LCP under 2.5s (Finding 7).
 - **Trust strip** directly under the hero: licence, insurance (P05), years in the trade (P31), warranty headline (P19), and "Every fee listed on the price page".
 
 ### Things the first screen will not have
@@ -158,7 +158,7 @@ Booking exists so a customer can reach him when he can't answer (Finding 2). Bay
 
 All four sit on one screen on desktop. On mobile they are one short screen, field 1 first, so the customer commits to the job before typing anything.
 
-Name is not one of the four. The confirmation page asks "What should I call you?" as an optional extra after the booking is made. This keeps the booking to four fields, but the owner may need a name up front; see [open questions](#12-open-questions).
+Name is not one of the four. The confirmation page asks "What should I call you?" as an optional extra after the booking is made. This keeps the booking to four fields, but the owner may need a name up front; see [open questions](#12-decisions-and-remaining-questions).
 
 The price range for the chosen job and the call-out fee (P12) appear beside the form before the customer submits, so the first number they see isn't on the invoice (Finding 3).
 
@@ -218,7 +218,7 @@ The `/pricing` page has four parts, and service pages repeat the line relevant t
 
 Sample dollar figures in the prototype are there to make the layout realistic. They are not price advice from the research and are tagged like any other placeholder.
 
-Virginia's fee-disclosure rules have not been checked. Listing every fee reduces the risk, and the check should happen before launch (see [open questions](#12-open-questions)).
+Virginia's fee-disclosure rules have not been checked. Listing every fee reduces the risk, and the check should happen before launch (see [open questions](#12-decisions-and-remaining-questions)).
 
 ### Guarantee
 
@@ -230,10 +230,10 @@ Every item below appears on the site with a "confirm this" tag until the owner s
 
 | Code | Item | Ideal default shown | Where |
 |---|---|---|---|
-| P01 | Business name | "[Business Name] Plumbing" | Everywhere |
-| P02 | Logo | Text wordmark of P01 | Header, footer, favicon |
-| P03 | Phone number and email | +1-757-555-0123; hello@example.com | Header, sticky bar, footer, forms |
-| P04 | Licence number(s) and type | "Virginia Master Plumber · Licence #[000000]" | Header of every page, footer, About, confirmation |
+| P01 | Business name | FloMasters Plumbing and Drains (business card, confirmed) | Everywhere |
+| P02 | Logo and brand colours | From the business card (confirmed): serif wordmark with the O drawn as a pipe ring holding a tap and a water drop; deep navy, light sky blue, white; wave-pattern background. Recreated as SVG until the original logo file arrives | Header, footer, favicon |
+| P03 | Phone number and email | (757) 277-6194 (business card, confirmed); email still open: hello@example.com | Header, sticky bar, footer, forms |
+| P04 | Licence number(s) and type | "Virginia Master Plumber · Licence #2710081569" (business card, confirmed). A separate business contractor licence, if any, is still open | Header of every page, footer, About, confirmation |
 | P05 | Insurance | "Fully insured: general liability [$1M]" | Trust strip, footer, Commercial |
 | P06 | Bonding | "Bonded" | Trust strip, footer |
 | P07 | 24/7 emergency service | "24/7 emergency line" | Hero button, Emergency page, footer |
@@ -254,13 +254,13 @@ Every item below appears on the site with a "confirm this" tag until the owner s
 | P22 | Rating and count | "[4.9] from [86] reviews" | First screen, Reviews |
 | P23 | Recent reviews | Sample reviews, marked as samples | First screen, Reviews, service pages |
 | P24 | Who replies to reviews | "I reply to every review myself" | Reviews |
-| P25 | Owner name and portrait | "[Owner name]"; labelled photo frame | First screen, About, confirmation |
-| P26 | Van photo | Labelled photo frame | Home hero, About |
-| P27 | Job photos | Labelled photo frames | Service pages, home |
+| P25 | Owner name and portrait | Antonio Spence (business card, confirmed); AI-generated stand-in portrait, tagged for replacement | First screen, About, confirmation |
+| P26 | Van photo | AI-generated stand-in of a FloMasters van, tagged for replacement | Home hero, About |
+| P27 | Job photos | AI-generated stand-ins, tagged for replacement | Service pages, home |
 | P28 | Before/after consent | Before/after pair with "shared with the customer's permission" | Service pages |
 | P29 | Bookable arrival windows | Two-hour windows, weekdays | Booking form |
 | P30 | Instant or owner-confirmed bookings | Owner confirms by text within [1 hour] | Booking, confirmation, updates |
-| P31 | Years in the trade | "[18] years in the trade" | Trust strip, About |
+| P31 | Years in the trade | "Established 2024" is confirmed (business card); his years in the trade before that are still open: "[18] years in the trade" | Trust strip, About |
 | P32 | Service list for service pages | Drain clearing, water heaters, leaks and pipe repair, toilets and fixtures, sewer lines | Residential hub, service pages, booking field 1 |
 | P33 | Commercial offer | Scheduling around opening hours, certificate of insurance, invoiced billing | Commercial |
 | P34 | Quoting promises | Written price first, repair options first, no cash-only, no full payment up front | Pricing, FAQ |
@@ -270,7 +270,7 @@ Items P07-P20 and P21-P28 are claims about the business. The research warns that
 
 ## 8. How the placeholder tags work
 
-This is a proposal; it hasn't been approved yet.
+Approved 2026-10-05 (section 12). Tags start off.
 
 - **What a tag looks like.** The placeholder value is shown as it would appear on the finished site, with a thin dashed outline and a small "Confirm P12" label attached to its corner. Tapping or focusing the label shows the question for the owner in one sentence, for example "Do you charge a call-out fee, and is it taken off the job price?"
 - **The switch.** One floating button, bottom left on desktop and above the sticky bar on mobile: "Items to confirm: On / Off". Off removes every outline and label, so the page looks finished. It is a real button with `aria-pressed`, reachable by keyboard.
@@ -284,11 +284,11 @@ This is a proposal; it hasn't been approved yet.
 
 ### Look
 
-- **Real photos only.** Until the owner supplies photos, each photo slot is a labelled frame describing the shot needed ("Owner at the van, landscape, morning light"). No stock photos and no AI-generated people: stock is the most-cited trust killer, and images people suspect are AI lower trust ratings (Finding 5, research section 5). The frames double as a shot list for the photo session.
-- **Plain, sturdy, local.** A working tradesman's site, not a franchise template. Deep harbour navy and off-white as the base, with one warm safety orange used only for the emergency path, so emergency is the only thing on the page in that colour. All text pairs meet WCAG AA contrast (4.5:1 for body text).
+- **Photos.** Until the owner supplies real photos, every slot holds an AI-generated stand-in (section 12, decision 2) at its final size and crop, so the owner judges the finished look. Each carries a "replace with a real photo" tag and is listed on `/review`. No stock photos. The research still applies at launch: stock is the most-cited trust killer and images people suspect are AI lower trust (Finding 5, research section 5), so every stand-in is replaced before going public. The stand-in descriptions double as a shot list for the photo session.
+- **Plain, sturdy, local, on the FloMasters brand.** A working tradesman's site, not a franchise template. The colours come from the business card: deep navy as the base, light sky blue as the accent, white text, and the card's wave pattern as a quiet background motif. One warm signal colour (an orange or red that passes contrast with the navy) is used only on the emergency path, so emergency is the only thing on the page in that colour. All text pairs meet WCAG AA contrast (4.5:1 for body text).
 - **Type.** One readable sans-serif family, self-hosted, 18px body text on mobile, with numbers (prices, phone, licence) set large and in tabular figures so they line up in the fee table.
 - **Layout.** Short sections, generous spacing, one action per section. Icons only where they carry meaning (phone, calendar, map pin), always with a text label.
-- **Logo.** Text wordmark until P02 is settled. The design must work without a logo.
+- **Logo.** The business card's logo, recreated as an SVG so it stays sharp at any size, until the original file arrives. The serif capitals of the wordmark set the tone for headings.
 
 ### Copy voice
 
@@ -355,19 +355,25 @@ Considered and not chosen: **Next.js** can export static pages too, but it ships
 
 **Hosting** is undecided, for the review link and for later. The host should be chosen before any booking code is written, because the Astro adapter, scheduled jobs and database all depend on it. The review link must be behind a password or access control; `noindex` only keeps it out of search results and doesn't stop anyone with the link.
 
-## 12. Open questions
+## 12. Decisions and remaining questions
 
-For you, before the build starts:
+### Decided (2026-10-05)
 
-1. **Placeholder tags.** Do you approve the tag design and switch in section 8? Should tags start on or off when the owner opens the link?
-2. **Photos during review.** Labelled frames describing each shot (my recommendation, and it avoids stock entirely), or temporary stock photos in "tags off" mode so the design looks complete? Stock risks the owner judging a look he can't have.
-3. **First-person voice.** Should the site speak as the owner ("I", "me")? I recommend it for a one-person business; it changes almost every line of copy.
-4. **Name in the booking form.** Keep the four fields as job, time, address and mobile, with the name asked afterwards? Or swap one field for name?
-5. **Business name.** Is "FloMaster" (the repo name) a working business name we can use in the prototype, or should it stay "[Business Name]"?
-6. **Commercial depth.** Is one commercial page with a site-visit request enough for the prototype, or does the owner do enough commercial work to need commercial service pages?
-7. **Review link hosting.** Any preference for where the private prototype is hosted? It needs a password or private link and must stay out of search results.
-8. **Virginia fee disclosure.** Do you want the Virginia advertising and fee-disclosure rules checked now, or before launch?
-9. **Sample figures.** Are you comfortable with realistic sample prices and fees in the prototype, tagged, or would you rather show "$___" so the owner isn't anchored by our numbers?
-10. **Who edits content after launch.** If the owner should be able to change prices or hours himself, we add a simple editing tool on top of the data files. If changes always go through us, we don't. Which is it?
-11. **Booking confirmation default.** Show bookings as requests the owner confirms (my recommendation, since emergencies will disrupt his schedule), or as instantly confirmed slots? The prototype can show both, but one should lead.
-12. **Licence numbers.** Virginia may issue both a contractor licence for the business and a master plumber licence for the person. Should the brief plan for showing both? (Not yet checked; the owner can confirm which he holds.)
+The user's direction: build the best possible version of the site as a base to show the owner, then change it based on his feedback. Where an open question had a choice, the ideal-case option was taken.
+
+1. **Brand and owner details:** the business card is the actual branding. It confirms the name (FloMasters Plumbing and Drains, established 2024), the owner (Antonio Spence, Master Plumber), his licence number (2710081569), his phone number ((757) 277-6194), the logo and the colours.
+2. **Photos:** every photo slot gets an AI-generated image (made with Codex image generation) so the owner sees the finished look. This departs from Finding 5 and the "real photos only" rule for the prototype only: each generated image carries a "replace with a real photo" tag, is listed on `/review`, and must be replaced before any public launch, because images people suspect are AI lower trust (research section 5).
+3. **Placeholder tags:** built as section 8 describes. Tags start **off**, so the first impression is the finished design; the switch turns them on for the walk-through of items to confirm.
+4. **Voice:** first person, as the owner ("I", "me").
+5. **Booking form:** the four fields stay as job, time, address and mobile; the name is asked on the confirmation page.
+6. **Bookings:** requests the owner confirms by text, as the ideal default (P30).
+7. **Commercial:** one commercial page with a site-visit request.
+8. **Sample figures:** realistic sample prices and fees, tagged.
+9. **Licence:** the header line leaves room for two numbers (business contractor licence and master plumber licence) until the owner confirms which he holds.
+10. **Stack:** Astro with plain CSS, as section 11 recommends.
+
+### Still open
+
+1. **Hosting** for the private review link (password or access control, `noindex`).
+2. **Virginia fee-disclosure and advertising rules:** to check before launch.
+3. **Who edits content after launch:** the owner or us.
