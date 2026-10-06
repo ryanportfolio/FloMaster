@@ -184,7 +184,12 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
     };
 
     // Keep the lens centre on the visible part of the photo.
-    const setXY = (x: number, y: number) => { [u, v] = toUV([clamp(x, 0, W), clamp(y, 0, H)]); };
+    // A press before the X-ray is ready measures first, so the point maps onto the photo.
+    const setXY = (x: number, y: number) => {
+      if (!dw) measure();
+      if (!dw) return;
+      [u, v] = toUV([clamp(x, 0, W), clamp(y, 0, H)]);
+    };
 
     let rest: P = [LU, LV];
     let restHow: How = "quiet";
@@ -497,7 +502,8 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
     const loadRay = () => {
       ray.sizes = root.dataset.raySizes!;
       ray.srcset = root.dataset.ray!;
-      ray.decode().then(begin, () => {});
+      // If the X-ray never arrives, show the finding as text, as with no script.
+      ray.decode().then(begin, () => { root.classList.add("is-noray"); });
     };
     if (photo.complete) loadRay();
     else { photo.addEventListener("load", loadRay, { once: true }); photo.addEventListener("error", loadRay, { once: true }); }
@@ -558,6 +564,9 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
   .xr-hint { margin: 0; font-size: var(--step--1); line-height: 1.4; color: var(--sky-100); }
   .xr-note { visibility: hidden; }
   .xr.is-found .xr-note { visibility: visible; }
+  .xr.is-noray .xr-pre { display: none; }
+  .xr.is-noray .xr-note { visibility: visible; }
+  .xr.is-noray .xr-stage { cursor: auto; }
   .xr-note p { margin: 0; max-width: none; text-wrap: pretty; }
   /* Two short lines, never a word or two alone on the last one. */
   .xr-note .xr-note-sub { text-wrap: balance; }
