@@ -38,11 +38,11 @@ const related = reviews.find((r) => r.service.toLowerCase().split(" ")[0] === s.
           <h2 class="pc-h">Typical prices</h2>
           <table>
             <caption class="visually-hidden">Typical prices for {s.title.toLowerCase()}</caption>
-            <tbody>{s.prices.map((p, i) => <tr class="vt-target" id={`tag-price-${i}`}><th scope="row"><ValveStamp mark={markOf(tags, `tag-price-${i}`)} />{p.job}</th><td class="num"><Fact k="priceRanges" text={p.range} /></td></tr>)}</tbody>
+            <tbody>{s.prices.map((p, i) => <tr class="vt-target" id={`tag-price-${i}`} tabindex="-1" aria-labelledby={`tag-price-${i}-job tag-price-${i}-range`}><th scope="row" id={`tag-price-${i}-job`}><ValveStamp mark={markOf(tags, `tag-price-${i}`)} />{p.job}</th><td class="num" id={`tag-price-${i}-range`}><Fact k="priceRanges" text={p.range} /></td></tr>)}</tbody>
           </table>
           <p class="small"><strong>What puts a job at the top of the range:</strong> {s.topOfRange}</p>
           <p class="small"><strong>Time on site:</strong> {s.timeOnSite}</p>
-          <p class="small muted vt-target" id="tag-callout"><ValveStamp mark={markOf(tags, "tag-callout")} />Call-out <Fact k="calloutFee" />, <Fact k="calloutCredited" />. You get a written, flat price before I start. <a href="/pricing">All fees</a></p>
+          <p class="small muted vt-target" id="tag-callout" tabindex="-1"><ValveStamp mark={markOf(tags, "tag-callout")} />Call-out <Fact k="calloutFee" />, <Fact k="calloutCredited" />. You get a written, flat price before I start. <a href="/pricing">All fees</a></p>
           <a class="btn btn--navy btn--block" href={`/book?job=${s.slug}`}><Icon name="calendar" /> Book {s.bookLabel.toLowerCase()}</a>
           <a class="btn btn--ghost btn--block call" href="/emergency"><Icon name="phone" /> It's an emergency</a>
         </div>
@@ -54,7 +54,8 @@ const related = reviews.find((r) => r.service.toLowerCase().split(" ")[0] === s.
 
 <style>
   .body { display: grid; gap: var(--space-4); }
-  @media (min-width: 1000px) { .body { grid-template-columns: minmax(0, 1fr) 22rem; align-items: start; } }
+  /* 25rem leaves each job name room beside its letter and price: two lines at most. */
+  @media (min-width: 1000px) { .body { grid-template-columns: minmax(0, 1fr) 25rem; align-items: start; } }
   .main :global(.lead-photo) { border-radius: var(--radius-lg); aspect-ratio: 3 / 2; margin-bottom: var(--space-3); }
   .main h2 { font-size: var(--step-2); margin-top: var(--space-4); }
   .side { position: sticky; top: calc(var(--sticky-h) + 1rem); }
@@ -64,6 +65,10 @@ const related = reviews.find((r) => r.service.toLowerCase().split(" ")[0] === s.
   /* A little room at the row ends, so a header tag's outline (drawn inside the row) clears the text. */
   th, td { text-align: left; padding: 0.6rem 0.4rem; border-bottom: 1px solid var(--line); font-size: 1.0625rem; vertical-align: top; }
   th { font-weight: 500; padding-right: 0.75rem; }
+  /* Beside the page (desktop), the job name hangs beside its letter: a second line starts under the
+     name, not under the stamp (2.3rem = the stamp's 1.75rem width plus its 0.55rem gap,
+     ValveStamp.astro). Phones keep the plain wrap, which leaves the narrowest screens more room. */
+  @media (min-width: 1000px) { th { padding-left: calc(0.4rem + 2.3rem); text-indent: -2.3rem; } }
   td { text-align: right; font-family: var(--font-slab); font-weight: 700; color: var(--navy); white-space: nowrap; }
   .price-card .btn { margin-top: 0.6rem; }
   .call { color: var(--navy); }

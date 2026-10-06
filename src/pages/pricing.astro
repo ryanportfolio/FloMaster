@@ -7,7 +7,9 @@ import Fact from "../components/Fact.astro";
 import CallToAction from "../components/CallToAction.astro";
 import { services } from "../data/services";
 import { facts } from "../data/facts";
-import { pricingTags, markOf } from "../components/valve-tags";
+import { pricingTags, markOf, lowestPrice } from "../components/valve-tags";
+// The row the "Typical prices from" header tag lands on: the lowest price in services.ts.
+const isLowest = (slug: string, i: number) => slug === lowestPrice.slug && i === lowestPrice.i;
 ---
 <Base title="Prices, fees and guarantee" description="Every fee FloMasters charges, typical prices for common plumbing jobs, how quotes work, and the written guarantee.">
   <ValveTagHero title="Prices, fees and guarantee" lead="Everything I charge is on this page, so if it isn't listed, I don't charge it" tags={pricingTags} call cols={3} />
@@ -15,8 +17,8 @@ import { pricingTags, markOf } from "../components/valve-tags";
   <ValveTagQuote />
 
   <section class="section section--alt" id="typical-prices">
-    <div class="wrap vt-target" id="tag-typical">
-      <h2><ValveStamp mark={markOf(pricingTags, "tag-typical")} />Typical prices</h2>
+    <div class="wrap">
+      <h2>Typical prices</h2>
       <p class="lead">Ranges for the jobs I do most; your written price depends on what I find</p>
       <div class="price-grid">
         {services.map((s) => (
@@ -24,7 +26,10 @@ import { pricingTags, markOf } from "../components/valve-tags";
             <h3><a href={`/residential/${s.slug}`}>{s.title}</a></h3>
             <table>
               <caption class="visually-hidden">{s.title}</caption>
-              <tbody>{s.prices.map((p) => <tr><th scope="row">{p.job}</th><td class="num"><Fact k="priceRanges" text={p.range} /></td></tr>)}</tbody>
+              <tbody>{s.prices.map((p, i) => {
+                const low = isLowest(s.slug, i);
+                return <tr class={low ? "vt-target" : undefined} id={low ? "tag-typical" : undefined} tabindex={low ? "-1" : undefined} aria-labelledby={low ? "tag-typical-job tag-typical-range" : undefined}><th scope="row" id={low ? "tag-typical-job" : undefined}>{low && <ValveStamp mark={markOf(pricingTags, "tag-typical")} />}{p.job}</th><td class="num" id={low ? "tag-typical-range" : undefined}><Fact k="priceRanges" text={p.range} /></td></tr>;
+              })}</tbody>
             </table>
             <p class="small muted">Top of the range: {s.topOfRange}</p>
           </section>
@@ -41,7 +46,7 @@ import { pricingTags, markOf } from "../components/valve-tags";
       <div>
         <h2>My guarantee</h2>
         <ul class="ticks">
-          <li class="vt-target" id="tag-guarantee"><ValveStamp mark={markOf(pricingTags, "tag-guarantee")} /><strong><Fact k="laborWarranty" />.</strong> If my work fails, I come back and fix it at no charge.</li>
+          <li class="vt-target" id="tag-guarantee" tabindex="-1"><ValveStamp mark={markOf(pricingTags, "tag-guarantee")} /><strong><Fact k="laborWarranty" />.</strong> If my work fails, I come back and fix it at no charge.</li>
           <li><strong>Parts:</strong> <Fact k="partsWarranty" />.</li>
           <li><strong>Not covered:</strong> <Fact k="warrantyExclusions" />.</li>
           <li><strong>To claim it:</strong> call or text <span class="nowrap">{facts.phone.value}</span>. The date and job are on your invoice; you don't need to keep anything else.</li>
@@ -59,7 +64,8 @@ import { pricingTags, markOf } from "../components/valve-tags";
   .pg h3 a { color: inherit; text-decoration: none; }
   .pg h3 a:hover { text-decoration: underline; }
   .pg table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; }
-  .pg th, .pg td { text-align: left; padding: 0.5rem 0; border-bottom: 1px solid var(--line); font-size: 1.0625rem; vertical-align: top; }
+  /* A little room at the row ends, so a header tag's outline (drawn inside the row) clears the text. */
+  .pg th, .pg td { text-align: left; padding: 0.5rem 0.4rem; border-bottom: 1px solid var(--line); font-size: 1.0625rem; vertical-align: top; }
   .pg th { font-weight: 500; padding-right: 0.75rem; }
   .pg td { text-align: right; font-family: var(--font-slab); font-weight: 700; color: var(--navy); white-space: nowrap; }
   /* The guarantee line a header tag names wears that tag's letter in place of its tick. */

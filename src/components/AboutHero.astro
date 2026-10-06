@@ -74,7 +74,7 @@ const { title, lead } = Astro.props;
   @media (min-width: 960px) {
     .ah-art { display: block; position: relative; }
     .ah-art :global(.ah-pic) { aspect-ratio: 1; width: 25rem; margin: 0 0 6rem auto; border-radius: var(--radius-lg); }
-    .ah-art :global(.ah-card) { display: block; position: absolute; z-index: 3; left: 0; bottom: -0.5rem; width: 21rem; }
+    .ah-art :global(.ah-card) { display: flex; position: absolute; z-index: 3; left: 0; bottom: -0.5rem; width: 21rem; }
     .ah-art :global(.flip-stage) { width: 100%; }
     .ah-art :global(.flip-row) { flex-direction: row; align-items: center; margin-top: 1rem; }
   }

@@ -5,8 +5,10 @@ import Fact from "./Fact.astro";
 import type { Group } from "../data/faq";
 interface Props { g: Group; part: "num" | "cap"; plain?: boolean }
 const { g, part, plain = false } = Astro.props;
+// A short unit drawn on the page and the full word a screen reader says in its place.
+const spoken = ({ min: "minutes" } as Record<string, string>)[g.unit];
 ---
-{part === "num" && <Fact k={g.key} plain={plain}><span class="kn-big">{g.big}</span>{g.unit && <span class="kn-unit">{" "}{g.unit}</span>}</Fact>}
+{part === "num" && <Fact k={g.key} plain={plain}><span class="kn-big">{g.big}</span>{g.unit && <span class="kn-unit">{" "}{spoken ? <><span aria-hidden="true">{g.unit}</span><span class="visually-hidden">{spoken}</span></> : g.unit}</span>}</Fact>}
 {part === "cap" && g.id === "fees" && <>call-out fee, <Fact k="calloutCredited" /></>}
 {part === "cap" && g.id === "booking" && <>to call you back, during working hours</>}
 {part === "cap" && g.id === "emergencies" && <>usually, to reach an emergency in the 7 cities</>}

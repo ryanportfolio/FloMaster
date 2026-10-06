@@ -2,7 +2,9 @@
 // FAQ page body as a work order: the answers set out as the numbered terms of a work order, each
 // group a section with its key figure in the amount column, each question a numbered clause
 // ("2.3") a customer can point to on the phone. "Print these terms" prints the sheet with every
-// clause open, a copy to keep. The page header's slip (pages/faq.astro) holds the figures box.
+// clause open, a copy to keep. The page header's slip (pages/faq.astro) holds the figures box; its
+// links land on the term sections, which take focus (tabindex="-1", jump-focus.ts). The term
+// numbers are drawn for the eye and spoken through hidden text ("Term 1: Fees and prices").
 import FaqKey from "./FaqKey.astro";
 import FaqAnswer from "./FaqAnswer.astro";
 import Chevron from "./Chevron.astro";
@@ -23,10 +25,10 @@ import { cities } from "../data/area";
       <p class="sh-area"><span class="sh-k">Service area</span><span class="sh-v">{cities.join(" · ")}</span></p>
 
       {groups.map((g) => (
-        <section class="term" id={g.id} aria-labelledby={`${g.id}-h`}>
+        <section class="term" id={g.id} aria-labelledby={`${g.id}-h`} tabindex="-1">
           <div class="term-head">
             <span class="fno fno--lg" aria-hidden="true">{g.n}</span>
-            <h3 id={`${g.id}-h`}>{g.title}</h3>
+            <h3 id={`${g.id}-h`}><span class="visually-hidden">Term {g.n}: </span>{g.title}</h3>
             <p class="term-amt"><span class="amt num"><FaqKey g={g} part="num" /></span><span class="amt-cap"><FaqKey g={g} part="cap" /></span></p>
           </div>
           {g.qs.map((q, i) => (
@@ -47,6 +49,7 @@ import { cities } from "../data/area";
 </section>
 
 <script>
+  import "./jump-focus";
   // Opens the question a link points to (#q-callout), on click and when the page opens at that
   // address, and opens every question for printing. Questions are <details data-faq id="q-...">,
   // so they work without this script; it only saves the extra tap after following a link.

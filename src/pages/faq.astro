@@ -13,7 +13,7 @@ const figLabel: Record<string, string> = { fees: "Call-out fee", booking: "Callb
     <WorkOrderSlip title="The figures" sub="from terms 1 to 4" id="wo-faq">
       <ol class="wo-rows">
         {groups.map((g) => (
-          <li><a class="wo-row-link" href={`#${g.id}`}><span class="wo-fno" aria-hidden="true">{g.n}</span><span class="wo-row-l">{figLabel[g.id]}</span><span class="fig-v num"><FaqKey g={g} part="num" plain /></span></a></li>
+          <li><a class="wo-row-link" href={`#${g.id}`}><span class="wo-fno"><span aria-hidden="true">{g.n}</span><span class="visually-hidden">Term {g.n}:</span></span><span class="wo-row-l">{figLabel[g.id]}</span><span class="fig-v num"><FaqKey g={g} part="num" plain /></span></a></li>
         ))}
       </ol>
     </WorkOrderSlip>

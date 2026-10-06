@@ -1,7 +1,8 @@
 ---
 // The letter of a header valve tag (ValveTagHero.astro), stamped on the thing the tag identifies.
-// The element carrying it needs the tag's id and the class "vt-target": following the tag outlines
-// that element and inks the stamp in (CSS :target, no script). Hidden from screen readers: the
+// The element carrying it needs the tag's id, the class "vt-target" and tabindex="-1": following
+// the tag outlines that element and inks the stamp in (CSS :target), and focus moves to it
+// (jump-focus.ts). Hidden from screen readers: the
 // letter is a visual match for the tag, and the tag's link already names the target.
 interface Props { mark: string }
 const { mark } = Astro.props;

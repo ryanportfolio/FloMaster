@@ -4,7 +4,8 @@
 // WorkOrderHero. Lettered tags hang on wires from a pipe in the logo's sky blue, over the wave edge
 // into the page. Each tag names one thing further down the page, carries its value and links to
 // it; the same letter is stamped on that thing (ValveStamp.astro), and following the tag outlines
-// it (CSS :target, no script). Tags and values come from valve-tags.ts.
+// it (CSS :target). Each target carries tabindex="-1", and jump-focus.ts moves focus to it, so a
+// screen reader reads on from the target. Tags and values come from valve-tags.ts.
 // Each open fact's "Confirm P.." label hangs under its tag, outside the link (a focusable label
 // can't sit inside a link), in the text flow so it never covers a word.
 // `call` adds a "Who to call" tag with the phone number, two tags wide so the number stays on one
@@ -58,6 +59,10 @@ const open = (k: FactKey) => facts[k].status === "open" && !isPublicBuild;
     </nav>
   </div>
 </section>
+
+<script>
+  import "./jump-focus";
+</script>
 
 <style>
   /* --hang: how far the tags hang below the band's wave edge into the page. z-index 1 keeps them

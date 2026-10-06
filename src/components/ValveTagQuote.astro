@@ -1,12 +1,14 @@
 ---
-// Pricing page body: the example quote and how a job runs, as stamped valve tags. A valve tag is a stamped number fixed to the exact valve or
-// line it identifies. The example quote starts from the home page's sample job (a kitchen sink
-// in Norfolk): four numbered tags are fixed to the parts under that sink, and the quote's job line
-// names the tag it prices. Press a part (or its tag in the list) and the quote rewrites itself.
-// "How a job runs" hangs its four tags off one pipe, with a lever valve between step 3 and step 4:
-// it stays across the pipe (off) until you answer yes, the same quarter turn the home page teaches.
-// The fee rows the page header's tags name carry that tag's letter (valve-tags.ts); letters, so they
-// never repeat the sink's numbers.
+// Pricing page body: the example quote and how a job runs, as stamped valve tags. A valve tag is a
+// stamped mark fixed to the exact valve or line it identifies. The example quote starts from the
+// home page's sample job (a kitchen sink in Norfolk): four tags stamped with the part's name are
+// fixed to the parts under that sink, and the quote's job line carries the tag it prices. Press a
+// part (or its tag in the list) and the quote rewrites itself.
+// "How a job runs" hangs its four numbered tags off one pipe, with a lever valve between step 3 and
+// step 4: it stays across the pipe (off) until you answer yes, the same quarter turn the home page
+// teaches. The fee rows the page header's tags name carry that tag's letter (valve-tags.ts).
+// One mark, one meaning: numbers 1 to 4 are only the steps, letters A to D only the header tags,
+// and the sink's tags carry names.
 import Fact from "./Fact.astro";
 import FactBlock from "./FactBlock.astro";
 import ValveStamp from "./ValveStamp.astro";
@@ -24,17 +26,19 @@ const row = (slug: string, i: number) => {
   if (!s || !p) throw new Error(`ValveTagQuote: no price row ${slug}[${i}] in services.ts`);
   return { job: p.job, range: p.range, top: `What puts ${s.title.toLowerCase()} at the top of the range: ${s.topOfRange.charAt(0).toLowerCase()}${s.topOfRange.slice(1)}` };
 };
+// `tag` is the name stamped on the part's tag in the drawing and in the list; `w` is that tag's
+// width in the drawing, and (x, y) its corner, (wx, wy) where its wire meets the part.
 const parts = [
-  { n: 1, part: "Faucet", words: "The faucet drips", job: row("fixtures", 1) },
-  { n: 2, part: "Sink trap", words: "It leaks at the trap", job: row("leaks-and-pipes", 0) },
-  { n: 3, part: "Shut-off valve", words: "The shut-off won't close", job: row("leaks-and-pipes", 1) },
-  { n: 4, part: "Drain line", words: "Water won't go down", job: row("drains", 0) },
+  { id: "faucet", tag: "Faucet", words: "The faucet drips", job: row("fixtures", 1), w: 90, x: 262, y: 20, wx: 248, wy: 36 },
+  { id: "trap", tag: "Trap", words: "It leaks at the trap", job: row("leaks-and-pipes", 0), w: 70, x: 146, y: 266, wx: 210, wy: 252 },
+  { id: "shutoff", tag: "Shut-off", words: "The shut-off won't close", job: row("leaks-and-pipes", 1), w: 104, x: 6, y: 236, wx: 122, wy: 312 },
+  { id: "drain", tag: "Drain", words: "Water won't go down", job: row("drains", 0), w: 78, x: 300, y: 236, wx: 320, wy: 210 },
 ];
 const start = parts[1];
-const payload = JSON.stringify(parts.map((p) => ({ n: p.n, part: p.part, words: p.words, job: p.job.job, range: p.job.range, top: p.job.top })));
+const payload = JSON.stringify(parts.map((p) => ({ id: p.id, tag: p.tag, job: p.job.job, range: p.job.range, top: p.job.top })));
 const calloutText = facts.calloutFee.value;
 ---
-<section class="band band--paper vq" id="quote" aria-labelledby="vq-h" data-vq data-sel="2">
+<section class="band band--paper vq" id="quote" aria-labelledby="vq-h" data-vq data-sel={start.id}>
   <div class="wrap">
     <h2 id="vq-h">Every line, tagged to what it's for</h2>
     <p class="lead">Press a part under this sink and the example quote prices that job from my usual ranges</p>
@@ -43,11 +47,11 @@ const calloutText = facts.calloutFee.value;
       <div class="vq-left">
         <div class="sink" data-sink>
           <svg viewBox="0 0 400 360" role="img" aria-labelledby="sink-t">
-            <title id="sink-t">Line drawing of the pipes under a kitchen sink, with tags 1 to 4 on the faucet, the trap, a shut-off valve and the drain line</title>
+            <title id="sink-t">Line drawing of the pipes under a kitchen sink, with name tags on the faucet, the trap, a shut-off valve and the drain line</title>
             <rect class="cab" x="40" y="74" width="320" height="276" rx="6" />
             <rect class="counter" x="20" y="60" width="360" height="16" rx="3" />
-            <!-- 3: shut-off valves and supply lines (drawn first, behind the basin) -->
-            <g class="part" data-part="3">
+            <!-- shut-off valves and supply lines (drawn first, behind the basin) -->
+            <g class="part" data-part="shutoff">
               <path class="hit" d="M110 320 L130 300 L150 320 L130 340 Z M270 320 L290 300 L310 320 L290 340 Z" />
               <path class="pipe thin" d="M130 306 C130 220 180 170 190 76" />
               <path class="pipe thin" d="M290 306 C290 220 230 170 210 76" />
@@ -59,36 +63,31 @@ const calloutText = facts.calloutFee.value;
             </g>
             <!-- basin -->
             <path class="basin" d="M84 76 L100 150 Q102 158 110 158 H290 Q298 158 300 150 L316 76 Z" />
-            <!-- 1: faucet above the counter -->
-            <g class="part" data-part="1">
+            <!-- faucet above the counter -->
+            <g class="part" data-part="faucet">
               <rect class="hit" x="170" y="0" width="90" height="62" />
               <path class="pipe" d="M200 60 V34 Q200 16 218 16 H236 Q248 16 248 28 V40" />
               <path class="pipe thin" d="M186 24 H214" />
             </g>
-            <!-- 2: tailpiece and trap -->
-            <g class="part" data-part="2">
+            <!-- tailpiece and trap -->
+            <g class="part" data-part="trap">
               <rect class="hit" x="176" y="156" width="96" height="124" />
               <path class="pipe" d="M200 158 V226 A26 26 0 0 0 252 226 V206" />
               <rect class="nut" x="190" y="196" width="20" height="9" rx="2" />
             </g>
-            <!-- 4: trap arm into the wall -->
-            <g class="part" data-part="4">
+            <!-- trap arm into the wall -->
+            <g class="part" data-part="drain">
               <rect class="hit" x="250" y="188" width="112" height="36" />
               <path class="pipe" d="M252 206 H352" />
               <rect class="nut" x="344" y="194" width="14" height="24" rx="2" />
             </g>
-            <!-- stamped tags fixed to each part -->
-            {[
-              { n: 1, x: 262, y: 22, wx: 248, wy: 36 },
-              { n: 2, x: 150, y: 266, wx: 210, wy: 252 },
-              { n: 3, x: 64, y: 280, wx: 124, wy: 312 },
-              { n: 4, x: 296, y: 236, wx: 320, wy: 210 },
-            ].map((t) => (
-              <g class="stamp" data-part={t.n}>
-                <path class="wire" d={`M${t.wx} ${t.wy} L${t.x + 23} ${t.y + 14}`} />
-                <rect x={t.x} y={t.y} width="46" height="28" rx="8" />
-                <circle cx={t.x + 9} cy={t.y + 14} r="3.2" class="hole" />
-                <text x={t.x + 29} y={t.y + 20} text-anchor="middle">{t.n}</text>
+            <!-- tags stamped with the part's name, fixed to each part -->
+            {parts.map((t) => (
+              <g class="stamp" data-part={t.id}>
+                <path class="wire" d={`M${t.wx} ${t.wy} L${t.x + t.w / 2} ${t.y + 14}`} />
+                <rect x={t.x} y={t.y} width={t.w} height="28" rx="8" />
+                <circle cx={t.x + 10} cy={t.y + 14} r="3.2" class="hole" />
+                <text x={t.x + 7 + t.w / 2} y={t.y + 19.5} text-anchor="middle">{t.tag}</text>
               </g>
             ))}
           </svg>
@@ -98,7 +97,7 @@ const calloutText = facts.calloutFee.value;
         <fieldset class="tags">
           <legend class="vq-k">Which part?</legend>
           {parts.map((p) => (
-            <label class="tg-c"><input type="radio" name="vq-part" value={p.n} checked={p.n === start.n} /><span><b class="tg-n">{p.n}</b><span class="tg-t">{p.words}<small>{p.part}</small></span></span></label>
+            <label class="tg-c"><input type="radio" name="vq-part" value={p.id} checked={p.id === start.id} /><span><b class="tg-n">{p.tag}<span class="visually-hidden"> tag,</span></b><span class="tg-t">{p.words}</span></span></label>
           ))}
         </fieldset>
       </div>
@@ -110,22 +109,23 @@ const calloutText = facts.calloutFee.value;
         </header>
         <ul class="vl" role="list">
           <li class="vl-job">
-            <span class="vtag vtag--n" aria-hidden="true" data-vq-n>{start.n}</span>
-            <div class="vl-b"><p class="vl-k"><span class="visually-hidden">Tag </span><span data-vq-tagtext>{start.n}, {start.part}</span></p><p class="vl-t" data-vq-job>{start.job.job}</p><p class="vl-note" data-vq-top>{start.job.top}</p></div>
+            <span class="vtag" aria-hidden="true"></span>
+            <div class="vl-b"><p class="vl-k"><span class="vl-pt" data-vq-tag>{start.tag}</span><span class="visually-hidden"> tag</span></p><p class="vl-t" data-vq-job>{start.job.job}</p><p class="vl-note" data-vq-top>{start.job.top}</p></div>
             <p class="vl-a"><Fact k="priceRanges"><span data-vq-range>{start.job.range}</span></Fact></p>
           </li>
-          <li class="vt-target" id="tag-callout"><ValveStamp mark={markOf(pricingTags, "tag-callout")} /><div class="vl-b"><p class="vl-t">Call-out</p><p class="vl-note">I come to you and find the cause</p></div><p class="vl-a"><Fact k="calloutFee" /></p></li>
+          <li class="vt-target" id="tag-callout" tabindex="-1"><ValveStamp mark={markOf(pricingTags, "tag-callout")} /><div class="vl-b"><p class="vl-t">Call-out</p><p class="vl-note">I come to you and find the cause</p></div><p class="vl-a"><Fact k="calloutFee" /></p></li>
           <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Call-out credit</p><p class="vl-note">The {calloutText} is <Fact k="calloutCredited" /></p></div><p class="vl-a"><span aria-hidden="true">&minus;</span><span class="visually-hidden">minus </span><Fact k="calloutFee" /></p></li>
           <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Diagnostic fee</p></div><p class="vl-a"><Fact k="diagnosticFee" /></p></li>
-          <li class="vt-target" id="tag-after-hours"><ValveStamp mark={markOf(pricingTags, "tag-after-hours")} /><div class="vl-b"><p class="vl-t">After-hours</p><p class="vl-note"><Fact k="afterHoursFee" />, only <Fact k="afterHoursWhen" /></p></div><p class="vl-a">$0</p></li>
+          <li class="vt-target" id="tag-after-hours" tabindex="-1"><ValveStamp mark={markOf(pricingTags, "tag-after-hours")} /><div class="vl-b"><p class="vl-t"><span aria-hidden="true">After-hours</span><span class="visually-hidden">After-hours: $0 on this quote</span></p><p class="vl-note"><Fact k="afterHoursFee" />, only <Fact k="afterHoursWhen" /></p></div><p class="vl-a" aria-hidden="true">$0</p></li>
           <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Card payment fee</p><p class="vl-note">Card, check or cash all cost the same</p></div><p class="vl-a"><Fact k="cardFee" /></p></li>
           <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Canceling or moving the visit</p><p class="vl-note"><Fact k="cancellation" /></p></div><p class="vl-a">$0</p></li>
           <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Permits</p><p class="vl-note"><Fact k="permits" text="Only when the city requires one; I tell you first" /></p></div><p class="vl-a">At cost</p></li>
         </ul>
         <div class="vq-tot">
           <p class="vq-tot-k">You pay if you say yes</p>
-          <p class="vq-tot-n" aria-live="polite"><Fact k="priceRanges"><span data-vq-range>{start.job.range}</span></Fact></p>
+          <p class="vq-tot-n"><Fact k="priceRanges"><span data-vq-range>{start.job.range}</span></Fact></p>
           <p class="vq-tot-no">If you say no, <strong><Fact k="calloutFee" /></strong></p>
+          <p class="visually-hidden" aria-live="polite" data-vq-say></p>
         </div>
         <p class="vq-foot">If it isn't on this list, I don't charge it</p>
         <p class="vq-pm small"><Fact k="pricingModel" /></p>
@@ -192,28 +192,30 @@ const calloutText = facts.calloutFee.value;
   window.__vq = { parts: JSON.parse(payload), callout: calloutText };
 </script>
 <script>
-  type P = { n: number; part: string; words: string; job: string; range: string; top: string };
+  type P = { id: string; tag: string; job: string; range: string; top: string };
   const { parts, callout } = (window as unknown as { __vq: { parts: P[]; callout: string } }).__vq;
   const root = document.querySelector<HTMLElement>("[data-vq]");
   if (root) {
     const radios = [...root.querySelectorAll<HTMLInputElement>("input[name='vq-part']")];
-    const pick = (n: number) => {
-      const p = parts.find((x) => x.n === n)!;
-      root.dataset.sel = String(n);
-      root.querySelector("[data-vq-n]")!.textContent = String(n);
-      root.querySelector("[data-vq-tagtext]")!.textContent = `${n}, ${p.part}`;
+    const pick = (id: string) => {
+      const p = parts.find((x) => x.id === id)!;
+      root.dataset.sel = id;
+      root.querySelector("[data-vq-tag]")!.textContent = p.tag;
       root.querySelector("[data-vq-job]")!.textContent = p.job;
       root.querySelector("[data-vq-top]")!.textContent = p.top;
       root.querySelectorAll("[data-vq-range]").forEach((el) => (el.textContent = p.range));
+      // What a screen reader hears after a pick: the job and what it costs, without the visible
+      // total's "Confirm P17" label and its question.
+      root.querySelector("[data-vq-say]")!.textContent = `${p.job}: you pay ${p.range} if you say yes`;
     };
-    radios.forEach((r) => r.addEventListener("change", () => pick(Number(r.value))));
+    radios.forEach((r) => r.addEventListener("change", () => pick(r.value)));
     // Pressing a part of the drawing picks it, like pressing its tag.
     root.querySelector("[data-sink]")!.addEventListener("click", (e) => {
       const g = (e.target as Element).closest<SVGGElement>("[data-part]");
       if (!g) return;
-      const n = Number(g.dataset.part);
-      const r = radios.find((x) => Number(x.value) === n);
-      if (r) { r.checked = true; pick(n); }
+      const id = g.dataset.part!;
+      const r = radios.find((x) => x.value === id);
+      if (r) { r.checked = true; pick(id); }
     });
   }
   const rs = document.querySelector<HTMLElement>("[data-rs]");
@@ -250,38 +252,42 @@ const calloutText = facts.calloutFee.value;
   .stamp rect { fill: var(--white); stroke: var(--slate); stroke-width: 2.5; }
   .stamp .hole { fill: var(--navy); }
   .stamp .wire { stroke: var(--slate); stroke-width: 2; fill: none; }
-  .stamp text { font: 800 18px var(--font-slab); fill: var(--navy-900); }
+  .stamp text { font: 800 16px var(--font-slab); fill: var(--navy-900); }
   .stamp { cursor: pointer; }
-  [data-sel="1"] .part[data-part="1"] :is(.pipe), [data-sel="2"] .part[data-part="2"] .pipe,
-  [data-sel="3"] .part[data-part="3"] .pipe, [data-sel="4"] .part[data-part="4"] .pipe { stroke: var(--sky); }
-  [data-sel="1"] .part[data-part="1"] :is(.body, .handle, .nut), [data-sel="2"] .part[data-part="2"] :is(.body, .handle, .nut),
-  [data-sel="3"] .part[data-part="3"] :is(.body, .handle, .nut), [data-sel="4"] .part[data-part="4"] :is(.body, .handle, .nut) { fill: var(--slate); }
-  [data-sel="1"] .stamp[data-part="1"] rect, [data-sel="2"] .stamp[data-part="2"] rect,
-  [data-sel="3"] .stamp[data-part="3"] rect, [data-sel="4"] .stamp[data-part="4"] rect { fill: var(--navy); stroke: var(--navy); }
-  [data-sel="1"] .stamp[data-part="1"] :is(text, .hole), [data-sel="2"] .stamp[data-part="2"] :is(text, .hole),
-  [data-sel="3"] .stamp[data-part="3"] :is(text, .hole), [data-sel="4"] .stamp[data-part="4"] :is(text, .hole) { fill: var(--white); }
+  /* Phones: the drawing shrinks to about 0.8 of its drawn size, so the name tags' text is set larger
+     to stay at least 14 px on screen from a 360 px wide phone up. "Shut-off", the longest, still
+     clears the punched hole and the tag's right end. */
+  @media (max-width: 479px) { .stamp text { font-size: 19px; transform: translateY(1px); } }
+  [data-sel="faucet"] .part[data-part="faucet"] .pipe, [data-sel="trap"] .part[data-part="trap"] .pipe,
+  [data-sel="shutoff"] .part[data-part="shutoff"] .pipe, [data-sel="drain"] .part[data-part="drain"] .pipe { stroke: var(--sky); }
+  [data-sel="faucet"] .part[data-part="faucet"] :is(.body, .handle, .nut), [data-sel="trap"] .part[data-part="trap"] :is(.body, .handle, .nut),
+  [data-sel="shutoff"] .part[data-part="shutoff"] :is(.body, .handle, .nut), [data-sel="drain"] .part[data-part="drain"] :is(.body, .handle, .nut) { fill: var(--slate); }
+  [data-sel="faucet"] .stamp[data-part="faucet"] rect, [data-sel="trap"] .stamp[data-part="trap"] rect,
+  [data-sel="shutoff"] .stamp[data-part="shutoff"] rect, [data-sel="drain"] .stamp[data-part="drain"] rect { fill: var(--navy); stroke: var(--navy); }
+  [data-sel="faucet"] .stamp[data-part="faucet"] :is(text, .hole), [data-sel="trap"] .stamp[data-part="trap"] :is(text, .hole),
+  [data-sel="shutoff"] .stamp[data-part="shutoff"] :is(text, .hole), [data-sel="drain"] .stamp[data-part="drain"] :is(text, .hole) { fill: var(--white); }
   .sink-cap { margin: 0.6rem 0 var(--space-3); }
 
   .tags { display: grid; gap: 0.55rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); margin: 0; }
   .tg-c { position: relative; display: block; }
   .tg-c input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
   .tg-c > span { display: flex; align-items: center; gap: 0.75rem; min-height: 3.5rem; padding: 0.45rem 0.9rem 0.45rem 0.6rem; border: 2px solid var(--slate); border-radius: 1.75rem 12px 12px 1.75rem; background: var(--white); }
-  .tg-n { display: grid; place-content: center; flex: none; width: 2.4rem; height: 2.4rem; border-radius: 50%; border: 2px solid var(--slate); font: 800 1.25rem/1 var(--font-slab); color: var(--navy-900); }
+  /* The part's name tag, as stamped on the drawing: a punched hole, then the name. */
+  .tg-n, .vl-pt { display: inline-flex; align-items: center; gap: 0.4rem; flex: none; padding: 0.3rem 0.6rem 0.3rem 0.45rem; border: 2px solid var(--slate); border-radius: 8px; font: 800 1rem/1.1 var(--font-slab); color: var(--navy-900); white-space: nowrap; }
+  .tg-n::before, .vl-pt::before { content: ""; width: 0.45rem; height: 0.45rem; border-radius: 50%; background: var(--navy); }
   .tg-t { font-weight: 700; line-height: 1.25; }
-  .tg-t small { display: block; font-weight: 400; font-size: var(--step--1); color: var(--ink-soft); }
   .tg-c input:checked + span { border-color: var(--navy); background: var(--sky-100); box-shadow: inset 0 0 0 1px var(--navy); }
   .tg-c input:checked + span .tg-n { background: var(--navy); border-color: var(--navy); color: var(--white); }
+  .tg-c input:checked + span .tg-n::before { background: var(--white); }
   .tg-c input:focus-visible + span { outline: 3px solid var(--navy); outline-offset: 2px; }
   /* Phone: two tags a row, so the quote's job line sits close under the drawing. */
   @media (max-width: 560px) {
     .tags { grid-template-columns: 1fr 1fr; gap: 0.45rem; }
     .tg-c > span { flex-direction: column; align-items: flex-start; gap: 0.3rem; padding: 0.5rem 0.6rem 0.55rem; border-radius: 1.2rem 10px 10px 10px; min-height: 100%; }
-    .tg-n { width: 2rem; height: 2rem; font-size: 1.0625rem; }
-    .tg-t small { display: none; }
     .sink-cap { margin-bottom: var(--space-2); }
   }
 
-  /* The quote: every line hangs from a tag; the job line's tag carries the part's number. */
+  /* The quote: every line hangs from a tag; the job line names the part's tag. */
   .vq-q { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--ring), var(--shadow-2); padding: 1.1rem 1rem 1.25rem; }
   @media (min-width: 700px) { .vq-q { padding: 1.5rem 1.75rem; } }
   .vq-q p { margin: 0; max-width: none; }
@@ -295,9 +301,10 @@ const calloutText = facts.calloutFee.value;
   .vtag { position: relative; width: 0.45rem; height: 1.1rem; margin: 0.3rem auto 0; border-radius: 0.22rem; background: var(--slate-ink); }
   /* A fee row the page header's tag names carries that tag's letter instead of a slot. */
   .vl li > :global(.vt-stamp) { margin: 0.05rem 0 0; }
-  .vtag--n { width: 2.4rem; height: 2.4rem; margin: 0; display: grid; place-content: center; background: var(--navy); border-color: var(--navy); color: var(--white); font: 800 1.25rem/1 var(--font-slab); }
-  .vl-job { grid-template-columns: 2.4rem minmax(0, 1fr) auto !important; padding-block: 0.8rem !important; }
-  .vl-k { font: 700 var(--step--2)/1.3 var(--font-body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--slate-ink); }
+  .vl-job { padding-block: 0.8rem !important; }
+  .vl-k { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.6rem; margin-bottom: 0.3rem !important; font: 700 var(--step--2)/1.3 var(--font-body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--slate-ink); }
+  .vl-pt { background: var(--navy); border-color: var(--navy); color: var(--white); letter-spacing: 0; text-transform: none; }
+  .vl-pt::before { background: var(--white); }
   .vl-t { font-weight: 700; line-height: 1.35; }
   .vl-job .vl-t { font: 700 var(--step-1)/1.25 var(--font-slab); color: var(--navy-900); }
   .vl-note { font-size: var(--step--1); color: var(--ink-soft); }
@@ -313,7 +320,6 @@ const calloutText = facts.calloutFee.value;
   @media (max-width: 560px) {
     .vl li { grid-template-columns: 1.75rem minmax(0, 1fr); }
     .vq-by { text-align: left; }
-    .vl-job { grid-template-columns: 2.4rem minmax(0, 1fr) !important; }
     .vl-a { grid-column: 2; text-align: left; font-size: var(--step-0); }
     .vq-tot { grid-template-columns: 1fr; }
     .vq-tot-n, .vq-tot-no { text-align: left; }

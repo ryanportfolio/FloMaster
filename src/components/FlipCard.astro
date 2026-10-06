@@ -4,6 +4,9 @@
 // the card itself does nothing, so a tap meant for the phone link or a scroll never turns it. The
 // hidden side is inert, so only the side showing can be read or tabbed to. Reduced motion: the
 // global rule drops the transition, so the sides swap at once without turning.
+// The button and its state line come first in the page order, the sides after them (the card is
+// drawn above the button by flex order, or by AboutHero's grid areas), so after turning, a screen
+// reader reads on into the side now showing. The button's label says which way it turns next.
 import Logo from "./Logo.astro";
 import CardBack from "./CardBack.astro";
 import { facts } from "../data/facts";
@@ -11,24 +14,24 @@ interface Props { class?: string; tone?: "on-navy" | "on-paper" }
 const { class: cls, tone = "on-paper" } = Astro.props;
 ---
 <div class:list={["flip", `flip--${tone}`, cls]} data-flip>
+  <div class="flip-row">
+    <button type="button" class="flip-btn" data-flip-btn>
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M4 12a8 8 0 0 1 13.7-5.6M20 12a8 8 0 0 1-13.7 5.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /><path d="M18.5 2.8v4.4h-4.4M5.5 21.2v-4.4h4.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      <span data-flip-label>Turn the card over</span>
+    </button>
+    <p class="flip-state" aria-live="polite" data-flip-state>Front of the card</p>
+  </div>
   <div class="flip-stage" data-flip-stage>
     <div class="flip-inner">
       <div class="face face--front" data-face="front">
         <Logo class="ff-logo" />
         <p class="ff-sub">Plumbing and Drains</p>
-        <p class="ff-est">Est. {facts.established.value}</p>
+        <p class="ff-est"><span aria-hidden="true">Est. {facts.established.value}</span><span class="visually-hidden">Established {facts.established.value}</span></p>
       </div>
       <div class="face face--back" data-face="back" inert aria-hidden="true">
         <CardBack class="ff-back" />
       </div>
     </div>
-  </div>
-  <div class="flip-row">
-    <button type="button" class="flip-btn" data-flip-btn>
-      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M4 12a8 8 0 0 1 13.7-5.6M20 12a8 8 0 0 1-13.7 5.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /><path d="M18.5 2.8v4.4h-4.4M5.5 21.2v-4.4h4.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-      Turn the card over
-    </button>
-    <p class="flip-state" aria-live="polite" data-flip-state>Front of the card</p>
   </div>
 </div>
 
@@ -37,6 +40,7 @@ const { class: cls, tone = "on-paper" } = Astro.props;
     const front = root.querySelector<HTMLElement>("[data-face='front']")!;
     const back = root.querySelector<HTMLElement>("[data-face='back']")!;
     const state = root.querySelector<HTMLElement>("[data-flip-state]")!;
+    const label = root.querySelector<HTMLElement>("[data-flip-label]")!;
     const turn = () => {
       const toBack = !root.classList.contains("is-back");
       root.classList.toggle("is-back", toBack);
@@ -45,13 +49,15 @@ const { class: cls, tone = "on-paper" } = Astro.props;
       front.toggleAttribute("aria-hidden", toBack);
       back.toggleAttribute("aria-hidden", !toBack);
       state.textContent = toBack ? "Back of the card: name, license and phone" : "Front of the card";
+      label.textContent = toBack ? "Turn the card back" : "Turn the card over";
     };
     root.querySelector("[data-flip-btn]")!.addEventListener("click", turn);
   });
 </script>
 
 <style>
-  .flip { width: min(100%, 24rem); }
+  .flip { width: min(100%, 24rem); display: flex; flex-direction: column; }
+  .flip-stage { order: -1; }
   .flip-stage { perspective: 1600px; }
   .flip-inner { position: relative; aspect-ratio: 1.75; transform-style: preserve-3d; transition: transform 0.65s cubic-bezier(0.3, 0.7, 0.2, 1); }
   .is-back .flip-inner { transform: rotateY(180deg); }
@@ -67,6 +73,8 @@ const { class: cls, tone = "on-paper" } = Astro.props;
   .face--front :global(.ff-logo) { height: 10.5cqi; }
   .ff-sub { font: 600 max(0.875rem, 4.1cqi)/1.2 var(--font-body); letter-spacing: 0.17em; text-transform: uppercase; color: var(--sky-300); margin-top: 0.35rem !important; }
   .ff-est { font: 600 max(0.875rem, 3.6cqi)/1.2 var(--font-slab); letter-spacing: 0.12em; text-transform: uppercase; color: var(--white); opacity: 0.9; margin-top: 0.3rem !important; }
+  /* Chrome passes text-transform on to screen readers; the spoken words stay in sentence case. */
+  .ff-est .visually-hidden { text-transform: none; }
 
   .flip-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin-top: 1rem; }
   .flip-btn {
