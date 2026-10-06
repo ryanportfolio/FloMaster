@@ -75,8 +75,9 @@ const labels: L[] = [
   // The chart's code loads a second after the page's load event, so its download never competes
   // with the first paint (as an early module request it delayed the largest paint by 150 ms in the
   // Lighthouse phone run). The still chart needs no script; an answer given before the code
-  // arrives is picked up when it starts.
-  const go = () => setTimeout(() => { const s = document.createElement("script"); s.src = src; document.head.append(s); }, 1000);
+  // arrives is picked up when it starts. A module script, because the dev server serves the code
+  // as an ES module with imports; the built bundle runs the same way.
+  const go = () => setTimeout(() => { const s = document.createElement("script"); s.type = "module"; s.src = src; document.head.append(s); }, 1000);
   if (document.readyState === "complete") go(); else addEventListener("load", go, { once: true });
 </script>
 
