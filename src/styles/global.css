@@ -165,11 +165,20 @@ ul, ol { padding-left: 1.2em; }
 .fact { position: relative; }
 .fact-tag, .photo-tag { display: none; }
 .tags-on .fact[data-open] { outline: 2px dashed #e0a100; outline-offset: 2px; border-radius: 3px; }
+/* With a label, only the value is outlined: an outline around the label's line as well would
+   run through the text under a large value. */
+.tags-on .fact[data-open]:has(> .fact-v) { outline: none; }
+.tags-on .fact-v { outline: 2px dashed #e0a100; outline-offset: 1px; border-radius: 3px; }
+.tags-on .fact-v:empty { outline: none; }
+/* In a table cell the label takes its own line, so a narrow table never grows past the screen. */
+.tags-on :is(td, th) .fact-tag { display: table; margin: 0.25rem 0 0 auto; }
+/* The label sits in the text flow right after its value, so it never covers a word or number
+   (it used to float above the value and hid the line over it). Turning tags on makes room for
+   the labels; turning them off puts everything back. */
 .tags-on .fact-tag {
-  display: inline-block; position: absolute; left: 0; bottom: 100%; z-index: 30;
-  transform: translateY(-4px);
-  font: 700 0.8125rem/1 var(--font-body); letter-spacing: 0.02em;
-  background: #ffd24d; color: #3d2a00; padding: 0.3em 0.5em; border-radius: 4px; white-space: nowrap; cursor: help;
+  display: inline-block; position: relative; z-index: 30; margin-inline-start: 0.4em; vertical-align: 0.12em;
+  font: 700 0.8125rem/1.15 var(--font-body); letter-spacing: 0.02em; text-transform: none; text-indent: 0;
+  background: #ffd24d; color: #3d2a00; padding: 0.2em 0.45em; border-radius: 4px; white-space: nowrap; cursor: help;
 }
 .fact-q {
   display: none; position: absolute; left: 0; top: 100%; width: max-content; max-width: 18rem;
@@ -181,7 +190,7 @@ ul, ol { padding-left: 1.2em; }
 .tips-hidden .fact-q { display: none !important; }
 .fact-block { position: relative; }
 .tags-on .fact-block[data-open] { outline: 2px dashed #e0a100; outline-offset: 6px; border-radius: 4px; }
-.tags-on .fact-tag--block { left: -6px; bottom: auto; top: -6px; transform: translateY(-100%); }
+.tags-on .fact-tag--block { display: table; margin: 0 0 0.6rem; }
 /* Open facts that would mislead if read as real (a credential number) show only with tags on. */
 .tags-only { display: none !important; }
 .tags-on .tags-only { display: revert !important; }

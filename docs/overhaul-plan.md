@@ -1,6 +1,6 @@
 # Visual overhaul plan
 
-Status, 2026-10-05: Round 1 is built and waiting for the user's review. Rounds 2 to 4 are not started.
+Status, 2026-10-06: Rounds 1 and 2 are built; the user picked one of three directions for each Round 2 section. Rounds 3 and 4 are not started.
 
 ## Goal
 

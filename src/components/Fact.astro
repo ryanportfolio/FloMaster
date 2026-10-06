@@ -3,16 +3,20 @@
 // prototype. Use `plain` inside links and buttons: outline only, no focusable
 // label (the question still appears on /review). Use `onlyWithTags` for open
 // facts that would mislead if read as real (a credential number): they render
-// only while tags are on.
+// only while tags are on. Slotted content replaces the value, for text worked
+// out from the fact (a range set in large type, a time filled in by script).
 import { facts, isPublicBuild, type FactKey } from "../data/facts";
-interface Props { k: FactKey; plain?: boolean; text?: string; onlyWithTags?: boolean }
-const { k, plain = false, text, onlyWithTags = false } = Astro.props;
+interface Props { k: FactKey; plain?: boolean; text?: string; onlyWithTags?: boolean; class?: string }
+const { k, plain = false, text, onlyWithTags = false, class: cls } = Astro.props;
 const fact = facts[k];
 const open = fact.status === "open" && !isPublicBuild;
+const slotted = Astro.slots.has("default");
 const value = text ?? fact.value;
 ---
 {open ? (
-  <span class:list={["fact", { "tags-only": onlyWithTags }]} data-open>{value}{!plain && (
-    <span class="fact-tag" tabindex="0">Confirm {fact.code}<span class="fact-q" role="tooltip">{fact.question}</span></span>
+  <span class:list={["fact", cls, { "tags-only": onlyWithTags }]} data-open>{plain ? (slotted ? <slot /> : value) : (
+    <><span class="fact-v">{slotted ? <slot /> : value}</span><span class="fact-tag" tabindex="0">Confirm {fact.code}<span class="fact-q" role="tooltip">{fact.question}</span></span></>
   )}</span>
-) : value}
+) : slotted ? (
+  cls ? <span class={cls}><slot /></span> : <slot />
+) : cls ? <span class={cls}>{value}</span> : value}

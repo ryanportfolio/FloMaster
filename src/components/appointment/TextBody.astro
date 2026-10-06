@@ -1,0 +1,33 @@
+---
+// The body of one update text. Wording follows the live /appointment page; every
+// business fact goes through Fact so it carries its "confirm this" tag.
+import Fact from "../Fact.astro";
+import { facts } from "../../data/facts";
+import { sample, type StepId } from "./steps";
+interface Props { id: StepId }
+const { id } = Astro.props;
+const win = `${sample.windowDay}, ${sample.windowTime}`;
+const phone = facts.phone.value;
+---
+{id === "requested" && (
+  <>FloMasters: Thanks, {sample.customer}. I've got your request for a water heater visit, <Fact k="windows" text={win} /> <Fact k="bookingConfirm" /> Antonio <span class="tb-legal"><Fact k="textConsent" /></span></>
+)}
+{id === "confirmed" && (
+  <>FloMasters: You're booked. {sample.windowDay}, arriving between {sample.windowTime.replace(" to ", " and ")} Call-out <Fact k="calloutFee" />, <Fact k="calloutCredited" />. Need to change it? <Fact k="cancellation" />: reply here or call <span class="num nowrap">{phone}</span>. Antonio</>
+)}
+{id === "reminder" && (
+  <>FloMasters: See you tomorrow between {sample.windowTime.replace(" to ", " and ")} If you can, clear the space around the water heater. Antonio</>
+)}
+{id === "onway" && (
+  <>FloMasters: On my way now, {sample.eta}. Antonio</>
+)}
+{id === "arrived" && (
+  <>FloMasters: I'm outside. Antonio</>
+)}
+{id === "done" && (
+  <>FloMasters: All done. {sample.jobDone}. Paid <Fact k="priceRanges" text={sample.paid} />. <Fact k="laborWarranty" />, details on your receipt. If you have a minute, a review helps a small business: [review link]. Thank you. Antonio</>
+)}
+
+<style>
+  .tb-legal { display: block; margin-top: 0.35rem; font-size: var(--step--1); color: var(--ink-soft); }
+</style>

@@ -1,192 +1,127 @@
 ---
+// Booking page. Four questions, each marked with the logo ring and answered on its own tag:
+// question 1's price tag, question 2's arrival board, stamped tags for the address and the
+// phone. The header's work order fills in as the questions are answered. The cost summary
+// hangs each charge on the point in the visit where it applies, and comes before the
+// "Book this time" button on a phone. Booking details reach /book/confirmed through session
+// storage only.
 import Base from "../../layouts/Base.astro";
 import Fact from "../../components/Fact.astro";
 import Icon from "../../components/Icon.astro";
-import CallbackForm from "../../components/CallbackForm.astro";
-import { Image } from "astro:assets";
-import portrait from "../../assets/photos/portrait.jpg";
-import { services } from "../../data/services";
+import WorkOrderCard from "../../components/book/WorkOrderCard.astro";
+import StepMark from "../../components/book/StepMark.astro";
+import StepProblem from "../../components/book/StepProblem.astro";
+import StepWhen from "../../components/book/StepWhen.astro";
+import VTag from "../../components/book/VTag.astro";
+import CostTags from "../../components/book/CostTags.astro";
+import CallbackHull from "../../components/book/CallbackHull.astro";
+import { problems } from "../../components/book/problems";
 import { facts, isPublicBuild } from "../../data/facts";
 import { zips, sometimes } from "../../data/area";
 
-// Sample arrival windows (P29): the next 5 working days from the build date, Virginia time.
-type Slot = { label: string; start: number; end: number };
-const slots: Slot[] = [
-  { label: "8 to 10 a.m.", start: 8, end: 10 },
-  { label: "10 a.m. to 12 p.m.", start: 10, end: 12 },
-  { label: "1 to 3 p.m.", start: 13, end: 15 },
-  { label: "3 to 5 p.m.", start: 15, end: 17 },
-];
-const days: { iso: string; label: string; windows: Slot[] }[] = [];
-const d = new Date();
-while (days.length < 5) {
-  d.setDate(d.getDate() + 1);
-  const dow = d.getDay();
-  if (dow === 0) continue;
-  const label = d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: "America/New_York" });
-  const iso = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(d);
-  const windows = dow === 6 ? slots.slice(0, 2) : days.length % 2 ? slots.filter((_, i) => i !== 1) : slots;
-  days.push({ iso, label, windows });
-}
-const jobs = [...services.map((s) => ({ id: s.slug, label: s.bookLabel, from: s.prices[0].range })), { id: "other", label: "Something else", from: "" }];
-const priceMap = Object.fromEntries(services.map((s) => [s.slug, s.prices]));
+const priceMap = Object.fromEntries(problems.map((p) => [p.slug, p.prices]));
 ---
 <Base title="Book a time" description="Book a FloMasters plumbing visit online in four quick steps. Antonio confirms by text.">
-  <section class="book-head navy on-navy">
-    <div class="wrap bh">
-      <Image src={portrait} alt="" width={120} height={120} class="bh-pic" format="webp" loading="eager" />
-      <div>
-        <h1>Book a time</h1>
-        <p class="lead">Four quick questions, then <Fact k="bookingConfirm" text={facts.bookingConfirm.value.replace(/\.$/, "")} /></p>
+  <div class="bp" data-bp data-count="0">
+    <section class="book-head navy on-navy">
+      <div class="wrap bh">
+        <div class="bh-intro">
+          <h1>Book a time</h1>
+          <p class="lead"><span class="lead-wo">Each answer goes straight onto your work order. </span>Once you book, <Fact k="bookingConfirm" text={facts.bookingConfirm.value.replace(/\.$/, "")} /></p>
+        </div>
+        <WorkOrderCard />
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="section">
-    <div class="wrap layout">
-      <form class="bookform" data-book novalidate method="post" action="/book" data-zips={JSON.stringify(zips)} data-sometimes={JSON.stringify(sometimes)} data-prices={JSON.stringify(priceMap)} data-price-open={String(!isPublicBuild && facts.priceRanges.status === "open")}>
-        <p class="error-summary" role="alert" data-summary></p>
+    <section class="section form-sec">
+      <div class="wrap">
+        <form class="bookform" data-book novalidate method="post" action="/book" data-zips={JSON.stringify(zips)} data-sometimes={JSON.stringify(sometimes)} data-prices={JSON.stringify(priceMap)} data-price-open={String(!isPublicBuild && facts.priceRanges.status === "open")}>
+          <p class="error-summary" role="alert" data-summary></p>
 
-        <fieldset class="step" id="f-job" aria-describedby="err-job">
-          <legend><span class="n">1</span> What needs doing?</legend>
-          <div class="choices">
-            {jobs.map((j) => (
-              <label class="choice">
-                <input type="radio" name="job" value={j.id} data-label={j.label} />
-                <span>{j.label}</span>
-              </label>
-            ))}
-          </div>
-          <div class="field other" data-other hidden>
-            <label for="other-note">Tell me in a few words</label>
-            <input id="other-note" name="note" type="text" autocomplete="off" />
-          </div>
-          <span class="error" id="err-job"></span>
-        </fieldset>
+          <div class="qs">
+            <StepProblem />
+            <StepWhen />
 
-        <fieldset class="step" id="f-when" aria-describedby="err-when">
-          <legend><span class="n">2</span> When suits you? <span class="tagwrap"><Fact k="windows" text="" /></span></legend>
-          <p class="hint">Pick an arrival window. I'll text when I'm on my way.</p>
-          <div class="days">
-            {days.map((day) => (
-              <div class="day" role="group" aria-label={day.label}>
-                <p class="day-h">{day.label}</p>
-                <div class="choices">
-                  {day.windows.map((w) => (
-                    <label class="choice">
-                      <input type="radio" name="window" value={`${day.label}, ${w.label}`} data-date={day.iso} data-start={w.start} data-end={w.end} />
-                      <span>{w.label}</span>
-                    </label>
-                  ))}
+            <fieldset class="step" id="f-where" data-step="where">
+              <legend><StepMark n={3} /> <span class="lg-t">Where is the job?<span class="visually-hidden" data-state></span></span></legend>
+              <div class="addr">
+                <div class="field">
+                  <label for="street">Street address</label>
+                  <input id="street" name="street" type="text" autocomplete="address-line1" aria-describedby="err-street" />
+                  <span class="error" id="err-street"></span>
+                </div>
+                <div class="field zip">
+                  <label for="zip">ZIP code</label>
+                  <input id="zip" name="zip" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="5" aria-describedby="zip-status err-zip" />
+                  <span class="error" id="err-zip"></span>
                 </div>
               </div>
-            ))}
-          </div>
-          <span class="error" id="err-when"></span>
-        </fieldset>
+              <p class="zip-status small" id="zip-status" role="status" data-zip-status></p>
+              <p class="ans-slot"><VTag ans="where-short" /></p>
+            </fieldset>
 
-        <fieldset class="step" id="f-where">
-          <legend><span class="n">3</span> Where is the job?</legend>
-          <div class="addr">
-            <div class="field">
-              <label for="street">Street address</label>
-              <input id="street" name="street" type="text" autocomplete="address-line1" aria-describedby="err-street" />
-              <span class="error" id="err-street"></span>
+            <fieldset class="step" id="f-phone" data-step="phone">
+              <legend><StepMark n={4} /> <span class="lg-t">Your mobile number<span class="visually-hidden" data-state></span></span></legend>
+              <div class="field">
+                <label for="phone" class="visually-hidden">Mobile number</label>
+                <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" aria-describedby="phone-hint err-phone" data-carry-phone />
+                <span class="hint" id="phone-hint">For the confirmation and "on my way" texts about this visit only. <Fact k="textConsent" /></span>
+                <span class="error" id="err-phone"></span>
+              </div>
+              <p class="ans-slot"><VTag ans="phone" caps /></p>
+            </fieldset>
+          </div>
+
+          <aside class="side" aria-label="Costs, and what to do in an emergency">
+            <CostTags />
+            <div class="panel urgent">
+              <p><strong>Water leaking now?</strong> Don't book: call.</p>
+              <a class="btn btn--signal btn--block" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> {facts.phone.value}</a>
             </div>
-            <div class="field zip">
-              <label for="zip">ZIP code</label>
-              <input id="zip" name="zip" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="5" aria-describedby="zip-status err-zip" />
-              <span class="error" id="err-zip"></span>
-            </div>
-          </div>
-          <p class="zip-status small" id="zip-status" role="status" data-zip-status></p>
-        </fieldset>
+          </aside>
 
-        <fieldset class="step" id="f-phone">
-          <legend><span class="n">4</span> Your mobile number</legend>
-          <div class="field">
-            <label for="phone" class="visually-hidden">Mobile number</label>
-            <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" aria-describedby="phone-hint err-phone" data-carry-phone />
-            <span class="hint" id="phone-hint">For the confirmation and "on my way" texts about this visit only. <Fact k="textConsent" /></span>
-            <span class="error" id="err-phone"></span>
+          <div class="go">
+            <button class="btn btn--navy submit" type="submit" data-submit disabled data-needs-js>Book this time</button>
+            <p class="small muted after">Prototype: nothing is sent. You'll see the confirmation screen.</p>
           </div>
-        </fieldset>
-
-        <button class="btn btn--navy submit" type="submit" data-submit disabled data-needs-js>Book this time</button>
-        <p class="small muted after">Prototype: nothing is sent. You'll see the confirmation screen.</p>
-      </form>
-
-      <aside class="side">
-        <div class="summary on-navy">
-          <h2 class="sum-h">What it costs</h2>
-          <div data-price-none>
-            <p class="small">Pick a job to see typical prices.</p>
-          </div>
-          <div data-price hidden>
-            <p class="sum-job" data-price-job></p>
-            <table><tbody data-price-rows></tbody></table>
-          </div>
-          <ul class="fees-mini">
-            <li><span>Call-out</span><strong class="num"><Fact k="calloutFee" /></strong></li>
-            <li class="small muted"><Fact k="calloutCredited" /></li>
-            <li><span>Card fee</span><strong><Fact k="cardFee" /></strong></li>
-            <li><span>Cancel or move</span><strong>Free</strong></li>
-            <li class="small muted"><Fact k="cancellation" /></li>
-          </ul>
-          <p class="small">You'll get a written, flat price before I start. <a href="/pricing">All prices and fees</a></p>
-        </div>
-        <div class="panel urgent">
-          <p><strong>Water leaking now?</strong> Don't book: call.</p>
-          <a class="btn btn--signal btn--block" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> {facts.phone.value}</a>
-        </div>
-      </aside>
-    </div>
-  </section>
-
-  <section class="section section--alt" id="callback">
-    <div class="wrap cb">
-      <div>
-        <h2>Rather talk first?</h2>
-        <p class="lead">Leave your number and I'll call you back about bigger jobs, prices, or a time that suits you better</p>
+        </form>
       </div>
-      <CallbackForm id="cb-book" />
-    </div>
-  </section>
+    </section>
+
+    <CallbackHull />
+  </div>
 </Base>
 
 <script>
+  import { answerTexts, fillAnswers, type Booking } from "../../components/book/fmt";
+  type Row = { job: string; range: string };
+  const bp = document.querySelector<HTMLElement>("[data-bp]")!;
   const form = document.querySelector<HTMLFormElement>("[data-book]")!;
   const zips: Record<string, string> = JSON.parse(form.dataset.zips!);
   const sometimes: string[] = JSON.parse(form.dataset.sometimes!);
-  const prices: Record<string, { job: string; range: string }[]> = JSON.parse(form.dataset.prices!);
+  const prices: Record<string, Row[]> = JSON.parse(form.dataset.prices!);
   const $ = <T extends Element = HTMLElement>(s: string) => form.querySelector<T>(s)!;
-  const other = $("[data-other]");
   const zipStatus = $("[data-zip-status]");
   const summary = $("[data-summary]");
+  const jobStatus = $("[data-job-status]");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+  const checked = (name: string) => form.querySelector<HTMLInputElement>(`input[name=${name}]:checked`);
   let tried = false;
 
-  // Pre-select a job from ?job=slug (service page "Book" buttons).
+  // Pre-select a job from ?job=<service slug> (service page "Book" buttons).
   const pre = new URLSearchParams(location.search).get("job");
   if (pre) { const r = form.querySelector<HTMLInputElement>(`input[name=job][value="${CSS.escape(pre)}"]`); if (r) r.checked = true; }
   // Carry the phone number between the booking and callback forms (WCAG 3.3.7).
   try { const saved = sessionStorage.getItem("fm-phone"); if (saved) $<HTMLInputElement>("#phone").value = saved; } catch {}
   $<HTMLInputElement>("#phone").addEventListener("input", (e) => { try { sessionStorage.setItem("fm-phone", (e.target as HTMLInputElement).value); } catch {} });
 
-  const showPrice = () => {
-    const job = form.querySelector<HTMLInputElement>("input[name=job]:checked");
-    other.hidden = job?.value !== "other";
-    const rows = job && prices[job.value];
-    document.querySelector<HTMLElement>("[data-price-none]")!.hidden = !!rows;
-    document.querySelector<HTMLElement>("[data-price]")!.hidden = !rows;
-    if (rows) {
-      document.querySelector("[data-price-job]")!.textContent = job!.dataset.label!;
-      // Sample prices keep their P17 outline when tags are on (same markup Fact.astro renders with `plain`).
-      const open = form.dataset.priceOpen === "true";
-      document.querySelector("[data-price-rows]")!.innerHTML = rows.map((r) => `<tr><th scope="row">${r.job}</th><td class="num">${open ? `<span class="fact" data-open>${r.range}</span>` : r.range}</td></tr>`).join("");
-    }
+  // Question 1's price tag shows through CSS; this announces it and keeps it in view.
+  const onJob = (scroll: boolean) => {
+    const job = checked("job");
+    jobStatus.textContent = job?.dataset.say ?? "";
+    const tag = job && document.getElementById(job.getAttribute("aria-controls") ?? "");
+    if (scroll && tag) requestAnimationFrame(() => tag.scrollIntoView({ block: "nearest", behavior: reduce.matches ? "auto" : "smooth" }));
   };
-  form.addEventListener("change", (e) => { if ((e.target as HTMLInputElement).name === "job") showPrice(); if (tried) validate(false); });
-  showPrice();
 
   const zipCheck = () => {
     const z = $<HTMLInputElement>("#zip").value.trim();
@@ -196,21 +131,68 @@ const priceMap = Object.fromEntries(services.map((s) => [s.slug, s.prices]));
     zipStatus.textContent = !city ? "That ZIP is outside my area. Call me and I'll tell you if I can help." : sometimes.includes(z) ? `${city}: I'll confirm I can reach you when I text.` : `${city}: yes, I cover that.`;
     return city ?? null;
   };
-  $("#zip").addEventListener("input", zipCheck);
+
+  // The booking as answered so far. A question counts as answered once its answer would pass
+  // validation (an address needs a covered ZIP; a phone needs 10 digits).
+  const current = () => {
+    const job = checked("job"), win = checked("window");
+    const street = $<HTMLInputElement>("#street").value.trim();
+    const zip = $<HTMLInputElement>("#zip").value.trim();
+    const phone = $<HTMLInputElement>("#phone").value.trim();
+    const note = $<HTMLInputElement>("#other-note").value.trim();
+    const city = /^\d{5}$/.test(zip) ? zips[zip] ?? null : null;
+    const digits = phone.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
+    const done = { job: !!job, when: !!win, where: street.length > 3 && !!city, phone: digits.length === 10 };
+    const b: Booking = {
+      job: job ? (job.value === "other" && note ? note : job.dataset.label) : undefined,
+      jobId: job?.value,
+      window: win?.value, windowDay: win?.dataset.dayLabel, windowLabel: win?.dataset.winLabel, windowDate: win?.dataset.date,
+      windowStart: win ? Number(win.dataset.start) : undefined, windowEnd: win ? Number(win.dataset.end) : undefined,
+      street: done.where ? street : undefined, zip: done.where ? zip : undefined, city,
+      phone: done.phone ? phone : undefined,
+    };
+    return { b, done, city, job, win };
+  };
+
+  // Writes the progress onto the page: data-<question> and data-count on the wrapper, data-done
+  // on each answered question, the answer texts, and the state the cost summary reads.
+  const progress = () => {
+    const { b, done, city, job, win } = current();
+    let n = 0;
+    for (const [k, ok] of Object.entries(done)) {
+      bp.toggleAttribute(`data-${k}`, ok);
+      const step = form.querySelector<HTMLElement>(`[data-step="${k}"]`)!;
+      step.toggleAttribute("data-done", ok);
+      step.querySelector("[data-state]")!.textContent = ok ? " (answered)" : "";
+      if (ok) n++;
+    }
+    bp.dataset.count = String(n);
+    document.querySelectorAll("[data-count-text]").forEach((el) => { el.textContent = `${n} of 4 filled in`; });
+    fillAnswers(document, answerTexts(b));
+    const detail = {
+      job: job ? { title: job.dataset.title ?? "", rows: prices[job.value] ?? null } : null,
+      priceOpen: form.dataset.priceOpen === "true",
+      win: win ? { label: `${win.dataset.dayLabel}, ${win.dataset.winLabel}`, weekend: win.dataset.weekend === "true" } : null,
+      city,
+    };
+    (window as unknown as { __fmBook: typeof detail }).__fmBook = detail;
+    document.dispatchEvent(new CustomEvent("fm:book", { detail }));
+  };
 
   const setErr = (id: string, msg: string, field?: Element | null) => {
     document.getElementById(id)!.textContent = msg;
     if (field) msg ? field.setAttribute("aria-invalid", "true") : field.removeAttribute("aria-invalid");
     return !msg;
   };
+  // The windows of the days not chosen are hidden, so an error sends focus to the first one shown.
+  const firstWindow = () => [...form.querySelectorAll<HTMLInputElement>("input[name=window]")].find((i) => i.offsetParent !== null) ?? form.querySelector<HTMLElement>("input[name=window]")!;
   const validate = (focus: boolean) => {
-    const job = form.querySelector<HTMLInputElement>("input[name=job]:checked");
-    const win = form.querySelector<HTMLInputElement>("input[name=window]:checked");
+    const job = checked("job"), win = checked("window");
     const street = $<HTMLInputElement>("#street"), zip = $<HTMLInputElement>("#zip"), phone = $<HTMLInputElement>("#phone");
     const digits = phone.value.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
     const checks: [boolean, HTMLElement][] = [
-      [setErr("err-job", job ? "" : "Pick the job closest to yours, or Something else."), form.querySelector<HTMLElement>("input[name=job]")!],
-      [setErr("err-when", win ? "" : "Pick an arrival window, or ask for a callback below."), form.querySelector<HTMLElement>("input[name=window]")!],
+      [setErr("err-job", job ? "" : "Pick the problem closest to yours, or Something else."), form.querySelector<HTMLElement>("input[name=job]")!],
+      [setErr("err-when", win ? "" : "Pick an arrival window, or ask for a callback below."), firstWindow()],
       [setErr("err-street", street.value.trim().length > 3 ? "" : "Enter the street address where the job is.", street), street],
       [setErr("err-zip", /^\d{5}$/.test(zip.value.trim()) ? (zipCheck() ? "" : "I don't cover that ZIP online. Please call so we can talk about it.") : "Enter a 5-digit ZIP code.", zip), zip],
       [setErr("err-phone", digits.length === 10 ? "" : "Enter a 10-digit mobile number so I can text you the confirmation.", phone), phone],
@@ -221,7 +203,12 @@ const priceMap = Object.fromEntries(services.map((s) => [s.slug, s.prices]));
     return bad.length === 0;
   };
 
-  form.addEventListener("input", () => { if (tried) validate(false); });
+  form.addEventListener("change", (e) => { if ((e.target as HTMLInputElement).name === "job") onJob(true); progress(); if (tried) validate(false); });
+  form.addEventListener("input", () => { progress(); if (tried) validate(false); });
+  $("#zip").addEventListener("input", zipCheck);
+  onJob(false);
+  progress();
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     tried = true;
@@ -229,71 +216,67 @@ const priceMap = Object.fromEntries(services.map((s) => [s.slug, s.prices]));
     const btn = $<HTMLButtonElement>("[data-submit]");
     btn.disabled = true;
     btn.textContent = "Booking...";
-    const job = form.querySelector<HTMLInputElement>("input[name=job]:checked")!;
-    const booking = {
-      job: job.value === "other" && $<HTMLInputElement>("#other-note").value.trim() ? $<HTMLInputElement>("#other-note").value.trim() : job.dataset.label,
-      jobId: job.value,
-      window: form.querySelector<HTMLInputElement>("input[name=window]:checked")!.value,
-      windowDate: form.querySelector<HTMLInputElement>("input[name=window]:checked")!.dataset.date,
-      windowStart: Number(form.querySelector<HTMLInputElement>("input[name=window]:checked")!.dataset.start),
-      windowEnd: Number(form.querySelector<HTMLInputElement>("input[name=window]:checked")!.dataset.end),
-      street: $<HTMLInputElement>("#street").value.trim(),
-      zip: $<HTMLInputElement>("#zip").value.trim(),
-      city: zipCheck(),
-      phone: $<HTMLInputElement>("#phone").value.trim(),
-    };
+    const { b } = current();
     // Session storage only: no personal details in the URL.
-    try { sessionStorage.setItem("fm-booking", JSON.stringify(booking)); } catch {}
+    try { sessionStorage.setItem("fm-booking", JSON.stringify({ ...b, city: zipCheck() })); } catch {}
     setTimeout(() => { location.href = "/book/confirmed"; }, 500);
   });
 </script>
 
 <style>
-  .book-head { padding-block: 2rem 2.25rem; }
-  .bh { display: flex; align-items: center; gap: 1.25rem; }
-  .bh :global(.bh-pic) { width: 4.5rem; height: 4.5rem; border-radius: 50%; object-fit: cover; border: 3px solid var(--sky); flex: none; }
+  /* Header: the intro beside the work order; on a phone the order follows the intro, kept short
+     so question 1 starts on the first screen. */
+  .book-head { padding-block: 1rem 1.25rem; }
+  .bh { display: grid; gap: 0.85rem; align-items: center; }
   .bh h1 { margin: 0 0 0.25rem; font-size: var(--step-3); }
-  .bh .lead { margin: 0; color: var(--sky-100); font-size: var(--step-0); }
-  .layout { display: grid; gap: var(--space-4); }
-  @media (min-width: 1000px) { .layout { grid-template-columns: minmax(0, 1fr) 21rem; align-items: start; } }
-  .step { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1.25rem 1.25rem 0.75rem; margin-bottom: 1rem; }
-  @media (min-width: 700px) { .step { padding: 1.5rem 1.75rem 1rem; } }
-  legend { float: left; width: 100%; font-family: var(--font-slab); font-size: var(--step-1); font-weight: 700; color: var(--navy-900); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem; }
-  legend + * { clear: both; }
-  .n { display: inline-grid; place-content: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--navy); color: var(--white); font-size: 1.0625rem; flex: none; }
-  .step .error { margin: 0.5rem 0 0.5rem; }
-  .other { margin-top: 1rem; }
-  .days { display: grid; gap: 1rem; margin-bottom: 0.5rem; }
-  .day-h { font-weight: 700; margin: 0 0 0.4rem; font-size: 1.0625rem; }
-  .day .choices { grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr)); }
-  .day .choice span { min-height: 2.9rem; justify-content: center; font-variant-numeric: tabular-nums; }
+  .bh .lead { margin: 0; color: var(--sky-100); font-size: var(--step-0); line-height: 1.45; }
+  /* On a phone the order itself shows what it is for; the first line goes so question 1 starts sooner. */
+  @media (max-width: 699px) { .lead-wo { display: none; } }
+  @media (min-width: 900px) {
+    .book-head { padding-block: 2rem 2.25rem; }
+    .bh { grid-template-columns: minmax(0, 1fr) minmax(0, 34rem); gap: 3rem; }
+  }
+
+  .form-sec { padding-block: 1.25rem var(--space-5); }
+  @media (min-width: 700px) { .form-sec { padding-top: var(--space-4); } }
+
+  /* Questions, then costs, then the button. On wide screens the costs sit beside the questions. */
+  .bookform { display: grid; gap: 0 var(--space-4); }
+  .bookform > * { min-width: 0; }
+  @media (min-width: 1000px) {
+    .bookform { grid-template-columns: minmax(0, 1fr) 24rem; align-items: start; }
+    .error-summary, .qs, .go { grid-column: 1; }
+    .error-summary { grid-row: 1; }
+    .qs { grid-row: 2; }
+    .go { grid-row: 3; }
+    .side { grid-column: 2; grid-row: 1 / 4; }
+  }
+  .side { display: grid; gap: 1rem; margin-bottom: 1.5rem; }
+  .urgent { border-top: 5px solid var(--signal); }
+  .urgent p { margin-bottom: 0.75rem; }
+
+  /* The questions. Each is a white card; the marker is the logo ring with the question number. */
+  .bookform :global(.step) { position: relative; background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1.25rem 1.25rem 0.75rem; margin-bottom: 1rem; }
+  @media (min-width: 700px) { .bookform :global(.step) { padding: 1.5rem 1.75rem 1rem; } }
+  .bookform :global(legend) { float: left; width: 100%; font-family: var(--font-slab); font-size: var(--step-1); font-weight: 700; color: var(--navy-900); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+  .bookform :global(legend + *) { clear: both; }
+  .bookform :global(.step .error) { margin: 0.5rem 0; }
+  .bookform :global(.step .hint) { margin-bottom: 0.75rem; }
+  .bookform :global(.tagwrap) { font-family: var(--font-body); font-size: 0.875rem; font-weight: 400; }
   .addr { display: grid; gap: 0 1rem; }
   @media (min-width: 640px) { .addr { grid-template-columns: 1fr 9rem; } }
   .addr .field { margin-bottom: 0.75rem; }
   .zip-status { min-height: 1.6em; margin: 0 0 0.75rem; font-weight: 600; }
   .zip-status.ok { color: var(--ok); }
   .zip-status.no { color: #b42318; }
-  .hint { margin-bottom: 0.75rem; }
+  /* Stamped answer tags for questions 3 and 4 sit under the answer, so nothing moves above the
+     finger and a long address never runs into the question's heading. */
+  .ans-slot { margin: 0.25rem 0 0.75rem; max-width: none; }
+  .ans-slot:has(:global(.vtag:empty)) { display: none; }
+
   .submit { width: 100%; min-height: 3.75rem; font-size: 1.25rem; margin-top: 0.5rem; }
   @media (min-width: 700px) { .submit { width: auto; padding-inline: 2.5rem; } }
   .after { margin-top: 0.75rem; }
   .error-summary { margin: 0 0 1rem; font-weight: 700; color: #b42318; }
   .error-summary:empty { display: none; }
-  .tagwrap { font-family: var(--font-body); font-size: 0.875rem; font-weight: 400; }
-  .side { display: grid; gap: 1rem; position: sticky; top: calc(var(--sticky-h) + 1rem); }
-  .summary { background: var(--navy) var(--waves); background-size: 72px 36px; color: var(--white); border-radius: var(--radius-lg); padding: 1.5rem; }
-  .summary a { color: var(--white); }
-  .sum-h { color: var(--white); font-size: var(--step-1); }
-  .sum-job { font-weight: 700; color: var(--sky-300); margin-bottom: 0.25rem; }
-  .summary table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
-  .summary :global(th), .summary :global(td) { text-align: left; padding: 0.45rem 0; border-bottom: 1px solid rgb(255 255 255 / 0.15); font-size: 1.0625rem; font-weight: 400; vertical-align: top; }
-  .summary :global(td) { text-align: right; font-family: var(--font-slab); font-weight: 700; white-space: nowrap; padding-left: 0.75rem; }
-  .fees-mini { list-style: none; padding: 0; margin: 0 0 1rem; }
-  .fees-mini li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.3rem 0; }
-  .fees-mini li.small { display: block; padding-top: 0; color: var(--sky-300); }
-  .fees-mini strong { font-family: var(--font-slab); }
-  .urgent { border-top: 5px solid var(--signal); }
-  .urgent p { margin-bottom: 0.75rem; }
-  .cb { display: grid; gap: var(--space-4); }
-  @media (min-width: 900px) { .cb { grid-template-columns: 1fr 1fr; align-items: start; } }
 </style>

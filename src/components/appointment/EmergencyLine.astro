@@ -1,0 +1,20 @@
+---
+// Booked visits get texts; an emergency goes to the phone. Orange marks the emergency path only.
+import Fact from "../Fact.astro";
+import Icon from "../Icon.astro";
+import { facts } from "../../data/facts";
+interface Props { onNavy?: boolean }
+const { onNavy = false } = Astro.props;
+---
+<div class:list={["em", { "em--navy": onNavy }]}>
+  <p class="em-t">These texts are for booked visits. Water coming through right now? Call me instead: I'm <Fact k="emergencyArrival" />.</p>
+  <a class="btn btn--signal" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> Call <span class="num">{facts.phone.value}</span></a>
+</div>
+
+<style>
+  .em { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.5rem; margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--line); }
+  .em-t { margin: 0; flex: 1 1 22rem; }
+  .em--navy { border-top-color: rgb(255 255 255 / 0.2); }
+  .em--navy .em-t { color: var(--sky-100); }
+  .em .btn { min-height: 3.25rem; }
+</style>

@@ -1,0 +1,20 @@
+---
+// The marker at the start of each booking question: the logo ring with the question's number
+// in the middle. Once the question is answered (the fieldset carries [data-done]) the ring takes
+// the logo's blues and the middle fills navy with a white number, so answered and unanswered
+// differ by far more than a shade (navy against white is about 12:1).
+import Ring from "./Ring.astro";
+interface Props { n: number }
+const { n } = Astro.props;
+---
+<span class="mk"><Ring /><span class="mk-n">{n}</span></span>
+
+<style>
+  .mk { position: relative; display: inline-block; flex: none; width: 2.9rem; height: 2.9rem; }
+  .mk-n {
+    position: absolute; inset: 22%; display: grid; place-content: center; border-radius: 50%;
+    font: 800 1.125rem/1 var(--font-slab); color: var(--navy-900); background: var(--white);
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+  :global([data-done]) .mk-n { background: var(--navy); color: var(--white); }
+</style>

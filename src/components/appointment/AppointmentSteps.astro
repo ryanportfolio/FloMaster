@@ -1,0 +1,133 @@
+---
+// The appointment updates in hull numbers. The numbers a customer needs from across
+// the room are painted large in fixed places: the arrival window at the top, the
+// six step numbers down a navy rail beside the phone, the current step's name
+// beside them. Tapping a number plays that text.
+import Fact from "../Fact.astro";
+import Thread from "./Thread.astro";
+import EmergencyLine from "./EmergencyLine.astro";
+import { facts } from "../../data/facts";
+import { steps, sample } from "./steps";
+---
+<section class="band band--raised">
+  <div class="wrap hs" data-appt>
+    <div class="hs-stage">
+      <div class="hs-window">
+        <p class="hs-k">Arrival window <span class="sample-label">Sample booking</span></p>
+        <p class="hs-day">{sample.windowDay}</p>
+        <p class="hs-big-wrap"><Fact k="windows" class="hs-big num"><span class="hs-digits" aria-hidden="true"><span class="hs-t"><span>10</span><small>a.m.</small></span><em>to</em><span class="hs-t"><span>12</span><small>p.m.</small></span></span><span class="visually-hidden">{sample.windowTime}</span></Fact></p>
+      </div>
+
+      <div class="hs-now" aria-hidden="true">
+        {steps.map((s, i) => (
+          <div data-only={i} hidden={i !== 0}>
+            <p class="hs-now-n num">{s.n}</p>
+            <p class="hs-now-l">{s.label}</p>
+            <p class="hs-now-w">{s.when}</p>
+          </div>
+        ))}
+      </div>
+
+      <ol class="hs-rail navy on-navy" aria-label="Texts, in order. Tap a number to read it">
+        {steps.map((s, i) => (
+          <li>
+            <button type="button" class="hs-step" data-step={i} aria-label={`${s.n}, ${s.label}: ${s.when}`}>
+              <span class="hs-n num" aria-hidden="true">{s.n}</span>
+              <span class="hs-l" aria-hidden="true">{s.label}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+
+      <div class="hs-phone">
+        <div class="pm">
+          <div class="pm-top">
+            <span><strong>{facts.shortName.value}</strong><small class="num">{facts.phone.value}</small></span>
+          </div>
+          <Thread label="Sample texts on your phone" />
+        </div>
+      </div>
+
+      <button type="button" class="btn btn--navy hs-next" data-next>Next text</button>
+    </div>
+    <EmergencyLine />
+  </div>
+</section>
+
+<script>
+  import { initAppointment } from "./player";
+  document.querySelectorAll<HTMLElement>("[data-appt]").forEach(initAppointment);
+</script>
+
+<style>
+  /* Big numbers: Roboto Slab at its heaviest, tight tracking, tabular figures, always in the same place. */
+  .hs-window { grid-area: win; margin-bottom: 0.5rem; }
+  .hs-k { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin: 0; font: 700 0.9375rem/1.2 var(--font-body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate-ink); }
+  .hs-day { margin: 0.4rem 0 0; font: 700 var(--step-2)/1.1 var(--font-slab); color: var(--navy-900); }
+  .hs-big-wrap { margin: 0; max-width: none; }
+  .hs-big-wrap :global(.hs-big) { display: inline-block; color: var(--navy); font-family: var(--font-slab); line-height: 0.9; }
+  .hs-big-wrap :global(.hs-big .fact-v) { display: block; }
+  .hs-digits { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 0.12em; }
+  /* Each hour keeps its a.m. or p.m.: a narrow screen breaks the line only around "to". */
+  .hs-t { display: inline-flex; align-items: baseline; white-space: nowrap; }
+  /* Tight tracking also trails the last digit, so give it back before the a.m. and p.m. */
+  .hs-t > span { font-size: clamp(4.5rem, 2.5rem + 9vw, 8rem); font-weight: 800; letter-spacing: -0.06em; margin-right: 0.08em; }
+  .hs-digits small { font-size: var(--step-1); font-weight: 700; margin-right: 0.35em; letter-spacing: 0; }
+  .hs-digits em { font-style: normal; font-size: var(--step-1); font-weight: 400; color: var(--ink-soft); margin-right: 0.3em; }
+
+  .hs-stage {
+    display: grid; gap: 0.75rem; align-items: stretch;
+    grid-template-columns: 5.75rem minmax(0, 1fr);
+    grid-template-areas: "win win" "now now" "rail phone" "next next";
+  }
+  @media (min-width: 900px) {
+    .hs-stage { gap: 1.5rem var(--space-4); grid-template-columns: 15rem minmax(0, 1fr) 23rem; grid-template-areas: "rail win phone" "rail now phone" "rail next phone"; grid-template-rows: auto auto 1fr; }
+  }
+
+  .hs-now { grid-area: now; }
+  .hs-now > div { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 0.75rem; align-items: center; }
+  .hs-now > div[hidden] { display: none; }
+  .hs-now p { margin: 0; }
+  .hs-now-n { grid-row: span 2; font: 800 3.5rem/0.85 var(--font-slab); letter-spacing: -0.06em; color: var(--slate); }
+  .hs-now-l { font: 700 var(--step-2)/1.1 var(--font-slab); color: var(--navy-900); }
+  .hs-now-w { color: var(--ink-soft); font-size: var(--step--1); }
+  @media (min-width: 900px) {
+    .hs-now { align-self: start; padding-top: 1rem; border-top: 1px solid var(--line); }
+    .hs-now > div { column-gap: 1.25rem; }
+    .hs-now-n { font-size: clamp(6rem, 3rem + 5vw, 8rem); }
+    .hs-now-l { font-size: var(--step-3); align-self: end; }
+    .hs-now-w { font-size: var(--step-1); align-self: start; }
+  }
+
+  .hs-rail { grid-area: rail; list-style: none; margin: 0; padding: 0.4rem; border-radius: var(--radius-lg); display: grid; gap: 0.25rem; align-content: stretch; box-shadow: var(--shadow-2); }
+  .hs-rail li { display: grid; }
+  .hs-step {
+    display: grid; place-content: center; min-height: 3.25rem; padding: 0.25rem; border: 0; border-radius: var(--radius);
+    background: none; color: var(--sky-300); font: inherit; cursor: pointer;
+  }
+  .hs-step:hover { background: rgb(255 255 255 / 0.08); }
+  .hs-n { font: 400 2.6rem/0.9 var(--font-slab); letter-spacing: -0.05em; }
+  /* Phones: the name sits under each number, in the label size; below 360 px only the number fits,
+     and the current step's name is the large heading above the rail. */
+  .hs-l { display: block; font: 700 var(--step--2)/1.15 var(--font-body); text-align: center; margin-top: 0.15rem; }
+  @media (max-width: 359px) { .hs-stage { grid-template-columns: 4.75rem minmax(0, 1fr); } .hs-l { display: none; } }
+  .hs-step[data-played] { color: var(--white); }
+  .hs-step[data-played] .hs-n { font-weight: 800; }
+  .hs-step[aria-current] { background: var(--sky); color: var(--navy-950); }
+  @media (min-width: 900px) {
+    .hs-rail { padding: 0.6rem; }
+    .hs-step { grid-template-columns: 4.5rem minmax(0, 1fr); place-content: center stretch; align-items: center; gap: 0.6rem; padding: 0.5rem 0.9rem; text-align: left; }
+    .hs-n { font-size: 4rem; text-align: right; }
+    .hs-l { font-size: var(--step-0); line-height: 1.2; text-align: left; margin: 0; }
+  }
+
+  .hs-phone { grid-area: phone; min-width: 0; }
+  .pm { border-radius: 1.75rem; background: var(--navy-950); padding: 0.5rem; box-shadow: var(--shadow-2); display: grid; grid-template-rows: auto 1fr; height: 31rem; }
+  @media (min-width: 900px) { .pm { border-radius: 2.25rem; padding: 0.75rem; height: 37rem; box-shadow: var(--shadow-3); } }
+  .pm-top { color: var(--white); padding: 0.5rem 0.75rem 0.7rem; text-align: center; }
+  .pm-top strong { display: block; line-height: 1.2; }
+  .pm-top small { display: block; color: var(--sky-300); font-size: var(--step--1); white-space: nowrap; }
+  .pm :global([data-thread]) { border-radius: 1.3rem; min-height: 0; }
+  .hs-next { grid-area: next; justify-self: stretch; }
+  @media (min-width: 900px) { .hs-next { justify-self: start; align-self: start; } }
+</style>

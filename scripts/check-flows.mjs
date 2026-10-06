@@ -78,12 +78,48 @@ try {
   await page.goto(`${base}/pricing?tags=on`);
   const nested = await page.$$eval("a .fact-tag, button .fact-tag", (els) => els.length);
   check("no tag labels nested in links or buttons", nested === 0, `${nested}`);
+  // Labels sit in the text flow (so they never cover a word), which means turning tags on makes room
+  // for them. Turning them off must leave the page exactly as a page that never had them on.
   const boxes = async () => page.$$eval("main h2, main table, main .panel", (els) => els.map((e) => { const r = e.getBoundingClientRect(); return `${Math.round(r.x)},${Math.round(r.y + scrollY)},${Math.round(r.width)},${Math.round(r.height)}`; }).join("|"));
-  const on = await boxes();
+  // Any visible "Confirm" label drawn over text outside itself (closed menus and hidden text skipped).
+  const covering = () => page.evaluate(() => {
+    const out = [];
+    const tags = [...document.querySelectorAll(".fact-tag")].filter((t) => getComputedStyle(t).display !== "none" && t.getClientRects().length);
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const texts = [];
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const el = n.parentElement;
+      if (!n.textContent.trim() || !el || el.closest(".fact-tag, .photo-tag, .visually-hidden, [hidden], template, script, style")) continue;
+      if (el.closest("details:not([open])") && !el.closest("summary")) continue;
+      const r = document.createRange(); r.selectNodeContents(n);
+      for (const rect of r.getClientRects()) if (rect.width > 1 && rect.height > 1) texts.push({ rect, el, t: n.textContent.trim().slice(0, 30) });
+    }
+    for (const t of tags) {
+      const a = t.getBoundingClientRect();
+      for (const x of texts) {
+        const b = x.rect, w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+        if (w <= 2 || h <= 2 || t.contains(x.el)) continue;
+        const hit = document.elementFromPoint(Math.max(a.left, b.left) + w / 2, Math.max(a.top, b.top) + h / 2);
+        if (hit && t.contains(hit)) out.push(`${t.firstChild.textContent} covers "${x.t}"`);
+      }
+    }
+    return out;
+  });
+  const coveredPricing = await covering();
+  check("no confirm label covers text with tags on (pricing)", coveredPricing.length === 0, coveredPricing.slice(0, 3).join(" | "));
   await page.click("[data-tag-switch]");
   const off = await boxes();
-  check("tag switch moves nothing on the page", on === off);
+  await page.goto(`${base}/pricing?tags=off`);
+  const neverOn = await boxes();
+  check("tag switch off leaves the page as it is with tags never on", off === neverOn);
+  await page.goto(`${base}/pricing?tags=on`);
+  await page.click("[data-tag-switch]");
   check("switch updates aria-pressed", (await page.getAttribute("[data-tag-switch]", "aria-pressed")) === "false");
+  for (const p of ["/book?job=drains", "/"]) {
+    await page.goto(`${base}${p}${p.includes("?") ? "&" : "?"}tags=on`);
+    const c = await covering();
+    check(`no confirm label covers text with tags on (${p})`, c.length === 0, c.slice(0, 3).join(" | "));
+  }
 
   // 5b. Misleading placeholders (the contractor licence number) appear only with tags on.
   for (const p of ["/about", "/commercial", "/"]) {

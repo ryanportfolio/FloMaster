@@ -1,10 +1,20 @@
 ---
+// After booking: every answer hangs as a stamped tag from the finished logo ring, the arrival
+// window on the largest, and a blank fifth tag stands for Antonio's part, still to come.
 import Base from "../../layouts/Base.astro";
 import Fact from "../../components/Fact.astro";
 import Icon from "../../components/Icon.astro";
 import Photo from "../../components/Photo.astro";
+import Ring from "../../components/book/Ring.astro";
+import VTag from "../../components/book/VTag.astro";
+import { answerTexts } from "../../components/book/fmt";
 import portrait from "../../assets/photos/portrait.jpg";
 import { facts } from "../../data/facts";
+// Shown until the visitor has filled in the booking form.
+const s = answerTexts({
+  job: "No hot water", window: "Thursday, October 8, 10 a.m. to 12 p.m.", windowDate: "2026-10-08", windowStart: 10, windowEnd: 12,
+  street: "1200 Colonial Ave", zip: "23517", city: "Norfolk", phone: "(757) 555-0142",
+});
 ---
 <Base title="Booking requested" description="Your FloMasters booking request.">
   <section class="section conf-wrap">
@@ -25,16 +35,22 @@ import { facts } from "../../data/facts";
         <h1>Thanks, your visit is requested</h1>
         <p class="lead"><Fact k="bookingConfirm" text={facts.bookingConfirm.value.replace(/\.$/, "")} /></p>
 
-        <div class="window">
-          <p class="w-k">Arrival window</p>
-          <p class="w-v" data-window>Thursday, October 8, 10 a.m. to 12 p.m.</p>
-          <p class="small">I'll text you when I'm on my way, with how long I'll be.</p>
+        <div class="kr">
+          <div class="kr-ring"><Ring filled pipe /></div>
+          <ul class="kr-tags">
+            <li><span class="kr-k">1 · Job</span><VTag ans="job">{s.job}</VTag></li>
+            <li class="kr-when">
+              <span class="kr-k">2 · Arrival window</span>
+              <VTag size="lg"><span class="kr-day" data-ans="when-day">{s["when-day"]}</span> <span class="kr-time" data-ans="when-window">{s["when-window"].replace(/ ([ap])\.m\./g, " $1.m.")}</span></VTag>
+            </li>
+            <li><span class="kr-k">3 · Address</span><VTag ans="where-short"><span data-address>{s["where-short"]}</span></VTag></li>
+            <li><span class="kr-k">4 · Texts go to</span><VTag ans="phone">{s.phone}</VTag></li>
+            <li class="kr-next"><span class="kr-k">Next, my part</span><VTag tone="blank">Confirmed · not yet</VTag></li>
+          </ul>
+          <p class="small kr-otw">I'll text you when I'm on my way, with how long I'll be.</p>
         </div>
 
         <dl class="details">
-          <div><dt>Job</dt><dd data-job>Water heater</dd></div>
-          <div><dt>Address</dt><dd data-address>1200 Colonial Ave, Norfolk 23517</dd></div>
-          <div><dt>Texts go to</dt><dd class="num" data-phone>(757) 555-0142</dd></div>
           <div><dt>Call-out</dt><dd><Fact k="calloutFee" />, <Fact k="calloutCredited" /></dd></div>
           <div><dt>Changes</dt><dd><Fact k="cancellation" /></dd></div>
         </dl>
@@ -66,15 +82,16 @@ import { facts } from "../../data/facts";
 </Base>
 
 <script>
-  type Booking = { job: string; window: string; windowDate?: string; windowStart?: number; windowEnd?: number; street: string; zip: string; city: string | null; phone: string };
+  import { answerTexts, type Booking } from "../../components/book/fmt";
   let b: Booking | null = null;
   try { b = JSON.parse(sessionStorage.getItem("fm-booking") || "null"); } catch {}
-  const set = (sel: string, v: string) => { const el = document.querySelector(sel); if (el) el.textContent = v; };
   if (b) {
-    set("[data-window]", b.window);
-    set("[data-job]", b.job);
-    set("[data-address]", `${b.street}, ${b.city ?? ""} ${b.zip}`.replace(/\s+/g, " "));
-    set("[data-phone]", b.phone);
+    const t = answerTexts(b);
+    document.querySelectorAll<HTMLElement>("[data-ans]").forEach((el) => {
+      // The address tag keeps its inner [data-address] span, which the booking checks read.
+      const inner = el.querySelector<HTMLElement>("[data-address]");
+      (inner ?? el).textContent = (t[el.dataset.ans!] ?? "").replace(/ ([ap])\.m\./g, " $1.m.");
+    });
     document.querySelector<HTMLElement>("[data-sample]")!.hidden = true;
   }
   // Calendar file with the real arrival window. The window is Virginia time;
@@ -92,7 +109,7 @@ import { facts } from "../../data/facts";
   };
   const stamp = (dt: Date) => dt.toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
   const win = b?.windowDate ? { date: b.windowDate, start: b.windowStart!, end: b.windowEnd! } : { date: "2026-10-08", start: 10, end: 12 };
-  const text = document.querySelector("[data-window]")!.textContent!;
+  const text = b?.window ?? "Thursday, October 8, 10 a.m. to 12 p.m.";
   const body = [
     "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//FloMasters//Booking//EN", "BEGIN:VEVENT",
     `UID:${Date.now()}@flomasters`,
@@ -106,7 +123,8 @@ import { facts } from "../../data/facts";
   document.querySelector<HTMLAnchorElement>("[data-ics]")!.href = URL.createObjectURL(new Blob([body], { type: "text/calendar" }));
   document.querySelector<HTMLFormElement>("[data-extra]")!.addEventListener("submit", (e) => {
     e.preventDefault();
-    set("[data-extra-done]", "Thanks. Prototype: nothing was sent.");
+    const done = document.querySelector("[data-extra-done]");
+    if (done) done.textContent = "Thanks. Prototype: nothing was sent.";
   });
 </script>
 
@@ -124,10 +142,6 @@ import { facts } from "../../data/facts";
   .status :global(svg) { width: 1.1rem; height: 1.1rem; }
   .demo-note { margin: -0.25rem 0 1rem; color: var(--ink-soft); }
   h1 { font-size: var(--step-3); }
-  .window { background: var(--white); border: 2px solid var(--navy); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin: 1.5rem 0; }
-  .w-k { margin: 0; font-weight: 700; color: var(--ink-soft); font-size: 1rem; }
-  .w-v { margin: 0.2rem 0 0.4rem; font-family: var(--font-slab); font-size: var(--step-2); font-weight: 700; color: var(--navy-900); line-height: 1.25; }
-  .window .small { margin: 0; }
   .details { display: grid; gap: 0; margin: 0 0 0.75rem; }
   .details div { display: grid; grid-template-columns: 8rem 1fr; gap: 1rem; padding: 0.6rem 0; border-bottom: 1px solid var(--line); }
   dt { font-weight: 700; }
@@ -137,4 +151,22 @@ import { facts } from "../../data/facts";
   .ex-h { font-size: var(--step-1); }
   .ok { color: var(--ok); font-weight: 700; margin-top: 0.75rem; }
   input[type="file"] { font: inherit; max-width: 100%; }
+
+  /* Every answer on its own stamped tag, all hung from the logo ring, plus a blank fifth tag. */
+  .kr { margin: 1.5rem 0 1rem; display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); }
+  .kr-ring { grid-column: 1; width: 5.5rem; }
+  .kr-tags { grid-column: 1 / -1; list-style: none; margin: 0 0 0 calc(2.75rem - 1px); padding: 0; }
+  /* The chain runs from the ring's bottom coupling down to the last tag's hook. */
+  .kr-tags li { position: relative; display: grid; gap: 0.2rem; padding: 0.55rem 0 0.55rem 1.4rem; }
+  .kr-tags li::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--sky); }
+  .kr-tags li:last-child::after { display: none; }
+  .kr-tags :global(.vtag::after) { content: ""; position: absolute; right: 100%; top: 50%; width: calc(1.4rem + 2px); height: 2px; margin-top: -1px; background: var(--sky); }
+  .kr-next :global(.vtag::after) { background: #74869e; }
+  /* The last stretch of chain, from the previous tag down to the blank tag's hook. */
+  .kr-next::before { content: ""; position: absolute; left: 0; top: 0; height: calc(50% + 0.85rem); width: 2px; background: #74869e; }
+  .kr-k { font-weight: 700; font-size: var(--step--1); color: var(--ink-soft); }
+  .kr-tags :global(.vtag) { justify-self: start; }
+  /* The arrival window: the day on one line, the time on the next; an hour never parts from its a.m. or p.m. */
+  .kr-when :global(.vtag) { flex-direction: column; align-items: flex-start; }
+  .kr-otw { color: var(--ink-soft); grid-column: 1 / -1; margin: 0.75rem 0 0; }
 </style>

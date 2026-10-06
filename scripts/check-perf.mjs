@@ -32,9 +32,9 @@ try {
     new PerformanceObserver((list) => { for (const e of list.getEntries()) if (e.interactionId) window.__inp.push({ name: e.name, d: e.duration, t: e.target?.tagName }); }).observe({ type: "event", durationThreshold: 16, buffered: true });
   });
   await page.goto(`${server.base}/book`, { waitUntil: "load" });
-  await page.tap("label.choice:has(input[value=drains])");
-  await page.tap("label.choice:has(input[value=water-heaters])");
-  await page.tap(".day >> nth=0 >> label.choice >> nth=1");
+  await page.tap("label.opt:has(input[value=drains])");
+  await page.tap("label.opt:has(input[value=water-heaters])");
+  await page.tap("[data-day-panel]:not([hidden]) label.win >> nth=1");
   await page.tap("#street"); await page.keyboard.type("1200 Colonial Ave");
   await page.tap("#zip"); await page.keyboard.type("23517");
   await page.tap("#phone"); await page.keyboard.type("7575550142");

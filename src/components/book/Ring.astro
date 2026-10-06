@@ -1,0 +1,40 @@
+---
+// The FloMasters logo ring (src/assets/logo-static.svg: two arcs with a coupling top and bottom),
+// redrawn centred on 0,0 so it can mark a booking question. Unlit until an ancestor carries
+// [data-done] (or `filled` is set); lit, it takes the logo's two blues. `pipe` adds the logo's
+// pipe and drop inside, for the finished booking.
+interface Props { filled?: boolean; pipe?: boolean; class?: string }
+const { filled = false, pipe = false, class: cls } = Astro.props;
+const r = 43.4;
+const pt = (deg: number) => {
+  const a = (deg * Math.PI) / 180;
+  return `${(r * Math.sin(a)).toFixed(2)} ${(-r * Math.cos(a)).toFixed(2)}`;
+};
+const arc = (from: number, to: number) => `M${pt(from)}A${r} ${r} 0 0 1 ${pt(to)}`;
+---
+<svg class:list={["ring", cls, { "is-filled": filled }]} viewBox="-56 -56 112 112" aria-hidden="true" focusable="false">
+  <path d={arc(9, 175)} class="seg seg-r" fill="none" stroke-width="8.68" />
+  <path d={arc(185, 351)} class="seg seg-l" fill="none" stroke-width="8.68" />
+  <rect class="coupling" x="-6.51" y="-45.79" width="13.02" height="4.77" rx="1.59" />
+  <rect class="coupling" x="-6.51" y="41.01" width="13.02" height="4.77" rx="1.59" />
+  {pipe && (
+    <g class="pipe">
+      <path d="M0 -39.06 V-7.81 Q0 0.87 -8.68 0.87 H-14.76 V6.94" fill="none" stroke-width="6.51" stroke-linejoin="round" />
+      <path d="M-6.94 -13.02 H6.94 M0 -13.02 V-7.81" fill="none" stroke-width="4.56" stroke-linecap="round" />
+      <path class="drop" d="M-14.756 5.21 C-13.45 9.55 -8.68 14.32 -8.68 17.79 A6.08 6.08 0 0 1 -20.83 17.79 C-20.83 14.32 -16.06 9.55 -14.756 5.21Z" />
+    </g>
+  )}
+</svg>
+
+<style>
+  .ring { display: block; width: 100%; height: auto; overflow: visible; }
+  .seg, .coupling { transition: stroke 0.25s ease, fill 0.25s ease; }
+  .seg { stroke: var(--line); }
+  .coupling { fill: var(--line); }
+  .pipe path { stroke: var(--sky); }
+  .pipe .drop { fill: var(--sky); stroke: none; }
+  /* Lit: light blue on the left, the darker slate on the right, as on the logo. */
+  .is-filled .seg-l, :global([data-done]) .seg-l { stroke: var(--sky); }
+  .is-filled .seg-r, :global([data-done]) .seg-r { stroke: var(--slate); }
+  .is-filled .coupling, :global([data-done]) .coupling { fill: var(--navy); }
+</style>

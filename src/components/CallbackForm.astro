@@ -22,7 +22,7 @@ const { id, urgent = false } = Astro.props;
   <p class="cbf-when small" data-when></p>
   <p class="cbf-done" role="status" data-done></p>
   <template data-in>I'll call you back <Fact k="callback" />.</template>
-  <template data-out>It's outside working hours right now. I'll call you back {"{next}"}, when I start. For a flood, call instead.</template>
+  <template data-out>It's outside working hours right now. <Fact k="callbackAfterHours" text="I'll call you back {next}, when I start." /> For a flood, call instead.</template>
 </form>
 
 <script>

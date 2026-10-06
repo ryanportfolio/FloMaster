@@ -1,90 +1,11 @@
 ---
+// How appointment updates look: the six texts a booked customer gets, played one at a time
+// when tapped, beside the arrival window and the step number set large (AppointmentSteps).
 import Base from "../layouts/Base.astro";
 import PageHero from "../components/PageHero.astro";
-import Fact from "../components/Fact.astro";
-import { facts } from "../data/facts";
-// Each update a customer gets, in order (brief section 5). The texts are the
-// proposed wording for the owner to approve.
-const states = [
-  { id: "requested", label: "Requested", when: "Right after booking", text: "FloMasters: Thanks, Denise. I've got your request for a water heater visit, Thu Oct 8, 10 a.m. to 12 p.m. I'll confirm by text within the hour. Antonio" },
-  { id: "confirmed", label: "Confirmed", when: "When Antonio confirms", text: "FloMasters: You're booked. Thu Oct 8, arriving between 10 a.m. and 12 p.m. Call-out $89, taken off the price if you go ahead. Need to change it? Reply here or call (757) 277-6194. Antonio" },
-  { id: "reminder", label: "Reminder", when: "The evening before", text: "FloMasters: See you tomorrow between 10 a.m. and 12 p.m. If you can, clear the space around the water heater. Antonio" },
-  { id: "onway", label: "On my way", when: "When he leaves the last job", text: "FloMasters: On my way now, about 20 minutes out. Antonio" },
-  { id: "arrived", label: "Arrived", when: "When he pulls up", text: "FloMasters: I'm outside. Antonio" },
-  { id: "done", label: "Done", when: "After the job", text: "FloMasters: All done. Replaced the thermostat; water heater tested and working. Paid $245. 1-year labor warranty, details on your receipt. If you have a minute, a review helps a small business: [review link]. Thank you. Antonio" },
-];
+import AppointmentSteps from "../components/appointment/AppointmentSteps.astro";
 ---
 <Base title="How appointment updates look" description="The texts FloMasters customers get from booking to job done.">
   <PageHero title="What you'll hear from me, and when" lead="Every booking gets the same updates by text, so you always know when I'll turn up" />
-  <section class="section">
-    <div class="wrap appt">
-      <div class="timeline-wrap">
-        <p class="small muted">Pick a step to see the text for it. <span class="sample-label">Sample wording</span> <Fact k="bookingConfirm" text="" /></p>
-        <div class="tabs" role="tablist" aria-label="Appointment steps">
-          {states.map((s, i) => (
-            <button role="tab" id={`tab-${s.id}`} aria-controls={`panel-${s.id}`} aria-selected={i === 1 ? "true" : "false"} tabindex={i === 1 ? 0 : -1} data-tab={s.id}>
-              <span class="dotnum">{i + 1}</span>
-              <span><strong>{s.label}</strong><small>{s.when}</small></span>
-            </button>
-          ))}
-        </div>
-      </div>
-      <div class="phone-mock" aria-live="polite">
-        <div class="pm-top">
-          <span class="pm-av" aria-hidden="true">FM</span>
-          <span><strong>{facts.shortName.value}</strong><small class="num">{facts.phone.value}</small></span>
-        </div>
-        {states.map((s, i) => (
-          <div class="pm-panel" role="tabpanel" id={`panel-${s.id}`} aria-labelledby={`tab-${s.id}`} hidden={i !== 1} tabindex="0">
-            {states.slice(0, i + 1).map((m, j) => (
-              <p class:list={["bubble", { latest: j === i }]}>{m.text}</p>
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
+  <AppointmentSteps />
 </Base>
-
-<script>
-  const tabs = [...document.querySelectorAll<HTMLButtonElement>("[data-tab]")];
-  const select = (t: HTMLButtonElement, focus = false) => {
-    tabs.forEach((x) => {
-      const on = x === t;
-      x.setAttribute("aria-selected", String(on));
-      x.tabIndex = on ? 0 : -1;
-      document.getElementById(x.getAttribute("aria-controls")!)!.hidden = !on;
-    });
-    if (focus) t.focus();
-    const panel = document.getElementById(t.getAttribute("aria-controls")!)!;
-    panel.scrollTop = panel.scrollHeight;
-  };
-  tabs.forEach((t, i) => {
-    t.addEventListener("click", () => select(t));
-    t.addEventListener("keydown", (e) => {
-      const k = e.key;
-      const n = k === "ArrowDown" || k === "ArrowRight" ? i + 1 : k === "ArrowUp" || k === "ArrowLeft" ? i - 1 : k === "Home" ? 0 : k === "End" ? tabs.length - 1 : null;
-      if (n === null) return;
-      e.preventDefault();
-      select(tabs[(n + tabs.length) % tabs.length], true);
-    });
-  });
-</script>
-
-<style>
-  .appt { display: grid; gap: var(--space-4); align-items: start; }
-  @media (min-width: 900px) { .appt { grid-template-columns: 1fr 23rem; } }
-  .tabs { display: grid; gap: 0.5rem; margin-top: 1rem; }
-  [role="tab"] { display: flex; align-items: center; gap: 0.9rem; text-align: left; padding: 0.8rem 1rem; border-radius: var(--radius); border: 2px solid var(--line); background: var(--white); font: inherit; color: inherit; cursor: pointer; }
-  [role="tab"] small { display: block; color: var(--ink-soft); font-size: var(--step--1); }
-  [role="tab"][aria-selected="true"] { border-color: var(--navy); background: var(--sky-100); }
-  .dotnum { display: grid; place-content: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--navy); color: var(--white); font: 700 1rem/1 var(--font-slab); flex: none; }
-  .phone-mock { border-radius: 2.25rem; background: var(--navy-950); padding: 0.75rem; box-shadow: 0 30px 60px -20px rgb(12 27 48 / 0.5); }
-  .pm-top { display: flex; align-items: center; gap: 0.6rem; color: var(--white); padding: 0.6rem 0.75rem 0.8rem; }
-  .pm-top small { display: block; color: var(--sky-300); font-size: 0.9375rem; }
-  .pm-av { display: grid; place-content: center; width: 2.4rem; height: 2.4rem; border-radius: 50%; background: var(--sky); color: var(--navy-950); font: 700 0.9375rem/1 var(--font-slab); }
-  .pm-panel { background: #f2f4f7; border-radius: 1.6rem; padding: 1rem; min-height: 26rem; max-height: 32rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; justify-content: flex-end; }
-  .pm-panel[hidden] { display: none; }
-  .bubble { margin: 0; max-width: 88%; padding: 0.6rem 0.85rem; background: #e2e7ee; border-radius: 1.1rem 1.1rem 1.1rem 0.3rem; font-size: 1.0625rem; line-height: 1.45; color: var(--ink); }
-  .bubble.latest { background: var(--white); box-shadow: 0 0 0 2px var(--sky); }
-</style>
