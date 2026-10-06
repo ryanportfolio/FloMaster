@@ -10,7 +10,9 @@ const land = (hash: string | null) => {
   const el = document.getElementById(decodeURIComponent(hash.slice(1)));
   if (el && el.getAttribute("tabindex") === "-1" && document.activeElement !== el) el.focus({ preventScroll: true });
 };
+// A modified or non-primary click opens the link elsewhere and leaves this page where it is.
 document.addEventListener("click", (e) => {
+  if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
   const a = (e.target as Element).closest?.<HTMLAnchorElement>('a[href^="#"]');
   if (!a) return;
   const href = a.getAttribute("href");
