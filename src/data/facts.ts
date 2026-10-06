@@ -75,7 +75,7 @@ export type FactKey = keyof typeof facts;
 // Photo stand-ins: AI-generated, replaced by real photos before launch.
 export const photoFacts = {
   portrait: f("P25", "Owner portrait", "AI-generated stand-in", "Can we take a portrait of you in work clothes, outside, in morning light?", ["Hero", "About", "Confirmation"]),
-  hero: f("P26", "Owner with van", "AI-generated stand-in", "Can we photograph you beside your van on a residential street?", ["Home", "About"]),
+  hero: f("P26", "Owner with van", "AI-generated stand-in", "Can we photograph you beside your van on a residential street?", ["About"]),
   jobs: f("P27", "Job photos", "AI-generated stand-ins", "Can we photograph real jobs (drain, water heater, repipe, fixture, sewer camera, commercial)?", ["Service pages", "Home"]),
   beforeAfter: f("P28", "Before and after", "AI-generated stand-in", "Can you photograph one real job in four shots from the same spot (the problem, the cause up close, the repair, the finished test), and will that customer agree to them being shown?", ["Home", "Service pages"]),
 };

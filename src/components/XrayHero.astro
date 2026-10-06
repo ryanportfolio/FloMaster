@@ -1,0 +1,610 @@
+---
+// The home page hero image: the leaking sink cabinet with an X-ray lens over it.
+// Press or drag anywhere on the photo and the lens goes there; over the rusted
+// bend of the trap it reads "Found it" with the leak-repair price. On first view
+// in a tab the lens finds the leak once on its own, once the photo is in view and
+// the page has stopped scrolling, then only moves when the visitor moves it.
+// Reduced motion: the found state, with no movement.
+// The X-ray layer loads after the photo. Same image files as the repair story,
+// so the browser reuses them further down the page.
+import { Image, getImage } from "astro:assets";
+import Fact from "./Fact.astro";
+import problem from "../assets/photos/story-1-problem.jpg";
+import xray from "../assets/photos/story-2-xray.jpg";
+import { isPublicBuild, photoFacts } from "../data/facts";
+import { services } from "../data/services";
+
+interface Props { class?: string }
+const { class: cls } = Astro.props;
+
+// The price shown is the posted range for this kind of job (P17), not a quote.
+const leak = services.find((s) => s.slug === "leaks-and-pipes")!;
+const job = leak.prices[0];
+
+// Keep widths and quality in step with RepairStory.astro so both use the same files.
+const widths = [480, 760, 1080, 1440];
+const sizes = "(min-width: 900px) 70vw, 100vw";
+const ray = await getImage({ src: xray, widths, sizes, format: "webp", quality: 70 });
+
+// Where the leak is in the photo, as fractions of its width and height: the rusted bend of the trap.
+const LEAK = "0.395,0.615";
+const say = `Found it: the steel trap rusted out at the bend, which is where the drip comes from. ${job.job}, ${job.range}, typical range.`;
+---
+<div class:list={["xr", cls]} data-xray data-leak={LEAK} data-iw={xray.width} data-ih={xray.height} data-ray={ray.srcSet.attribute} data-ray-sizes={sizes} data-say={say}>
+  <div class="xr-stage" data-xray-stage role="img" aria-label="A leaking kitchen sink cabinet: a rusted steel drain trap drips onto a stained cabinet floor. A round X-ray lens, drawn as an illustration, shows the pipes inside, and the rusted bend at the bottom of the trap glows orange where the water gets out.">
+    <Image src={problem} alt="" class="xr-photo" widths={widths} sizes={sizes} format="webp" quality={70} loading="eager" fetchpriority="high" decoding="sync" draggable="false" />
+    <span class="xr-shade"></span>
+    <span class="xr-lens" data-xray-lens></span>
+    <span class="xr-mark" data-xray-mark></span>
+    <span class="xr-ring" data-xray-ring><span class="xr-ring-on"></span></span>
+    {!isPublicBuild && <span class="photo-tag">Replace with real photos · {photoFacts.beforeAfter.code}: AI stand-ins now</span>}
+  </div>
+  <!-- The reading card: one grid cell holding two states, so swapping them moves nothing.
+       Not found: the hint and the button. Found: the note (the button has nothing left to do). -->
+  <div class="xr-read" data-xray-card>
+    <div class="xr-pre">
+      <p class="xr-hint" data-xray-hint>Press or drag anywhere on the photo to see inside the pipes</p>
+      <button type="button" class="xr-show" data-xray-show>Show the leak</button>
+    </div>
+    <div class="xr-note" data-xray-note tabindex="-1">
+      <p class="xr-note-k">Found it <span class="sample-label">Sample job</span></p>
+      <p class="xr-note-t">The steel trap rusted out at the bend. That's where the drip comes from.</p>
+      <p class="xr-note-price"><span class="xr-note-job">{job.job}</span> <strong class="num"><Fact k="priceRanges" text={job.range} /></strong></p>
+      <p class="xr-note-sub">Typical range. Your exact price is in writing before I start.</p>
+    </div>
+  </div>
+  <p class="visually-hidden" role="status" data-xray-live></p>
+  <!-- Without JavaScript the lens cannot move: show the finding and its price, not a hint and a dead button.
+       Ignored entirely when scripts run, so it changes nothing on the normal page. -->
+  <noscript><style is:inline>.xr-pre { display: none; } .xr-note { visibility: visible; } .xr-stage { cursor: auto; }</style></noscript>
+</div>
+
+<script>
+  type P = [number, number];
+  type Box = { l: number; t: number; r: number; b: number };
+  const KEY = "fm-xray-found"; // set when the find starts (or the visitor moves the lens) in this tab
+  const SLOP = 6; // px of horizontal travel before a touch drag takes over
+  const TAP = 10; // a touch that ends within this many px of where it started is a tap
+  const GLIDE = 1800; // ms, the first-view find
+  const motionQuery = matchMedia("(prefers-reduced-motion: reduce)");
+  const deskQuery = matchMedia("(min-width: 900px)");
+  const reduced = () => motionQuery.matches;
+  const seen = () => { try { return sessionStorage.getItem(KEY) === "1"; } catch { return false; } };
+  let stored = false; // written once per page: a drag's first move does no storage work after that
+  const remember = () => { if (stored) return; stored = true; try { sessionStorage.setItem(KEY, "1"); } catch {} };
+  const clamp = (x: number, a: number, b: number) => Math.min(b, Math.max(a, x));
+
+  // Catmull-Rom through the points at e (0..1 over the whole path): no corners at the turns.
+  const curve = (path: P[], e: number): P => {
+    const n = path.length - 1;
+    const k = Math.min(n - 1e-9, e * n), i = Math.floor(k), f = k - i;
+    // Past either end, mirror the neighbour, so the curve leaves the start and meets the end at full
+    // tangent (repeating the end point would halve it and make the start drag on top of the easing).
+    const at = (j: number): P => j < 0 ? [2 * path[0][0] - path[1][0], 2 * path[0][1] - path[1][1]]
+      : j > n ? [2 * path[n][0] - path[n - 1][0], 2 * path[n][1] - path[n - 1][1]] : path[j];
+    const [a, b, c, d] = [at(i - 1), at(i), at(i + 1), at(i + 2)];
+    const cr = (p0: number, p1: number, p2: number, p3: number) =>
+      0.5 * (2 * p1 + (p2 - p0) * f + (2 * p0 - 5 * p1 + 4 * p2 - p3) * f * f + (3 * p1 - p0 - 3 * p2 + p3) * f * f * f);
+    return [cr(a[0], b[0], c[0], d[0]), cr(a[1], b[1], c[1], d[1])];
+  };
+
+  document.querySelectorAll<HTMLElement>("[data-xray]").forEach((root) => {
+    const stage = root.querySelector<HTMLElement>("[data-xray-stage]")!;
+    const photo = stage.querySelector<HTMLImageElement>(".xr-photo")!;
+    const lens = root.querySelector<HTMLElement>("[data-xray-lens]")!;
+    const ring = root.querySelector<HTMLElement>("[data-xray-ring]")!;
+    const mark = root.querySelector<HTMLElement>("[data-xray-mark]")!;
+    const live = root.querySelector<HTMLElement>("[data-xray-live]")!;
+    const show = root.querySelector<HTMLButtonElement>("[data-xray-show]")!;
+    const note = root.querySelector<HTMLElement>("[data-xray-note]")!;
+    const pre = root.querySelector<HTMLElement>(".xr-pre")!;
+    const hero = root.closest<HTMLElement>(".hero");
+    const copy = hero?.querySelector<HTMLElement>(".hero-copy") ?? null;
+    const header = document.querySelector<HTMLElement>(".site-header");
+    const bar = document.querySelector<HTMLElement>("[data-sticky]");
+    const [LU, LV] = root.dataset.leak!.split(",").map(Number);
+    const IW = Number(root.dataset.iw), IH = Number(root.dataset.ih);
+
+    // The X-ray picture, inside the lens. Created here so it never competes with the photo.
+    const ray = new Image();
+    ray.className = "xr-ray";
+    ray.alt = "";
+    ray.draggable = false;
+    ray.decoding = "async";
+
+    // Layout, in stage pixels: the photo is drawn with object-fit: cover at the stage's
+    // --xr-x / --xr-y object position, so (u, v) in the photo maps to (ox + u*dw, oy + v*dh).
+    let W = 0, H = 0, R = 0, dw = 0, dh = 0, ox = 0, oy = 0;
+    let u = LU, v = LV; // lens centre in photo fractions
+    let ready = false;
+    let found = false;
+    let touched = false; // the visitor moved the lens; no find plays after that
+    let anim = 0;
+    let finding = false; // the first-view find is gliding
+
+    const measure = () => {
+      W = stage.clientWidth;
+      H = stage.clientHeight;
+      const cs = getComputedStyle(stage);
+      const px = parseFloat(cs.getPropertyValue("--xr-x")) / 100;
+      const py = parseFloat(cs.getPropertyValue("--xr-y")) / 100;
+      const s = Math.max(W / IW, H / IH);
+      dw = IW * s; dh = IH * s;
+      ox = (W - dw) * px; oy = (H - dh) * py;
+      // The size keys on the layout: wide screens put the photo beside the copy, phones under it.
+      const desk = deskQuery.matches;
+      // Phones held sideways leave a short band between the sticky header and the bottom Call/Book
+      // bar (about 204 px at 844x390): the lens also stays under 0.36 of that band, so it fits on
+      // screen and the find can play. Portrait phones are not affected (their band is far taller).
+      let band = Infinity;
+      if (!desk) {
+        const barH = bar && getComputedStyle(bar).display !== "none" ? bar.offsetHeight : 0;
+        band = innerHeight - (header ? header.offsetHeight : 0) - barH;
+      }
+      R = Math.round(clamp(Math.min(Math.min(W, H) * (desk ? 0.19 : 0.3), band * 0.36), desk ? 96 : 64, desk ? 160 : 110));
+      root.style.setProperty("--r", `${R}px`);
+      ray.style.width = `${dw}px`;
+      ray.style.height = `${dh}px`;
+      mark.style.transform = `translate3d(${ox + LU * dw}px, ${oy + LV * dh}px, 0)`;
+    };
+    const toPx = ([a, b]: P): P => [ox + a * dw, oy + b * dh];
+    const toUV = ([x, y]: P): P => [(x - ox) / dw, (y - oy) / dh];
+
+    // Tell screen readers what the lens found (cleared first, so a repeat is read again).
+    const announce = () => { live.textContent = ""; requestAnimationFrame(() => { live.textContent = root.dataset.say!; }); };
+    // "visitor": found by the visitor's hand, so say it. "quiet": the first-view find, or a layout change.
+    type How = "visitor" | "quiet";
+    const setFound = (f: boolean, how: How) => {
+      if (f === found) return;
+      found = f;
+      if (f) {
+        // The button hides once found; if it had focus, focus goes to the note, which reads it.
+        const hadFocus = document.activeElement === show;
+        root.classList.add("is-found");
+        if (hadFocus) note.focus({ preventScroll: true });
+        else if (how === "visitor") announce();
+      } else {
+        const inNote = note.contains(document.activeElement);
+        root.classList.remove("is-found");
+        if (inNote) show.focus({ preventScroll: true });
+      }
+    };
+
+    // Draw the lens at (u, v). Transforms only, each written once, so a move costs no layout.
+    const place = (how: How) => {
+      if (!ready) return;
+      const x = ox + u * dw, y = oy + v * dh;
+      const t = `translate3d(${x - R}px, ${y - R}px, 0)`;
+      lens.style.transform = t;
+      ring.style.transform = t;
+      ray.style.transform = `translate3d(${ox + R - x}px, ${oy + R - y}px, 0)`;
+      const d = Math.hypot(x - (ox + LU * dw), y - (oy + LV * dh));
+      // Enter close in, leave further out, so the state never flickers at the edge.
+      setFound(found ? d < R * 0.6 : d < R * 0.35, how);
+    };
+
+    // Keep the lens centre on the visible part of the photo.
+    const setXY = (x: number, y: number) => { [u, v] = toUV([clamp(x, 0, W), clamp(y, 0, H)]); };
+
+    let rest: P = [LU, LV];
+    let restHow: How = "quiet";
+    const stopAnim = () => { cancelAnimationFrame(anim); anim = 0; finding = false; };
+    const settle = () => { if (anim) { stopAnim(); [u, v] = rest; place(restHow); } };
+    motionQuery.addEventListener("change", () => { if (reduced()) settle(); });
+
+    // Move the lens along a smooth curve through the given points (photo fractions), eased in and out.
+    // `keep` runs before each frame; when it returns false the glide has been settled by it.
+    const glide = (pts: P[], ms: number, how: How, keep?: () => boolean) => {
+      stopAnim();
+      const path: P[] = [[u, v], ...pts];
+      rest = path[path.length - 1];
+      restHow = how;
+      let t0 = -1;
+      const tick = (now: number) => {
+        if (reduced()) { settle(); return; }
+        if (keep && !keep()) return;
+        if (t0 < 0) t0 = now; // the curve starts on the first frame
+        const t = Math.min(1, (now - t0) / ms);
+        [u, v] = curve(path, 0.5 - Math.cos(Math.PI * t) / 2);
+        if (t === 1) [u, v] = rest;
+        place(how);
+        if (t < 1) { anim = requestAnimationFrame(tick); return; }
+        anim = 0;
+        finding = false;
+      };
+      anim = requestAnimationFrame(tick);
+    };
+
+    // ---- The first-view find -------------------------------------------------------------
+
+    // The part of the screen not covered by the sticky header or the phone's bottom Call/Book bar.
+    const view = () => {
+      const s = stage.getBoundingClientRect();
+      const a = Math.max(0, header ? header.getBoundingClientRect().bottom : 0);
+      const barUp = !!bar && !deskQuery.matches && !bar.classList.contains("is-waiting");
+      const b = barUp ? Math.min(innerHeight, bar!.getBoundingClientRect().top) : innerHeight;
+      const visH = Math.max(0, Math.min(b, s.bottom) - Math.max(a, s.top));
+      return { s, a, b, visH, full: Math.min(s.height, b - a) };
+    };
+    // The find may start: the photo is in view and the lens at the leak would be on screen.
+    const canFind = () => {
+      if (!ready || touched || seen()) return false;
+      const g = view();
+      if (g.visH < 0.9 * g.full) return false;
+      const ly = g.s.top + oy + LV * dh;
+      return ly - R >= g.a && ly + R <= g.b;
+    };
+
+    // Where the lens may go on its own (stage px): R + 8 inside the photo; on wide screens also
+    // fully on screen and 16 px clear of the copy, the hint panel and the business card (ring plus
+    // its 9 px ticks). The note shows only near the leak, so it counts only there.
+    const room = () => {
+      const s = stage.getBoundingClientRect();
+      const desk = deskQuery.matches;
+      const boxOf = (el: Element | null): Box | null => {
+        if (!el) return null;
+        const q = el.getBoundingClientRect();
+        return q.width && q.height ? { l: q.left - s.left, t: q.top - s.top, r: q.right - s.left, b: q.bottom - s.top } : null;
+      };
+      const obs: Box[] = [];
+      let noteBox: Box | null = null;
+      if (desk) {
+        for (const el of [...(copy ? Array.from(copy.children) : []), pre, hero?.querySelector(".hero-card") ?? null]) { const b = boxOf(el); if (b) obs.push(b); }
+        noteBox = boxOf(note);
+      }
+      const m = R + 8;
+      const top = desk ? Math.max(0, (header ? header.getBoundingClientRect().bottom : 0) - s.top) : 0;
+      const y0 = Math.max(m, top + m);
+      const y1 = desk ? Math.min(H - m, innerHeight - s.top - 16 - R) : H - m;
+      const clear = R + 9 + 16;
+      const [lx, ly] = toPx([LU, LV]);
+      const gap = (x: number, y: number, o: Box) => Math.hypot(x - clamp(x, o.l, o.r), y - clamp(y, o.t, o.b));
+      return (x: number, y: number) => x >= m && x <= W - m && y >= y0 && y <= y1
+        && obs.every((o) => gap(x, y, o) >= clear)
+        && (!noteBox || Math.hypot(x - lx, y - ly) > R * 0.6 || gap(x, y, noteBox) >= clear);
+    };
+    // Where the find starts (stage px). Phone: top right, the top of the ring in the peek at the fold.
+    // Wide screens: the top right of the free part of the photo, far enough from the leak that the
+    // trap is outside the lens at load (so the find reads as a search), or failing that the farthest point.
+    const startPose = (): P => {
+      if (!deskQuery.matches) return [W * 0.68, R + 6];
+      const ok = room();
+      const [lx, ly] = toPx([LU, LV]);
+      let best: P | null = null, score = -Infinity, far: P | null = null, farD = -1;
+      for (let y = 0; y <= H; y += 6) for (let x = 0; x <= W; x += 6) {
+        if (!ok(x, y)) continue;
+        const d = Math.hypot(x - lx, y - ly);
+        if (d > farD) { farD = d; far = [x, y]; }
+        if (d >= R * 1.35 && x - 0.5 * y > score) { score = x - 0.5 * y; best = [x, y]; }
+      }
+      return best ?? far ?? [lx, ly];
+    };
+    // Two waypoints from the lens to the leak, a gentle S where there is room for one, so that every
+    // point of the curve stays in the free part of the photo (the ends are allowed a little slack).
+    const route = (): P[] => {
+      const A = toPx([u, v]), L = toPx([LU, LV]);
+      const dx = L[0] - A[0], dy = L[1] - A[1], len = Math.hypot(dx, dy);
+      const line = (f: number, off: number): P => [A[0] + dx * f - (dy / (len || 1)) * off, A[1] + dy * f + (dx / (len || 1)) * off];
+      const ok = room();
+      for (const amp of [0.2, -0.2, 0.12, -0.12, 0.06, -0.06, 0]) {
+        const pts: P[] = [A, line(1 / 3, amp * len), line(2 / 3, -amp * len), L];
+        let fits = true;
+        for (let i = 4; i <= 96 && fits; i++) { const [x, y] = curve(pts, i / 100); fits = ok(x, y); }
+        if (fits) return pts.slice(1).map(toUV);
+      }
+      return [line(1 / 3, 0), line(2 / 3, 0), L].map(toUV);
+    };
+
+    let waitT = 0;
+    let armed = false;
+    const disarm = () => {
+      clearTimeout(waitT);
+      if (!armed) return;
+      armed = false;
+      removeEventListener("scroll", wait);
+      removeEventListener("resize", wait);
+    };
+    // Wait for the photo to be in view with the page still for 200 ms, then 300 ms more, then check again.
+    function wait() {
+      clearTimeout(waitT);
+      waitT = window.setTimeout(() => {
+        if (!canFind()) return;
+        waitT = window.setTimeout(() => { if (canFind()) startFind(); }, 300);
+      }, 200);
+    }
+    const arm = () => {
+      if (armed) return;
+      armed = true;
+      addEventListener("scroll", wait, { passive: true });
+      addEventListener("resize", wait);
+      wait();
+    };
+    const startFind = () => {
+      disarm();
+      if (touched) return;
+      if (reduced()) { remember(); [u, v] = [LU, LV]; place("quiet"); return; }
+      let frames = 0;
+      glide(route(), GLIDE, "quiet", () => {
+        // Seen once the lens first moves (frame 2; frame 1 draws the start), so a reload or a
+        // return shows the found state, still.
+        if (++frames === 2) remember();
+        // Scrolled away mid-find: settle on the leak, found, with no motion off screen.
+        const g = view();
+        if (g.visH >= 0.5 * g.full) return true;
+        remember();
+        settle();
+        return false;
+      });
+      finding = true;
+    };
+
+    // ---- Pointer and keyboard -------------------------------------------------------------
+
+    // The stage's screen box, read at pointerdown (and on scroll during a press), never per move.
+    let box: DOMRect | null = null;
+    const xyOf = (e: PointerEvent): P => {
+      const r = box ?? (box = stage.getBoundingClientRect());
+      return [e.clientX - r.left, e.clientY - r.top];
+    };
+    const moveTo = (e: PointerEvent) => { const [x, y] = xyOf(e); setXY(x, y); place("visitor"); };
+    const claim = () => { if (touched && !anim) return; touched = true; disarm(); stopAnim(); remember(); };
+
+    // Mouse and pen move the lens on press; a touch waits until it is a horizontal drag (so
+    // vertical swipes scroll the page and leave the lens and the find alone) or a tap.
+    let id: number | null = null;
+    let dragging = false;
+    let sx = 0, sy = 0;
+    const press = (e: PointerEvent) => {
+      box = stage.getBoundingClientRect();
+      id = e.pointerId; sx = e.clientX; sy = e.clientY;
+      dragging = true;
+      e.preventDefault();
+      moveTo(e);
+      claim();
+      try { stage.setPointerCapture(e.pointerId); } catch {}
+      root.classList.add("is-dragging");
+    };
+    stage.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0 || id !== null) return;
+      if (e.pointerType !== "touch") { press(e); return; }
+      box = stage.getBoundingClientRect();
+      id = e.pointerId; sx = e.clientX; sy = e.clientY;
+      dragging = false;
+    });
+    stage.addEventListener("pointermove", (e) => {
+      if (e.pointerId !== id) return;
+      if (!dragging) {
+        const dx = Math.abs(e.clientX - sx);
+        if (dx < SLOP || dx < Math.abs(e.clientY - sy)) return;
+        dragging = true;
+        moveTo(e); // the lens first; the rest after, so the first move stays light
+        claim();
+        root.classList.add("is-dragging");
+        return;
+      }
+      moveTo(e);
+    });
+    const reset = () => { id = null; dragging = false; root.classList.remove("is-dragging"); };
+    // Leaving the page mid-press (back button, a link) ends the drag, so a page restored from the
+    // back/forward cache does not come back still dragging.
+    addEventListener("pagehide", () => {
+      if (id !== null) { try { stage.releasePointerCapture(id); } catch {} }
+      reset();
+    });
+    addEventListener("pageshow", (e) => { if (e.persisted) reset(); });
+    const end = (e: PointerEvent) => {
+      if (e.pointerId !== id) return;
+      // A touch that never became a drag or a scroll is a tap: move the lens there.
+      if (!dragging && e.type === "pointerup" && Math.hypot(e.clientX - sx, e.clientY - sy) < TAP) { moveTo(e); claim(); }
+      reset();
+    };
+    stage.addEventListener("pointerup", end);
+    stage.addEventListener("pointercancel", end);
+    stage.addEventListener("lostpointercapture", end);
+    stage.addEventListener("dragstart", (e) => e.preventDefault());
+    // A scroll or a viewport change moves the stage: drop the cached box (read again now if a press is on).
+    const rebox = () => { box = id !== null ? stage.getBoundingClientRect() : null; };
+    addEventListener("scroll", rebox, { passive: true });
+    addEventListener("resize", rebox);
+
+    // Wide screens: a press in blank space of the copy column, where the photo shows through,
+    // moves the lens too. Links, buttons, tags and text itself keep their own behaviour
+    // (a press on a letter still starts a text selection).
+    const onGlyph = (x: number, y: number) => {
+      const d = document as Document & { caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null };
+      let node: Node | null = null, off = 0;
+      if (d.caretPositionFromPoint) { const cp = d.caretPositionFromPoint(x, y); if (cp) { node = cp.offsetNode; off = cp.offset; } }
+      else if (document.caretRangeFromPoint) { const rg = document.caretRangeFromPoint(x, y); if (rg) { node = rg.startContainer; off = rg.startOffset; } }
+      if (!node || node.nodeType !== Node.TEXT_NODE) return false;
+      const len = (node as Text).length;
+      const rg = document.createRange();
+      for (const o of [off - 1, off]) {
+        if (o < 0 || o >= len) continue;
+        rg.setStart(node, o); rg.setEnd(node, o + 1);
+        for (const r of Array.from(rg.getClientRects())) if (x >= r.left - 2 && x <= r.right + 2 && y >= r.top - 2 && y <= r.bottom + 2) return true;
+      }
+      return false;
+    };
+    if (hero && copy) hero.addEventListener("pointerdown", (e) => {
+      if (!deskQuery.matches || e.button !== 0 || e.pointerType === "touch" || id !== null) return;
+      const t = e.target as Element;
+      if (!copy.contains(t) || t.closest("a, button, input, select, textarea, label, img, [tabindex], [data-open]")) return;
+      const s = stage.getBoundingClientRect();
+      if (e.clientX < s.left || e.clientX > s.right || e.clientY < s.top || e.clientY > s.bottom) return;
+      if (onGlyph(e.clientX, e.clientY)) return;
+      press(e);
+    });
+
+    // "Show the leak": the keyboard path to the found state. Touch and pen activate on pointerup
+    // when the press began and ends on the button: after a quick drag Chrome may swallow the
+    // click of the next tap (it only stops the drag's fling). That activation dispatches the
+    // button's own click, and a real click following within 600 ms is ignored.
+    const activate = () => {
+      claim();
+      if (!ready) { [u, v] = [LU, LV]; return; }
+      const dist = Math.hypot((u - LU) * dw, (v - LV) * dh);
+      if (reduced() || dist < 1) { [u, v] = [LU, LV]; place("visitor"); return; }
+      glide([[LU, LV]], clamp(dist * 1.6, 280, 650), "visitor");
+    };
+    let showId: number | null = null;
+    let synth = false;
+    let lastUp = -1e9;
+    show.addEventListener("pointerdown", (e) => { showId = e.pointerType !== "mouse" && e.isPrimary ? e.pointerId : null; });
+    show.addEventListener("pointercancel", () => { showId = null; });
+    show.addEventListener("pointerup", (e) => {
+      if (e.pointerId !== showId) return;
+      showId = null;
+      const r = show.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+      synth = true;
+      try { show.click(); } finally { synth = false; }
+    });
+    show.addEventListener("click", () => {
+      const now = performance.now();
+      if (synth) { lastUp = now; activate(); return; }
+      if (now - lastUp < 600) return;
+      activate();
+    });
+
+    // A layout change mid-find ends it at the leak; otherwise the lens keeps its place on the photo.
+    // Before the X-ray is ready the lens has no size (begin() measures), so it never sits at the
+    // stage's corner, even unseen.
+    new ResizeObserver(() => {
+      box = null;
+      if (!ready) return;
+      const pw = W, ph = H;
+      measure();
+      if (finding && (pw !== W || ph !== H)) settle();
+      place("quiet");
+    }).observe(stage);
+
+    const begin = () => {
+      ready = true;
+      lens.append(ray);
+      measure();
+      // Seen in this tab already, reduced motion, or moved by the visitor: no find plays.
+      const skip = seen() || reduced();
+      if (!touched) [u, v] = skip ? [LU, LV] : toUV(startPose());
+      place(touched ? "visitor" : "quiet");
+      // The lens appears in one frame; state changes animate only from the next frames on.
+      root.classList.add("is-ready");
+      requestAnimationFrame(() => requestAnimationFrame(() => root.classList.add("is-anim")));
+      if (skip || touched) return;
+      arm();
+    };
+
+    // Load the X-ray only after the photo, so it never slows the first screen.
+    const loadRay = () => {
+      ray.sizes = root.dataset.raySizes!;
+      ray.srcset = root.dataset.ray!;
+      ray.decode().then(begin, () => {});
+    };
+    if (photo.complete) loadRay();
+    else { photo.addEventListener("load", loadRay, { once: true }); photo.addEventListener("error", loadRay, { once: true }); }
+  });
+</script>
+
+<style is:global>
+  /* --r (lens radius, px) is set by the script. --xr-x / --xr-y place the photo in its frame;
+     the script reads them, so change them only here, as plain percentages. */
+  .xr { position: relative; }
+  .xr-stage {
+    --xr-x: 50%; --xr-y: 50%;
+    position: relative; overflow: hidden; aspect-ratio: 4 / 3; background: var(--navy-900);
+    cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  .xr.is-dragging .xr-stage { cursor: grabbing; }
+  .xr-stage .xr-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: var(--xr-x) var(--xr-y); pointer-events: none; -webkit-user-drag: none; }
+  .xr-shade { display: none; }
+
+  /* The lens: a round window onto the X-ray, moved with transforms only. It appears in one
+     frame once the X-ray is ready (nothing fades in on the first screen). */
+  .xr-lens, .xr-ring { position: absolute; left: 0; top: 0; width: calc(var(--r, 0px) * 2); height: calc(var(--r, 0px) * 2); border-radius: 50%; pointer-events: none; opacity: 0; will-change: transform; }
+  .xr.is-ready .xr-lens, .xr.is-ready .xr-ring { opacity: 1; }
+  .xr-lens { overflow: hidden; background: var(--navy-900); }
+  .xr-ray { position: absolute; left: 0; top: 0; max-width: none; will-change: transform; pointer-events: none; -webkit-user-drag: none; }
+  .xr-ring { box-shadow: 0 0 0 2px rgb(228 241 249 / 0.95), 0 0 0 6px rgb(12 27 48 / 0.35), 0 14px 34px rgb(6 14 26 / 0.5), inset 0 0 26px rgb(106 174 214 / 0.4); }
+  /* Four short ticks at the edge of the lens, like a sight. */
+  .xr-ring::before, .xr-ring::after { content: ""; position: absolute; background-repeat: no-repeat; }
+  .xr-ring::before { left: calc(50% - 1px); top: -9px; bottom: -9px; width: 2px; background-image: linear-gradient(rgb(228 241 249 / 0.95) 0 15px, transparent 15px calc(100% - 15px), rgb(228 241 249 / 0.95) calc(100% - 15px)); }
+  .xr-ring::after { top: calc(50% - 1px); left: -9px; right: -9px; height: 2px; background-image: linear-gradient(90deg, rgb(228 241 249 / 0.95) 0 15px, transparent 15px calc(100% - 15px), rgb(228 241 249 / 0.95) calc(100% - 15px)); }
+  /* Found: a brighter rim and glow on a layer of its own that fades in, so the change never
+     repaints the ring while it moves (a box-shadow transition would, every frame). */
+  .xr-ring-on {
+    position: absolute; inset: 0; border-radius: 50%; opacity: 0; will-change: opacity;
+    box-shadow: 0 0 0 3px var(--white), 0 0 0 7px rgb(12 27 48 / 0.4), 0 0 30px 4px rgb(106 174 214 / 0.55), inset 0 0 26px rgb(106 174 214 / 0.45);
+  }
+  .xr.is-found .xr-ring-on { opacity: 1; }
+
+  /* A dashed ring on the leak itself, shown once the lens is over it. It fades in place. */
+  .xr-mark {
+    position: absolute; left: 0; top: 0; width: calc(var(--r, 0px) * 0.62); height: calc(var(--r, 0px) * 0.62);
+    margin: calc(var(--r, 0px) * -0.31) 0 0 calc(var(--r, 0px) * -0.31);
+    border: 2px dashed rgb(255 255 255 / 0.95); border-radius: 50%; pointer-events: none; opacity: 0; will-change: opacity;
+  }
+  .xr.is-found .xr-mark { opacity: 1; }
+  /* State changes after the first frames: the ring brightens, the mark fades. */
+  .xr.is-anim .xr-ring-on { transition: opacity 0.2s ease; }
+  .xr.is-anim .xr-mark { transition: opacity 0.18s ease; }
+
+  /* The reading card: hint and button, or the note, in one grid cell, swapped in one frame.
+     Phones: under the photo. Wide screens: in the photo's top right corner. */
+  /* The cell is as tall as the taller state, so on wide screens part of it lies over open photo:
+     only the state that shows takes presses (a hidden state takes none), the rest go to the photo. */
+  .xr-read { display: grid; padding: 0.5rem 1.25rem 0; color: var(--white); pointer-events: none; }
+  .xr-read > * { grid-area: 1 / 1; min-width: 0; pointer-events: auto; }
+  .xr-pre { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 0.6rem; }
+  .xr.is-found .xr-pre { visibility: hidden; }
+  .xr-hint { margin: 0; font-size: var(--step--1); line-height: 1.4; color: var(--sky-100); }
+  .xr-note { visibility: hidden; }
+  .xr.is-found .xr-note { visibility: visible; }
+  .xr-note p { margin: 0; max-width: none; text-wrap: pretty; }
+  /* Two short lines, never a word or two alone on the last one. */
+  .xr-note .xr-note-sub { text-wrap: balance; }
+  .xr-note-k { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.6rem; font: 700 1.25rem/1.2 var(--font-slab); color: var(--white); }
+  .xr-note-t { margin-top: 0.25rem !important; font-size: var(--step--1); line-height: 1.4; color: var(--sky-100); }
+  .xr-note-price { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 0.75rem; margin-top: 0.45rem !important; padding-top: 0.45rem; border-top: 1px dashed rgb(169 210 234 / 0.45); font-size: var(--step--1); }
+  .xr-note-price strong { font: 700 1.375rem/1.2 var(--font-slab); color: var(--white); white-space: nowrap; }
+  .xr-note-sub { margin-top: 0.15rem !important; font-size: 0.9375rem; line-height: 1.35; color: var(--sky-300); }
+  .xr-show {
+    display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0.5rem 1rem; border-radius: var(--radius);
+    border: 2px solid var(--sky-300); background: transparent; color: var(--white); font: 700 1rem/1.2 var(--font-body); cursor: pointer;
+    transition: background-color 0.15s;
+  }
+  .xr-show:hover { background: rgb(169 210 234 / 0.16); }
+
+  /* Phones: a compact note (price on one line), and the hint and button centred a little low in
+     the cell, so neither state leaves a tall empty band above the business card. */
+  @media (max-width: 899px) {
+    /* Phones: the X-ray paints above the business card below it (z-index 3 in index.astro), though
+       they never overlap on screen. Painted after the lens instead, the card had to move to a
+       compositor layer of its own whenever the lens's layer box reached it and back when the lens
+       left; the first time it moved back, drawing the tilted card cost a 55 to 65 ms GPU stall
+       on the next frame. */
+    .xr { z-index: 4; }
+    .xr-pre { gap: 1.1rem; padding-top: 0.375rem; }
+    .xr-note-price { flex-wrap: nowrap; gap: 0.5rem; }
+    .xr-note-job { font-size: 0.9375rem; }
+    .xr-note-price strong { font-size: 1.25rem; }
+  }
+
+  @media (min-width: 900px) {
+    .xr { position: absolute; inset: 0; }
+    .xr-stage { --xr-x: 0%; --xr-y: 50%; position: absolute; inset: 0; aspect-ratio: auto; }
+    /* Darkens the photo behind the copy; the lens sits above it. */
+    .xr-shade { display: block; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, var(--navy) 0%, rgb(27 53 86 / 0.92) 22%, rgb(27 53 86 / 0.55) 38%, rgb(27 53 86 / 0) 58%); }
+    /* The card's top edge never moves; the shorter hint panel and the note both hang from it. */
+    .xr-read { position: absolute; top: 1.75rem; right: 1.75rem; width: min(21rem, 46%); padding: 0; align-items: start; }
+    .xr-pre, .xr-note {
+      padding: 0.9rem 1.1rem 1rem; border-radius: var(--radius-lg); background: rgb(12 27 48 / 0.92);
+      box-shadow: inset 0 0 0 1px rgb(169 210 234 / 0.4), var(--shadow-3);
+    }
+    .xr-pre { gap: 0.75rem; }
+    .xr-hint { color: var(--white); font-size: 1rem; }
+    .xr-show:hover { background: rgb(169 210 234 / 0.2); }
+  }
+  /* 900 to 1199 px: the copy column is narrower, so the photo shifts left to keep the leak
+     between the copy and the photo's right edge. */
+  @media (min-width: 900px) and (max-width: 1099px) { .xr-stage { --xr-x: 13%; } }
+  @media (min-width: 1100px) and (max-width: 1199px) { .xr-stage { --xr-x: 10%; } }
+</style>

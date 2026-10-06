@@ -1,36 +1,22 @@
 ---
 import Base from "../layouts/Base.astro";
-import WorkOrderHero from "../components/WorkOrderHero.astro";
-import WorkOrderSlip from "../components/WorkOrderSlip.astro";
+import ValveTagHero from "../components/ValveTagHero.astro";
+import ValveStamp from "../components/ValveStamp.astro";
 import ValveTagQuote from "../components/ValveTagQuote.astro";
 import Fact from "../components/Fact.astro";
 import CallToAction from "../components/CallToAction.astro";
 import { services } from "../data/services";
 import { facts } from "../data/facts";
-const jobCount = services.reduce((n, s) => n + s.prices.length, 0);
-const contents = [
-  { href: "#quote", label: "Example quote", detail: "Every fee, line by line" },
-  { href: "#how-a-job-runs", label: "How a job runs", detail: "From the first look to the clean-up" },
-  { href: "#typical-prices", label: "Typical prices", detail: `${jobCount} common jobs` },
-  { href: "#guarantee", label: "My guarantee", detail: "What it covers and how to claim it" },
-];
+import { pricingTags, markOf } from "../components/valve-tags";
 ---
 <Base title="Prices, fees and guarantee" description="Every fee FloMasters charges, typical prices for common plumbing jobs, how quotes work, and the written guarantee.">
-  <WorkOrderHero title="Prices, fees and guarantee" lead="Everything I charge is on this page, so if it isn't listed, I don't charge it">
-    <WorkOrderSlip title="On this page" id="wo-pricing">
-      <ol class="wo-rows">
-        {contents.map((c, i) => (
-          <li><a class="wo-row-link" href={c.href}><span class="wo-fno" aria-hidden="true">{i + 1}</span><span class="wo-row-l">{c.label}<span class="wo-row-d">{c.detail}</span></span></a></li>
-        ))}
-      </ol>
-    </WorkOrderSlip>
-  </WorkOrderHero>
+  <ValveTagHero title="Prices, fees and guarantee" lead="Everything I charge is on this page, so if it isn't listed, I don't charge it" tags={pricingTags} call cols={3} />
 
   <ValveTagQuote />
 
   <section class="section section--alt" id="typical-prices">
-    <div class="wrap">
-      <h2>Typical prices</h2>
+    <div class="wrap vt-target" id="tag-typical">
+      <h2><ValveStamp mark={markOf(pricingTags, "tag-typical")} />Typical prices</h2>
       <p class="lead">Ranges for the jobs I do most; your written price depends on what I find</p>
       <div class="price-grid">
         {services.map((s) => (
@@ -55,7 +41,7 @@ const contents = [
       <div>
         <h2>My guarantee</h2>
         <ul class="ticks">
-          <li><strong><Fact k="laborWarranty" />.</strong> If my work fails, I come back and fix it at no charge.</li>
+          <li class="vt-target" id="tag-guarantee"><ValveStamp mark={markOf(pricingTags, "tag-guarantee")} /><strong><Fact k="laborWarranty" />.</strong> If my work fails, I come back and fix it at no charge.</li>
           <li><strong>Parts:</strong> <Fact k="partsWarranty" />.</li>
           <li><strong>Not covered:</strong> <Fact k="warrantyExclusions" />.</li>
           <li><strong>To claim it:</strong> call or text <span class="nowrap">{facts.phone.value}</span>. The date and job are on your invoice; you don't need to keep anything else.</li>
@@ -76,6 +62,9 @@ const contents = [
   .pg th, .pg td { text-align: left; padding: 0.5rem 0; border-bottom: 1px solid var(--line); font-size: 1.0625rem; vertical-align: top; }
   .pg th { font-weight: 500; padding-right: 0.75rem; }
   .pg td { text-align: right; font-family: var(--font-slab); font-weight: 700; color: var(--navy); white-space: nowrap; }
+  /* The guarantee line a header tag names wears that tag's letter in place of its tick. */
+  .guarantee .ticks li.vt-target::before { display: none; }
+  .guarantee .ticks li.vt-target > :global(.vt-stamp) { position: absolute; left: -0.3rem; top: 0.15em; margin: 0; }
   .guarantee { display: grid; gap: var(--space-4); align-items: center; }
   @media (min-width: 800px) { .guarantee { grid-template-columns: 14rem 1fr; } }
   .g-seal { width: 13rem; aspect-ratio: 1; border-radius: 50%; display: grid; place-content: center; text-align: center; gap: 0.2rem; color: var(--white); background: var(--navy) var(--waves); background-size: 60px 30px; box-shadow: 0 0 0 6px var(--paper), 0 0 0 9px var(--sky); font-family: var(--font-slab); }

@@ -5,8 +5,12 @@
 // names the tag it prices. Press a part (or its tag in the list) and the quote rewrites itself.
 // "How a job runs" hangs its four tags off one pipe, with a lever valve between step 3 and step 4:
 // it stays across the pipe (off) until you answer yes, the same quarter turn the home page teaches.
+// The fee rows the page header's tags name carry that tag's letter (valve-tags.ts); letters, so they
+// never repeat the sink's numbers.
 import Fact from "./Fact.astro";
 import FactBlock from "./FactBlock.astro";
+import ValveStamp from "./ValveStamp.astro";
+import { pricingTags, markOf } from "./valve-tags";
 import { services } from "../data/services";
 import { facts } from "../data/facts";
 
@@ -110,10 +114,10 @@ const calloutText = facts.calloutFee.value;
             <div class="vl-b"><p class="vl-k"><span class="visually-hidden">Tag </span><span data-vq-tagtext>{start.n}, {start.part}</span></p><p class="vl-t" data-vq-job>{start.job.job}</p><p class="vl-note" data-vq-top>{start.job.top}</p></div>
             <p class="vl-a"><Fact k="priceRanges"><span data-vq-range>{start.job.range}</span></Fact></p>
           </li>
-          <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Call-out</p><p class="vl-note">I come to you and find the cause</p></div><p class="vl-a"><Fact k="calloutFee" /></p></li>
+          <li class="vt-target" id="tag-callout"><ValveStamp mark={markOf(pricingTags, "tag-callout")} /><div class="vl-b"><p class="vl-t">Call-out</p><p class="vl-note">I come to you and find the cause</p></div><p class="vl-a"><Fact k="calloutFee" /></p></li>
           <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Call-out credit</p><p class="vl-note">The {calloutText} is <Fact k="calloutCredited" /></p></div><p class="vl-a"><span aria-hidden="true">&minus;</span><span class="visually-hidden">minus </span><Fact k="calloutFee" /></p></li>
           <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Diagnostic fee</p></div><p class="vl-a"><Fact k="diagnosticFee" /></p></li>
-          <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">After-hours</p><p class="vl-note"><Fact k="afterHoursFee" />, only <Fact k="afterHoursWhen" /></p></div><p class="vl-a">$0</p></li>
+          <li class="vt-target" id="tag-after-hours"><ValveStamp mark={markOf(pricingTags, "tag-after-hours")} /><div class="vl-b"><p class="vl-t">After-hours</p><p class="vl-note"><Fact k="afterHoursFee" />, only <Fact k="afterHoursWhen" /></p></div><p class="vl-a">$0</p></li>
           <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Card payment fee</p><p class="vl-note">Card, check or cash all cost the same</p></div><p class="vl-a"><Fact k="cardFee" /></p></li>
           <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Canceling or moving the visit</p><p class="vl-note"><Fact k="cancellation" /></p></div><p class="vl-a">$0</p></li>
           <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Permits</p><p class="vl-note"><Fact k="permits" text="Only when the city requires one; I tell you first" /></p></div><p class="vl-a">At cost</p></li>
@@ -286,9 +290,11 @@ const calloutText = facts.calloutFee.value;
   .vq-by { font: 700 var(--step--1)/1.3 var(--font-slab); color: var(--navy-900); text-align: right; }
   .vq-by > span { display: block; font: 600 var(--step--2)/1.3 var(--font-body); color: var(--ink-soft); }
   .vl { list-style: none; margin: 0; padding: 0; }
-  .vl li { display: grid; grid-template-columns: 1.4rem minmax(0, 1fr) auto; column-gap: 0.75rem; align-items: start; padding: 0.6rem 0; border-bottom: 1px solid var(--line); }
+  .vl li { display: grid; grid-template-columns: 1.75rem minmax(0, 1fr) auto; column-gap: 0.75rem; align-items: start; padding: 0.6rem 0; border-bottom: 1px solid var(--line); }
   /* The punched slot a tag hangs by: a dark bar, as on the booking page's tags, so it never reads as a radio. */
-  .vtag { position: relative; width: 0.45rem; height: 1.1rem; margin: 0.3rem 0 0 0.45rem; border-radius: 0.22rem; background: var(--slate-ink); }
+  .vtag { position: relative; width: 0.45rem; height: 1.1rem; margin: 0.3rem auto 0; border-radius: 0.22rem; background: var(--slate-ink); }
+  /* A fee row the page header's tag names carries that tag's letter instead of a slot. */
+  .vl li > :global(.vt-stamp) { margin: 0.05rem 0 0; }
   .vtag--n { width: 2.4rem; height: 2.4rem; margin: 0; display: grid; place-content: center; background: var(--navy); border-color: var(--navy); color: var(--white); font: 800 1.25rem/1 var(--font-slab); }
   .vl-job { grid-template-columns: 2.4rem minmax(0, 1fr) auto !important; padding-block: 0.8rem !important; }
   .vl-k { font: 700 var(--step--2)/1.3 var(--font-body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--slate-ink); }
@@ -305,7 +311,7 @@ const calloutText = facts.calloutFee.value;
   .vq-foot::before { content: ""; position: absolute; left: 0.9rem; top: 50%; width: 0.4rem; height: 1rem; margin-top: -0.5rem; border-radius: 0.2rem; background: var(--navy); }
   .vq-pm { margin-top: 0.75rem !important; color: var(--ink-soft); }
   @media (max-width: 560px) {
-    .vl li { grid-template-columns: 1.1rem minmax(0, 1fr); }
+    .vl li { grid-template-columns: 1.75rem minmax(0, 1fr); }
     .vq-by { text-align: left; }
     .vl-job { grid-template-columns: 2.4rem minmax(0, 1fr) !important; }
     .vl-a { grid-column: 2; text-align: left; font-size: var(--step-0); }

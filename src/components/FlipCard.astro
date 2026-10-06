@@ -1,8 +1,9 @@
 ---
 // Antonio's business card, both sides. The front carries the logo; the back is the site's
-// CardBack (name, trade, license, phone). The card turns over with its own button, or by pressing
-// anywhere on the card that isn't the phone link. The hidden side is inert, so only the side
-// showing can be read or tabbed to. Reduced motion: the sides swap without turning.
+// CardBack (name, trade, license, phone). The card turns over only with its own button; pressing
+// the card itself does nothing, so a tap meant for the phone link or a scroll never turns it. The
+// hidden side is inert, so only the side showing can be read or tabbed to. Reduced motion: the
+// global rule drops the transition, so the sides swap at once without turning.
 import Logo from "./Logo.astro";
 import CardBack from "./CardBack.astro";
 import { facts } from "../data/facts";
@@ -46,17 +47,12 @@ const { class: cls, tone = "on-paper" } = Astro.props;
       state.textContent = toBack ? "Back of the card: name, license and phone" : "Front of the card";
     };
     root.querySelector("[data-flip-btn]")!.addEventListener("click", turn);
-    // Press anywhere on the card; the phone link on the back still calls.
-    root.querySelector("[data-flip-stage]")!.addEventListener("click", (e) => {
-      if ((e.target as Element).closest("a")) return;
-      turn();
-    });
   });
 </script>
 
 <style>
   .flip { width: min(100%, 24rem); }
-  .flip-stage { perspective: 1600px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .flip-stage { perspective: 1600px; }
   .flip-inner { position: relative; aspect-ratio: 1.75; transform-style: preserve-3d; transition: transform 0.65s cubic-bezier(0.3, 0.7, 0.2, 1); }
   .is-back .flip-inner { transform: rotateY(180deg); }
   .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }

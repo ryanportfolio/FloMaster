@@ -115,7 +115,7 @@ try {
   await page.goto(`${base}/pricing?tags=on`);
   await page.click("[data-tag-switch]");
   check("switch updates aria-pressed", (await page.getAttribute("[data-tag-switch]", "aria-pressed")) === "false");
-  for (const p of ["/book?job=drains", "/"]) {
+  for (const p of ["/book?job=drains", "/residential/drains", "/"]) {
     await page.goto(`${base}${p}${p.includes("?") ? "&" : "?"}tags=on`);
     const c = await covering();
     check(`no confirm label covers text with tags on (${p})`, c.length === 0, c.slice(0, 3).join(" | "));

@@ -136,7 +136,7 @@ Just below the first screen: one recent dated review with the reviewer's first n
 ### Desktop (1280 wide as the main target)
 
 - **Header:** business name, navigation (Residential, Commercial, Prices, Reviews, Service area, About), phone number written out in full as a link, a Book button, and the licence line under the business name.
-- **Hero, two columns.** Left: headline, owner line, rating line, the most recent review quoted in full with its date, and the two fork buttons side by side (emergency call, book a time). Right: a photo of Antonio with his van (P26; an AI-generated stand-in in the prototype). This photo is the page's largest image, so it is sized and compressed to keep LCP under 2.5s (Finding 7).
+- **Hero, two columns.** Left: headline, owner line, rating line, the most recent review quoted in full with its date, and the two fork buttons side by side (emergency call, book a time). Right: the X-ray photo of a leaking sink cabinet behind the copy's right side (an AI-generated stand-in in the prototype, tagged for replacement). A round X-ray lens moves wherever the visitor presses or drags; over the rusted trap it shows "Found it" with the posted leak-repair price. On first view it finds the leak once, then moves only when the visitor moves it. This photo is the page's largest image on desktop, so it is sized and compressed to keep LCP under 2.5s (Finding 7).
 - **Trust strip** directly under the hero: licence, insurance (P05), years in the trade (P31), warranty headline (P19), and "Every fee listed on the price page".
 
 ### Things the first screen will not have

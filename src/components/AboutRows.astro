@@ -1,0 +1,100 @@
+---
+// About page body, in the header's hull-number style: each part of the page carries one large
+// number in the same left column with its caption beside it, so the pair reads as one phrase
+// ("5 things I do on every job"): the year FloMasters started, the count of promises on every
+// job, the state that licenses Antonio, and the 757 area code over the phone number.
+import Photo from "./Photo.astro";
+import Fact from "./Fact.astro";
+import FactBlock from "./FactBlock.astro";
+import hero from "../assets/photos/hero.jpg";
+import { facts } from "../data/facts";
+import { cities } from "../data/area";
+// Set at display size, so no closing periods.
+const steps = [
+  "I find the cause before I name a price",
+  "You get repair and replacement prices side by side, and you choose",
+  "I show you the old part and explain what failed",
+  "Drop cloths down, mess cleaned up, everything tested before I leave",
+];
+---
+<div class="ab wrap">
+  <section class="row row--why" aria-labelledby="ab-why">
+    <p class="rh"><span class="rn num">{facts.established.value}</span> <span class="rcap">the year I started FloMasters</span></p>
+    <div class="rb">
+      <h2 id="ab-why">Why I started FloMasters</h2>
+      <p class="lead">I've been a plumber for <Fact k="yearsInTrade" />, and I started FloMasters in {facts.established.value} to give customers what I'd want in my own house</p>
+      <FactBlock k="quoting"><p>That means a straight answer, a fair price written down before the work starts, and the same person from the phone call to the clean-up.</p></FactBlock>
+      <FactBlock k="workPromises"><p>There's no call center and no sales team. When you call, I pick up, or I call you back as soon as I'm out from under the sink. When you book, I'm the one who turns up, and I'm the one who stands behind the work.</p></FactBlock>
+    </div>
+    <Photo src={hero} fact="hero" alt="Antonio beside his van, shelves of parts inside" widths={[480, 768, 1080]} sizes="(min-width: 900px) 25rem, 100vw" class="r-van" shot="Antonio with the van" />
+  </section>
+
+  <section class="row" aria-labelledby="ab-how">
+    <p class="rh"><span class="rn num">{steps.length + 1}</span> <span class="rcap">things I do on every job</span></p>
+    <div class="rb">
+      <h2 id="ab-how">How I work, on every job</h2>
+      <FactBlock k="workPromises">
+        <ol class="steps">
+          {steps.map((s) => <li><span>{s}</span></li>)}
+          <li><span><Fact k="laborWarranty" /> on every job</span></li>
+        </ol>
+      </FactBlock>
+    </div>
+  </section>
+
+  <section class="row" aria-labelledby="ab-creds">
+    <p class="rh"><span class="rn" aria-hidden="true">VA</span> <span class="rcap">Virginia, the state that licenses me</span></p>
+    <div class="rb">
+      <h2 id="ab-creds">Licensed and insured</h2>
+      <ul class="creds">
+        <li><strong>Virginia Master Plumber</strong><span class="num">License #{facts.license.value}</span></li>
+        {facts.contractorLicense.status === "confirmed" ? <li><strong>Contractor license</strong><span>{facts.contractorLicense.value}</span></li> : <li class="tags-only"><strong>Contractor license</strong><span><Fact k="contractorLicense" /></span></li>}
+        <li><strong>Insurance</strong><span><Fact k="insurance" /></span></li>
+        <li><strong>Bonding</strong><span><Fact k="bonded" /></span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="row" aria-labelledby="ab-call">
+    <p class="rh"><span class="rn num">757</span> <span class="rcap">the area code I work in</span></p>
+    <div class="rb">
+      <h2 id="ab-call">My phone, my area code</h2>
+      <p>I work in {cities.slice(0, -1).join(", ")} and {cities[cities.length - 1]}. Call or text; you get me.</p>
+      <a class="call num" href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a>
+    </div>
+  </section>
+</div>
+
+<style>
+  .ab { padding-block: var(--space-4) var(--band-space); }
+  .row { display: grid; grid-template-areas: "rh" "rb"; gap: 1rem; padding: 1.75rem 0 2.5rem; border-top: 3px solid var(--navy); }
+  .row--why { grid-template-areas: "rh" "rb" "pic"; }
+  @media (min-width: 900px) {
+    .row { grid-template-columns: minmax(0, 25rem) minmax(0, 1fr); grid-template-areas: "rh rb"; gap: 1.5rem var(--space-5); padding: 2.25rem 0 3rem; }
+    /* The van photo fills the left column under the year. */
+    .row--why { grid-template-areas: "rh rb" "pic rb"; grid-template-rows: auto 1fr; }
+  }
+
+  /* Number and caption side by side, caption on the number's foot, so each reads as one phrase. */
+  .rh { grid-area: rh; align-self: start; display: flex; align-items: flex-end; gap: 0.9rem; margin: 0; max-width: none; }
+  .rn { flex: none; margin-left: -0.04em; font: 800 clamp(4rem, 2.4rem + 4.4vw, 6.5rem)/0.8 var(--font-slab); letter-spacing: -0.055em; color: var(--navy); white-space: nowrap; }
+  .rcap { max-width: 14ch; padding-bottom: 0.1em; font: 600 var(--step-0)/1.25 var(--font-body); color: var(--navy-900); }
+  .rb { grid-area: rb; min-width: 0; }
+  .rb h2 { font-size: var(--step-3); }
+  .rb > :last-child, .rb :global(.fact-block:last-child > p) { margin-bottom: 0; }
+
+  .row :global(.r-van) { grid-area: pic; align-self: start; aspect-ratio: 4 / 3; width: 100%; border-radius: var(--radius-lg); box-shadow: var(--shadow-1); }
+
+  /* The promises: display-size lines, no closing periods, numbered by the list itself. */
+  .steps { list-style: none; counter-reset: step; margin: 0; padding: 0; }
+  .steps li { counter-increment: step; display: grid; grid-template-columns: 3.25rem 1fr; gap: 1rem; align-items: baseline; padding: 0.85rem 0; border-bottom: 1px solid var(--line); font-size: var(--step-1); line-height: 1.4; font-weight: 600; color: var(--navy-900); max-width: none; }
+  .steps li::before { content: counter(step); font: 800 clamp(2.5rem, 2rem + 1.5vw, 3.25rem)/0.85 var(--font-slab); letter-spacing: -0.04em; color: var(--navy); }
+
+  .creds { list-style: none; padding: 0; margin: 0; }
+  .creds li { display: grid; grid-template-columns: 13rem 1fr; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--line); }
+  :global(.tags-on) .creds li.tags-only { display: grid !important; }
+  @media (max-width: 560px) { .creds li { grid-template-columns: 1fr; gap: 0; } }
+
+  .call { display: inline-flex; align-items: center; min-height: 44px; font: 800 clamp(2rem, 1.4rem + 2.6vw, 3.25rem)/1.1 var(--font-slab); letter-spacing: -0.01em; color: var(--navy-900); text-decoration: none; white-space: nowrap; }
+  .call:hover { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 0.15em; }
+</style>

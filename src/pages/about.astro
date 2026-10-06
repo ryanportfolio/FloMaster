@@ -1,38 +1,12 @@
 ---
 import Base from "../layouts/Base.astro";
-import WorkOrderHero from "../components/WorkOrderHero.astro";
-import WorkOrderSlip from "../components/WorkOrderSlip.astro";
-import Photo from "../components/Photo.astro";
-import FlipCard from "../components/FlipCard.astro";
-import AboutSheet from "../components/AboutSheet.astro";
+import AboutHero from "../components/AboutHero.astro";
+import AboutRows from "../components/AboutRows.astro";
 import CallToAction from "../components/CallToAction.astro";
-import portrait from "../assets/photos/portrait.jpg";
 import { facts } from "../data/facts";
 ---
 <Base title="About Antonio Spence" description="Antonio Spence is a Virginia master plumber and the owner of FloMasters Plumbing and Drains, established 2024 in Hampton Roads.">
-  <WorkOrderHero title="I'm Antonio Spence, and FloMasters is me" lead={`Virginia Master Plumber and owner of FloMasters Plumbing and Drains since ${facts.established.value}`}>
-    <WorkOrderSlip title="Who turns up" id="wo-about">
-      <div class="who">
-        <Photo src={portrait} fact="portrait" alt="Antonio Spence in his navy FloMasters work shirt" widths={[240, 480, 768]} sizes="(min-width: 1000px) 12rem, 7rem" priority class="who-pic" shot="portrait" />
-        <FlipCard class="who-card" />
-      </div>
-    </WorkOrderSlip>
-  </WorkOrderHero>
-  <AboutSheet />
+  <AboutHero title="I'm Antonio Spence, and FloMasters is me" lead={`Owner of FloMasters Plumbing and Drains since ${facts.established.value}, and the plumber who turns up`} />
+  <AboutRows />
   <CallToAction />
 </Base>
-
-<style>
-  /* The card's parts join the slip's grid: on a phone the portrait sits beside the turn-over
-     button with the card full width below it, so the card stays wide enough to read; from 700 px
-     the portrait sits beside the card. */
-  .who { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); grid-template-areas: "pic row" "card card"; gap: 0.75rem; align-items: center; padding-top: 0.6rem; }
-  .who :global(.who-pic) { grid-area: pic; border-radius: var(--radius); aspect-ratio: 4 / 5; width: 100%; margin: 0; }
-  .who :global(.who-card) { display: contents; }
-  .who :global(.flip-stage) { grid-area: card; }
-  .who :global(.flip-row) { grid-area: row; margin: 0; flex-direction: column; align-items: flex-start; gap: 0.35rem; }
-  @media (min-width: 700px) {
-    .who { grid-template-columns: 9rem minmax(0, 1fr); grid-template-areas: "pic card" "pic row"; gap: 0.75rem 1.1rem; align-items: start; }
-    .who :global(.flip-row) { flex-direction: row; align-items: center; }
-  }
-</style>

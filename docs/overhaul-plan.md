@@ -82,11 +82,11 @@ The user asked me to pick by recommendation and note the choices so they can cha
 
 | Section | Picked | A | B | C | Notes |
 |---|---|---|---|---|---|
-| Inner page headers | A, carbon-copy work order slip | 4/4/4 | 3/3/4 valve tags | 3/4/4 hull numbers | A was more than one phone screen tall on 5 of 6 pages: tightened. Its pricing slip had its own example quote, so the pricing page would have shown two; the body quote stays. C is the calmer alternative if the slip feels busy |
+| Inner page headers | A, carbon-copy work order slip; the user later chose B for pricing and the five service pages | 4/4/4 | 3/3/4 valve tags | 3/4/4 hull numbers | A was more than one phone screen tall on 5 of 6 pages: tightened. Its pricing slip had its own example quote, so the pricing page would have shown two; the body quote stays. C is the calmer alternative if the slip feels busy |
 | Pricing body | C, stamped valve tags | 3/4/4 work order | 2/3/4 hull numbers | 4/4/3 | The user picked this one. Price notes for the trap leak and shut-off fixed to match the price list |
-| Service area | A, Tidewater chart | 5/4/4 | 3/4/4 valve tags | 2/4/4 hull numbers | On phones Virginia Beach was drawn under Norfolk: fixed to sit east of it |
-| FAQ | A, work order clauses | 4/4/5 | 3/4/4 hull numbers | 3/3/4 valve tags | Keyboard focus was invisible on the figures links: fixed |
-| About | A, work order | 4/4/5 | 3/4/4 hull numbers | 4/3/4 valve tags | C's "This van runs to" line was the most local detail; on phones its name tag covered Antonio's face |
+| Service area | A, Tidewater chart; the user later chose C, with an animated Hampton Roads chart beside the ZIP check that glides to the ZIP and marks it | 5/4/4 | 3/4/4 valve tags | 2/4/4 hull numbers | On phones Virginia Beach was drawn under Norfolk: fixed to sit east of it |
+| FAQ | A, work order clauses (user confirmed) | 4/4/5 | 3/4/4 hull numbers | 3/3/4 valve tags | Keyboard focus was invisible on the figures links: fixed |
+| About | A, work order; the user later chose B (license number set like a hull number) | 4/4/5 | 3/4/4 hull numbers | 4/3/4 valve tags | C's "This van runs to" line was the most local detail; on phones its name tag covered Antonio's face |
 
 ## Round 4: motion system and small delights
 

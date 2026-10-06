@@ -11,8 +11,8 @@ import ZipCheck from "../components/ZipCheck.astro";
 import RepairStory from "../components/RepairStory.astro";
 import SectionHead from "../components/SectionHead.astro";
 import ProofBar from "../components/ProofBar.astro";
+import XrayHero from "../components/XrayHero.astro";
 import { Image } from "astro:assets";
-import hero from "../assets/photos/hero.jpg";
 import portrait from "../assets/photos/portrait.jpg";
 import ValveStates from "../components/ValveStates.astro";
 import { facts } from "../data/facts";
@@ -33,9 +33,6 @@ const newest = reviews[0];
 
   <!-- First screen: call, book, emergency, rating, license (license is in the header). -->
   <section class="hero navy on-navy">
-    <div class="hero-photo">
-      <Photo src={hero} fact="hero" priority alt="Antonio Spence standing beside his navy FloMasters van on a tree-lined street" widths={[640, 960, 1280, 1536]} sizes="(min-width: 900px) 70vw, 100vw" shot="Antonio beside the van, street on the left" />
-    </div>
     <div class="wrap hero-grid">
       <div class="hero-copy">
         <h1>Plumbing and drains across Hampton Roads, fixed by a master plumber</h1>
@@ -57,6 +54,10 @@ const newest = reviews[0];
         <p class="commercial-link"><a href="/commercial">Business or rental property? Commercial service <Icon name="arrow" class="i-arrow" /></a></p>
       </div>
     </div>
+    <!-- The X-ray: after the copy in the page order, so the fork comes first for keyboard and screen readers. -->
+    <div class="hero-photo">
+      <XrayHero />
+    </div>
     <CardBack class="hero-card" />
   </section>
 
@@ -76,7 +77,6 @@ const newest = reviews[0];
         <a href="/reviews">Read all <Fact k="reviewCount" plain /> reviews</a>
       </div>
       <div class="price-promise panel panel--lift">
-        <p class="eyebrow">Prices</p>
         <h2>How I price</h2>
         <FactBlock k="quoting"><ol class="steps" role="list">
           <li><strong>You see the price before I start.</strong> A written, flat price for the job. No hourly meter.</li>
@@ -91,7 +91,7 @@ const newest = reviews[0];
   <!-- The repair story: one sample job, from the leak to the dry test, next to how I price. -->
   <section class="band band--lg band--raised" aria-labelledby="story-h">
     <div class="wrap">
-      <SectionHead eyebrow="One job, start to finish" title="From drip to dry" id="story-h" split>
+      <SectionHead title="From drip to dry" id="story-h" split>
         <p class="lead">Drag across the photo, or tap a step, to follow one job from the leak to the dry test</p>
       </SectionHead>
       <RepairStory />
@@ -101,7 +101,7 @@ const newest = reviews[0];
   <!-- Services -->
   <section class="band band--navy navy on-navy" aria-labelledby="svc-h">
     <div class="wrap">
-      <SectionHead eyebrow="Home services" title="What I fix" id="svc-h" split>
+      <SectionHead title="What I fix" id="svc-h" split>
         <p class="lead">Every job shows its typical price, so you know the range before you call</p>
       </SectionHead>
       <ul class="svc-grid">
@@ -133,7 +133,6 @@ const newest = reviews[0];
         <Photo src={portrait} fact="portrait" alt="Antonio Spence, owner of FloMasters, in his navy work shirt" widths={[480, 768, 1024]} sizes="(min-width: 900px) 440px, 100vw" class="meet-photo" shot="portrait outside, morning light" />
       </div>
       <div>
-        <p class="eyebrow">Who you get</p>
         <h2>One plumber, the same one every time</h2>
         <p class="lead">I'm Antonio Spence, and I started FloMasters in {facts.established.value} after <Fact k="yearsInTrade" /> working for other companies, to do every job the way I'd want it done in my own house</p>
         <FactBlock k="workPromises"><ul class="ticks">
@@ -150,7 +149,7 @@ const newest = reviews[0];
   <!-- Emergency -->
   <section class="band band--lg band--navy navy on-navy emerg" aria-labelledby="em-h">
     <div class="wrap">
-      <SectionHead eyebrow="Emergency" title="Water where it shouldn't be?" id="em-h" split>
+      <SectionHead title="Water where it shouldn't be?" id="em-h" split>
         <p class="lead">Three steps in this order, starting with the one that stops the water</p>
       </SectionHead>
       <ol class="emerg-steps" role="list">
@@ -169,7 +168,6 @@ const newest = reviews[0];
   <section class="band band--paper">
     <div class="wrap area">
       <div>
-        <p class="eyebrow">Service area</p>
         <h2>Where I work</h2>
         <p class="lead">All 7 cities of Hampton Roads</p>
         <ul class="cities">{cities.map((c) => <li><Icon name="pin" />{c}</li>)}</ul>
@@ -181,7 +179,7 @@ const newest = reviews[0];
   <!-- Reviews -->
   <section class="band band--tint" aria-labelledby="rv-h">
     <div class="wrap">
-      <SectionHead eyebrow="Reviews" title="What customers say" id="rv-h" split>
+      <SectionHead title="What customers say" id="rv-h" split>
         <RatingLine />
       </SectionHead>
       <div class="grid grid--3">
@@ -212,10 +210,9 @@ const newest = reviews[0];
 <style>
   /* Hero */
   .hero { position: relative; }
-  .hero-photo { position: relative; aspect-ratio: 3 / 2; overflow: hidden; }
-  .hero-photo :global(.photo) { position: absolute; inset: 0; }
-  .hero-photo :global(img) { object-position: 62% 40%; }
-  .hero-grid { position: relative; padding-block: 1.25rem 2.5rem; }
+  .hero-photo { position: relative; }
+  /* Phone: the small bottom padding lets the top of the X-ray photo and its lens peek at the fold. */
+  .hero-grid { position: relative; padding-block: 1.25rem; }
   .hero h1 { font-size: clamp(2rem, 1.1rem + 3.9vw, 3.75rem); line-height: 1.1; margin-bottom: 1rem; max-width: 18ch; }
   .owner { display: flex; align-items: center; gap: 0.85rem; margin: 0 0 0.75rem; font-size: var(--step-0); line-height: 1.4; }
   .owner :global(.owner-pic) { width: 3.25rem; height: 3.25rem; border-radius: 50%; object-fit: cover; flex: none; border: 2px solid var(--sky); }
@@ -235,27 +232,50 @@ const newest = reviews[0];
   .hero, :global(.home-proof) { --card-w: min(100vw - 2.5rem, 19.5rem); --card-hang: 4.75rem; }
   :global(.home-proof) { --proof-inset-top: var(--card-hang); }
 
-  /* Mobile: copy first, then the photo, then the card below the photo. */
+  /* Mobile: copy first, then the X-ray photo, then the card below the photo. */
   .hero { display: flex; flex-direction: column; }
-  .hero-photo { order: 2; }
-  .hero-grid { order: 1; }
-  .hero :global(.hero-card) { order: 3; position: relative; z-index: 3; width: var(--card-w); margin: 1.5rem auto calc(-1 * var(--card-hang)); transform: rotate(-2deg); }
+  .hero :global(.hero-card) { position: relative; z-index: 3; width: var(--card-w); margin: 1.25rem auto calc(-1 * var(--card-hang)); transform: rotate(-2deg); }
 
   @media (min-width: 900px) {
     .hero, :global(.home-proof) { --card-w: 20rem; --card-hang: 6rem; }
     /* Desktop: the license block sits beside the card; the list starts below it. */
     :global(.home-proof) { --proof-inset-top: 0px; --proof-inset-left: calc(var(--card-w) + 2.5rem); --proof-lead-min: calc(var(--card-hang) - 0.5rem); }
     .hero { display: block; min-height: min(46rem, 88vh); }
-    .hero-photo { position: absolute; inset: 0 0 0 30%; aspect-ratio: auto; }
-    .hero-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, var(--navy) 0%, rgb(27 53 86 / 0.92) 22%, rgb(27 53 86 / 0.55) 38%, rgb(27 53 86 / 0) 58%); pointer-events: none; }
-    /* Bottom padding keeps the copy clear of the part of the card inside the hero. */
-    .hero-grid { display: grid; align-items: center; padding-block: 3.5rem calc(var(--card-w) / 1.75 - var(--card-hang) + 2rem); min-height: inherit; }
+    /* The X-ray photo fills the right of the hero, behind the copy (its shade darkens it there). */
+    .hero-photo { position: absolute; inset: 0 0 0 30%; }
+    /* Bottom padding keeps the copy clear of the part of the card inside the hero. Presses outside
+       the copy pass through to the photo, so the lens moves wherever the photo shows. */
+    .hero-grid { z-index: 2; pointer-events: none; }
+    .hero-copy { pointer-events: auto; }
+    .hero-grid { display: grid; align-items: center; padding-block: 3.5rem calc(var(--card-w) / 1.75 - var(--card-hang) + var(--card-drop, 0px) + 2rem); min-height: inherit; }
     .hero-copy { align-self: center; max-width: 40rem; }
     .hero h1 { max-width: 20ch; }
     .hero :global(.hero-card) { position: absolute; margin: 0; width: var(--card-w); left: max(1.25rem, (100% - var(--wrap)) / 2 + 0.5rem); bottom: calc(-1 * var(--card-hang)); transform: rotate(-2.5deg); }
   }
+  /* 900 to 1199 px: a narrower copy column leaves room on the photo for the lens beside it. */
+  @media (min-width: 900px) and (max-width: 1199px) {
+    .hero-copy, .fork { max-width: 30rem; }
+  }
+  @media (min-width: 900px) and (max-width: 1099px) {
+    .hero h1 { font-size: 2.75rem; }
+  }
+  @media (min-width: 1100px) and (max-width: 1199px) {
+    .hero h1 { font-size: 3rem; }
+  }
   @media (min-width: 1200px) {
-    .hero, :global(.home-proof) { --card-w: 22rem; --card-hang: 6.75rem; }
+    /*
+      At scrollY 0 the card's top sits about 45.125rem (722px at a 16px font) below the sticky
+      header (license band, copy, paddings; constant from 1200px up, and it grows with the browser's
+      font size, so the offsets are in rem). On screens too short to show the whole card (bottom
+      about 58.7rem below the header) but tall enough to show part of it, it drops just past the
+      fold, so the fold never cuts through its text. --card-drop is that extra hang: the hero keeps
+      its height and the proof bar reserves the extra room through --card-hang.
+    */
+    .hero, :global(.home-proof) {
+      --card-w: 22rem;
+      --card-drop: min(max(0px, 100vh - var(--sticky-h) - 44.875rem), max(0px, (var(--sticky-h) + 58.6875rem - 100vh) * 1000));
+      --card-hang: calc(6.75rem + var(--card-drop));
+    }
   }
 
   /* Newest review and how I price */
