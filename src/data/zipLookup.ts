@@ -1,4 +1,4 @@
-// ZIP lookup and city grouping for the service-area chart (components/TidewaterChart.astro). Reads only src/data/area.ts,
+// ZIP lookup and city grouping for the service-area ZIP check (components/HullCheck.astro). Reads only src/data/area.ts,
 // whose ZIP lists are unchecked (fact P32, zipList) and whose "sometimes" ZIPs get "Call me to check".
 import { cities, zips, sometimes } from "./area";
 

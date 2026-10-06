@@ -16,7 +16,7 @@ Turn the first build, which reads as flat, into a premium site that feels effort
 
 ## Rules for every round
 
-- Mobile Core Web Vitals stay good on the production build: LCP 2.5 s or less, INP 200 ms or less, CLS 0.1 or less. Home page weight stays under 400 KB.
+- Mobile Core Web Vitals stay good on the production build: LCP 2.5 s or less, INP 200 ms or less, CLS 0.1 or less. Home page weight stays under 400 KB, except that the user set the weight limit aside on 2026-10-06 ("we'll optimize for perf at the very end"); a final performance pass restores it.
 - WCAG 2.2 AA. Every moving piece has a designed reduced-motion state. Nothing in the first screen fades or slides in, because the phone LCP element is the headline.
 - Motion only where it shows something real: proof, price, progress or a step to follow. No sheen, scroll drift, count-up numbers, stamp effects, autoplay loops or scroll locking.
 - Effortless means direct manipulation: press or drag anywhere on the thing you want to move, large targets, immediate response, no hidden controls.
@@ -93,6 +93,15 @@ The user asked me to pick by recommendation and note the choices so they can cha
 1. Replace the blanket reduced-motion rule with motion tokens (durations, easings) and one `prefersReducedMotion()` helper that every script reads.
 2. Small feedback: buttons press, service cards lift, the menu fades, the ZIP result appears with a tick or cross and the logo ring fills with water when the ZIP is covered (secondary, beside the written answer, with a static equivalent).
 3. Optional, if the X-ray frames work well in Round 1: a tap-the-problem house illustration that builds a checklist to send with a booking.
+
+## The scroll story (user, 2026-10-06)
+
+The user asked for a scroll-driven repair story with images made for it, and picked "zoom into the leak": from the Tidewater chart down to one Norfolk house, into the wall and the cracked joint, the repair, and back out to a dry wall. It replaces the drag slider. Rules the user set for it, which override "scroll-linked effects" under Dropped and "scroll locking" under Rules for every round, for this section only:
+
+- No labels that name the effect ("X-ray", stage numbers); the camera tells the story.
+- Lenis smooths wheel scrolling.
+- Scrolling into the section starts it, and it plays on its own clock as one continuous camera move at its intended speed, however fast or slow people scroll. The camera holds only where there is a line to read. This overrides "no autoplay" for this section: the visitor's scroll starts it. End, Home, links, Tab and reduced motion skip it.
+- Images sharp at the size they are drawn on large screens, in WebP. The page weight limit waits for the final performance pass.
 
 ## Dropped for now
 

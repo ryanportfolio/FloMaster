@@ -31,7 +31,7 @@ const nav = [
       <a class="phone" href={`tel:${facts.phoneHref.value}`}>
         <Icon name="phone" />
         <span class="phone-num num">{facts.phone.value}</span>
-        <span class="visually-hidden">Call Antonio</span>
+        <span class="visually-hidden">Call {facts.ownerFirst.value}</span>
       </a>
       <a class="btn btn--primary book" href="/book">Book a time</a>
       <details class="menu">
@@ -63,22 +63,29 @@ const nav = [
     .site-header { animation: header-lift linear both; animation-timeline: scroll(root); animation-range: 0 80px; }
     @keyframes header-lift { from { box-shadow: 0 0 0 rgb(0 0 0 / 0); } to { box-shadow: 0 1px 0 rgb(255 255 255 / 0.08), 0 8px 24px rgb(0 0 0 / 0.28); } }
   }
-  .bar { display: flex; align-items: center; gap: 1rem; height: var(--header-h); }
+  /* What the bar shows depends on its own width in rem (container queries below), so a larger
+     browser font size collapses the nav, hides the Book button and the number, and tightens the
+     brand before anything collides; plain px breakpoints ignored the font size. The bar's height
+     never changes with these steps, which keeps the header fixed during page transitions. */
+  .bar { display: flex; align-items: center; gap: 0.5rem; height: var(--header-h); container: hbar / inline-size; }
   .brand { display: flex; flex-direction: column; text-decoration: none; color: var(--white); }
-  .brand :global(.brand-logo) { height: 1.75rem; }
-  .brand-sub { font-size: 0.8125rem; line-height: 1.2; letter-spacing: 0.17em; text-transform: uppercase; color: var(--sky-300); margin-top: 0.3rem; white-space: nowrap; }
+  .brand :global(.brand-logo) { height: 1.15rem; }
+  .brand-sub { font-size: 0.625rem; line-height: 1.2; letter-spacing: 0.04em; text-transform: uppercase; color: var(--sky-300); margin-top: 0.3rem; white-space: nowrap; }
   .nav { display: none; margin-left: auto; }
   .nav ul { display: flex; gap: 0.15rem; list-style: none; margin: 0; padding: 0; }
   .nav a { display: block; padding: 0.6rem 0.65rem; color: var(--white); text-decoration: none; font-weight: 600; font-size: 1.0625rem; border-radius: 6px; white-space: nowrap; }
   .nav a:hover, .nav a[aria-current="page"] { background: var(--navy); }
   .nav a[aria-current="page"] { box-shadow: inset 0 -2px 0 var(--sky); }
-  .actions { display: flex; align-items: center; gap: 0.5rem; margin-left: auto; }
-  .phone { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-width: 3rem; min-height: 3rem; padding: 0 0.6rem; color: var(--white); text-decoration: none; font-weight: 700; font-size: 1.0625rem; border-radius: var(--radius); background: var(--navy); white-space: nowrap; }
-  .phone :global(svg) { width: 1.3rem; height: 1.3rem; color: var(--sky); }
+  .actions { display: flex; flex: none; align-items: center; gap: 0.25rem; margin-left: auto; }
+  /* The Call button: an icon on narrow bars, the full number once it fits, set at the size of
+     the Book label so it reads at a glance. 48px minimum on the narrowest bars, 3rem above. */
+  .phone { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-width: 48px; min-height: 48px; padding: 0 0.6rem; color: var(--white); text-decoration: none; font-weight: 700; font-size: 1.1875rem; letter-spacing: 0.01em; border-radius: var(--radius); background: var(--navy); white-space: nowrap; }
+  .phone:hover { background: var(--navy-900); }
+  .phone :global(svg) { width: 1.3rem; height: 1.3rem; flex: none; color: var(--sky); }
   .phone-num { display: none; }
   .book { display: none; min-height: 3rem; white-space: nowrap; }
   .menu { position: relative; }
-  .menu summary { list-style: none; width: 3rem; height: 3rem; display: grid; place-content: center; gap: 5px; cursor: pointer; border-radius: var(--radius); }
+  .menu summary { list-style: none; width: 48px; height: 48px; display: grid; place-content: center; gap: 5px; cursor: pointer; border-radius: var(--radius); }
   .menu summary::-webkit-details-marker { display: none; }
   .menu summary span { display: block; width: 22px; height: 2px; background: var(--white); }
   /* The bar stays on screen, so the open menu scrolls inside itself on short screens. */
@@ -89,17 +96,25 @@ const nav = [
   .license { display: flex; flex-wrap: wrap; gap: 0.15rem 0.5rem; margin: 0 auto; padding: 0.45rem 0 0.6rem; font-size: 0.9375rem; line-height: 1.4; border-top: 1px solid rgb(255 255 255 / 0.08); max-width: none; }
   .license .num { color: var(--white); font-weight: 700; }
   .est { display: none; }
-  @media (max-width: 359px) {
+  /* Steps by the bar's width in rem. Each threshold is the measured width of what that step
+     shows (brand, buttons, gaps), plus a little room. */
+  @container hbar (min-width: 17rem) {
     .brand :global(.brand-logo) { height: 1.5rem; }
-    .brand-sub { letter-spacing: 0.06em; }
-    .bar { gap: 0.5rem; }
-    .actions { gap: 0.25rem; }
+    .brand-sub { font-size: 0.8125rem; letter-spacing: 0.06em; }
+    .phone { min-width: 3rem; min-height: 3rem; }
+    .menu summary { width: 3rem; height: 3rem; }
   }
-  @media (min-width: 560px) { .phone-num { display: inline; } .est { display: inline; } }
-  @media (min-width: 720px) { .book { display: inline-flex; } }
-  @media (min-width: 1180px) {
+  @container hbar (min-width: 19.5rem) {
+    .brand :global(.brand-logo) { height: 1.75rem; }
+    .brand-sub { letter-spacing: 0.17em; }
+    .actions { gap: 0.5rem; }
+  }
+  @container hbar (min-width: 28.75rem) { .phone { padding: 0 0.85rem; } .phone-num { display: inline; } }
+  @container hbar (min-width: 38.75rem) { .book { display: inline-flex; } }
+  @container hbar (min-width: 73rem) {
     .nav { display: block; }
     .actions { margin-left: 0.5rem; }
     .menu { display: none; }
   }
+  @media (min-width: 560px) { .est { display: inline; } }
 </style>
