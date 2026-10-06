@@ -1,7 +1,8 @@
 ---
 import Logo from "./Logo.astro";
 import Icon from "./Icon.astro";
-import { facts } from "../data/facts";
+import TagSwitch from "./TagSwitch.astro";
+import { facts, isPublicBuild } from "../data/facts";
 const path = Astro.url.pathname.replace(/\/$/, "") || "/";
 const nav = [
   { href: "/residential", label: "Home services" },
@@ -13,6 +14,9 @@ const nav = [
 ];
 ---
 <header class="site-header on-navy">
+  {/* Prototype only: the review bar rides in the sticky header, so the header sits at the same
+      place on every page and scroll position (and never moves during a page transition). */}
+  {!isPublicBuild && <TagSwitch />}
   <div class="bar wrap">
     <a class="brand" href="/" aria-label="FloMasters Plumbing and Drains, home">
       <Logo class="brand-logo" water />
@@ -78,7 +82,7 @@ const nav = [
   .menu summary::-webkit-details-marker { display: none; }
   .menu summary span { display: block; width: 22px; height: 2px; background: var(--white); }
   /* The bar stays on screen, so the open menu scrolls inside itself on short screens. */
-  .menu ul { position: absolute; right: 0; top: calc(100% + 0.5rem); background: var(--navy-950); list-style: none; margin: 0; padding: 0.5rem; border-radius: var(--radius); min-width: 15rem; max-height: calc(100dvh - var(--header-h) - 1rem); overflow-y: auto; box-shadow: 0 16px 40px rgb(0 0 0 / 0.35); }
+  .menu ul { position: absolute; right: 0; top: calc(100% + 0.5rem); background: var(--navy-950); list-style: none; margin: 0; padding: 0.5rem; border-radius: var(--radius); min-width: 15rem; max-height: calc(100dvh - var(--sticky-h) - 1rem); overflow-y: auto; box-shadow: 0 16px 40px rgb(0 0 0 / 0.35); }
   .menu a { display: block; padding: 0.75rem 0.9rem; color: var(--white); text-decoration: none; font-weight: 600; font-size: 1.125rem; border-radius: 6px; }
   .menu a:hover { background: var(--navy); }
   .license-band { background: var(--navy-950); color: var(--sky-300); }

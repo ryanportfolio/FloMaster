@@ -5,7 +5,6 @@ import "../styles/global.css";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import StickyBar from "../components/StickyBar.astro";
-import TagSwitch from "../components/TagSwitch.astro";
 import { facts, isPublicBuild } from "../data/facts";
 
 interface Props { title: string; description: string }
@@ -26,12 +25,19 @@ const fullTitle = title === "home" ? `${facts.name.value} | Master plumber in Ha
     {!isPublicBuild && (
       <script is:inline>
         (() => {
-          try {
-            const p = new URLSearchParams(location.search).get("tags");
-            const on = p === "on" ? true : p === "off" ? false : localStorage.getItem("fm-tags") === "on";
-            if (p) localStorage.setItem("fm-tags", on ? "on" : "off");
-            if (on) document.documentElement.classList.add("tags-on");
-          } catch (e) {}
+          const apply = () => {
+            try {
+              const p = new URLSearchParams(location.search).get("tags");
+              const on = p === "on" ? true : p === "off" ? false : localStorage.getItem("fm-tags") === "on";
+              if (p) localStorage.setItem("fm-tags", on ? "on" : "off");
+              document.documentElement.classList.toggle("tags-on", on);
+            } catch (e) {}
+          };
+          apply();
+          // A prerendered page ran this before the reviewer may have flipped the switch; read it again
+          // when the page is shown, and when another tab changes it.
+          document.addEventListener("prerenderingchange", apply);
+          addEventListener("storage", (e) => { if (e.key === "fm-tags") apply(); });
         })();
       </script>
     )}
@@ -40,56 +46,94 @@ const fullTitle = title === "home" ? `${facts.name.value} | Master plumber in Ha
       // cross-document view transition: the band once per tab, a dissolve after that, a plain
       // dissolve for back/forward and for reduced motion. Must run before first render, so inline.
       (() => {
-        const d = document.documentElement, TIDE = "fm-tide", BAR = "fm-vt-bar";
+        const d = document.documentElement, TIDE = "fm-tide", BAR = "fm-vt-bar", LIC = "fm-vt-lic", NAV = "fm-vt-nav";
+        let oldBar = null;
         const get = (k) => { try { return sessionStorage.getItem(k); } catch (e) { return null; } };
         const set = (k, v) => { try { sessionStorage.setItem(k, v); return true; } catch (e) { return false; } };
         const bar = () => document.querySelector("[data-sticky]");
         const shown = (b) => !!b && !b.classList.contains("is-waiting") && getComputedStyle(b).display !== "none";
-        // Old page: a hidden bottom bar is left out of the transition, so it cannot pop in at time 0.
+        // The licence line under the sticky header scrolls away; it is held above the water only
+        // while it is wholly on screen, and its top is kept for the clip that brings it in or out.
+        const lic = () => document.querySelector(".license-band");
+        const licTop = (l) => {
+          const h = document.querySelector(".site-header"), r = l && l.getBoundingClientRect();
+          return r && h && r.top >= h.getBoundingClientRect().bottom - 1 && r.bottom <= innerHeight ? Math.round(r.top) : null;
+        };
+        // Old page: a bar or licence line that is hidden or scrolled away is left out of the
+        // transition, so it cannot pop in at time 0. Also notes how this navigation was started
+        // (pageswap has the activation on browsers whose pagereveal lacks navigation.activation).
         addEventListener("pageswap", (e) => {
           if (!e.viewTransition) return;
-          const b = bar(), on = shown(b);
+          const b = bar(), on = shown(b), l = lic(), lt = licTop(l);
           if (b) b.style.viewTransitionName = on ? "" : "none";
-          set(BAR, on ? "1" : "0");
+          if (l) l.style.viewTransitionName = lt === null ? "none" : "";
+          set(BAR, on ? JSON.stringify(b.getBoundingClientRect()) : "0");
+          set(LIC, lt === null ? "" : String(lt));
+          set(NAV, (e.activation && e.activation.navigationType) || "");
         });
+        let running = null, tapped = false;
         addEventListener("pagereveal", (e) => {
           const vt = e.viewTransition;
           if (!vt) return;
-          const nav = window.navigation && navigation.activation;
-          let mode = matchMedia("(prefers-reduced-motion: reduce)").matches ? "calm"
-            : nav && nav.navigationType === "traverse" ? "back"
-            : get(TIDE) ? "short" : "full";
+          const act = window.navigation && navigation.activation;
+          const navType = act ? act.navigationType : get(NAV);
+          set(NAV, "");
+          let mode = matchMedia("(prefers-reduced-motion: reduce)").matches ? "calm" : navType === "traverse" ? "back" : get(TIDE) ? "short" : "full";
           if (mode === "full" && !set(TIDE, "1")) mode = "short";
           vt.types.add("fm-" + mode);
-          // The bar keeps its own group only when it shows on both pages; otherwise it goes with its page.
+          // The bar and the licence line keep their own groups only when they show on both pages;
+          // otherwise each goes with its page.
           const b = bar(), on = shown(b);
           if (b) b.style.viewTransitionName = on ? "" : "none";
-          if (!on && get(BAR) !== "0") vt.types.add("fm-bar-out");
+          const wasBar = get(BAR);
+          if (!on && wasBar !== "0") vt.types.add("fm-bar-out");
+          if (on && wasBar === "0") vt.types.add("fm-bar-new");
+          try { oldBar = wasBar && wasBar !== "0" && wasBar !== "1" ? JSON.parse(wasBar) : null; } catch (err) { oldBar = null; }
+          const l = lic(), lt = licTop(l), was = get(LIC);
+          if (l) l.style.viewTransitionName = lt === null ? "none" : "";
+          if (lt !== null) d.style.setProperty("--fm-lic-new", lt + "px");
+          if (was) d.style.setProperty("--fm-lic-old", was + "px");
+          if (was && lt === null) vt.types.add("fm-lic-out");
           if (mode === "full" || mode === "short") {
             d.dataset.ring = mode;
             const end = () => { if (d.dataset.ring === mode) delete d.dataset.ring; };
             d.addEventListener("animationend", (a) => { if (a.animationName.indexOf("fm-lw-level") === 0) end(); });
             setTimeout(end, 2500);
           }
-          // One of the new page's first frames is slow (60-80 ms here while the GPU rasterises the
-          // page), which would make the water jump ahead. For the first 250 ms, a frame longer than
-          // 25 ms moves every transition animation's start forward, so it advances one frame instead.
-          vt.ready.then(() => {
-            let first = 0, last = 0;
-            const step = (t) => {
-              if (last && t - last > 25) {
-                for (const a of document.getAnimations()) {
-                  const pe = a.effect && a.effect.pseudoElement;
-                  if (a.startTime != null && ((pe && pe.indexOf("::view-transition") === 0) || String(a.animationName).indexOf("fm-") === 0)) a.startTime += t - last - 16;
-                }
-              }
-              first = first || t;
-              last = t;
-              if (t - first < 250) requestAnimationFrame(step);
-            };
-            requestAnimationFrame(step);
-          }, () => {});
+          running = vt;
+          vt.finished.then(() => { if (running === vt) running = null; }, () => { if (running === vt) running = null; });
         });
+        // While a transition runs the browser sends every press to the page root, so a tap on Call
+        // or a link would be lost. A press ends the transition at once; the click that follows is
+        // passed to the link or control now under the finger, unless the browser already sent it there.
+        addEventListener("pointerdown", (e) => {
+          if (!running) return;
+          running.skipTransition();
+          running = null;
+          tapped = true;
+          // A middle press would start the browser's autoscroll on the page root instead.
+          if (e.button === 1) e.preventDefault();
+          setTimeout(() => { tapped = false; }, 1500);
+        }, true);
+        // Ctrl, Cmd, Shift or middle click on a link still opens it in a new tab or window. The
+        // middle press began on the page root, so no auxclick follows; its release stands in.
+        const pass = (e) => {
+          if (!tapped || (e.type === "pointerup" && e.button !== 1)) return;
+          tapped = false;
+          const x = e.clientX, y = e.clientY;
+          let el = document.elementFromPoint(x, y);
+          // A press on the old page's bottom bar, which this page hides, still means its Call or Book.
+          const nb = bar();
+          if (oldBar && !shown(nb) && y >= oldBar.top && y <= oldBar.bottom) el = nb && [...nb.querySelectorAll("a")].find((a) => { const r = a.getBoundingClientRect(); return x >= r.left && x <= r.right; });
+          const t = el && el.closest("a[href], button, summary, label, input, select, textarea");
+          if (!t || (e.type === "click" && t.contains(e.target))) return;
+          e.preventDefault();
+          if (t.matches("a[href]") && (e.button === 1 || e.ctrlKey || e.metaKey || e.shiftKey)) open(t.href, "_blank", "noopener");
+          else if (e.type === "pointerup") return;
+          else if (t.matches("input, select, textarea")) t.focus(); else t.click();
+        };
+        addEventListener("click", pass, true);
+        addEventListener("pointerup", pass, true);
         addEventListener("pagehide", () => { delete d.dataset.ring; });
       })();
     </script>
@@ -97,7 +141,6 @@ const fullTitle = title === "home" ? `${facts.name.value} | Master plumber in Ha
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
-    {!isPublicBuild && <TagSwitch />}
     <Header />
     <main id="main">
       <slot />

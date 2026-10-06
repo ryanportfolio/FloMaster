@@ -171,6 +171,10 @@ try {
     await touch(Array.from({ length: 12 }, (_, i) => ({ x: tx(0.3) + i * 0.3, y: ty - i * 18 })));
     let s1 = await read(t);
     check("repair story: a vertical touch swipe scrolls the page, split stays", s1.scrollY > s0.scrollY + 60 && s1.v === s0.v, `scrollY ${s0.scrollY} -> ${s1.scrollY}, v ${s0.v} -> ${s1.v}`);
+    // The swipe can carry the stage up under the sticky top area (taller in prototype builds, with
+    // the review bar), so bring it back to the middle before dragging on it.
+    await t.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: "center" }), stageSel);
+    await t.waitForTimeout(300);
     box = await t.locator(stageSel).boundingBox();
     await touch(Array.from({ length: 12 }, (_, i) => ({ x: tx(0.3) + (tx(0.75) - tx(0.3)) * (i / 11), y: box.y + box.height / 2 + i * 0.5 })));
     s1 = await read(t);

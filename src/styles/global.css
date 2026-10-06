@@ -32,6 +32,9 @@
 
   /* Height of the sticky header bar; anchors and focus scroll clear of it. */
   --header-h: 4.25rem;
+  /* Height of everything that sticks at the top: the header bar, plus the review bar in prototype
+     builds (TagSwitch.astro sets it to the measured height). */
+  --sticky-h: var(--header-h);
 
   --space-1: 0.5rem;
   --space-2: 1rem;
@@ -75,7 +78,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-padding-bottom: calc(var(--bar-h) + 4.5rem); scroll-padding-top: calc(var(--header-h) + 1rem); }
+html { -webkit-text-size-adjust: 100%; scroll-padding-bottom: calc(var(--bar-h) + 4.5rem); scroll-padding-top: calc(var(--sticky-h) + 1rem); }
 body {
   margin: 0;
   font-family: var(--font-body);
@@ -247,8 +250,9 @@ input:focus-visible, textarea:focus-visible { outline: 3px solid var(--navy); ou
    fm-full (first link followed in a tab: the band of water), fm-short (later links: a dissolve),
    fm-back (back and forward: a dissolve) or fm-calm (reduced motion: a 200 ms dissolve).
    The ring water and drop in the header logo run on <html data-ring>, which outlives the
-   transition by 240 ms. The site header and the phone's bottom bar have their own groups,
-   so they stay still above the page and the water. */
+   transition by 240 ms. The sticky header (with the prototype review bar inside it), the
+   licence line under it and the phone's bottom bar have their own groups, so they stay above
+   the page and the water. */
 
 /* Dissolve used by the short pass, back/forward and (below, 200 ms) reduced motion. */
 :root { --fm-dissolve: 400ms; --fm-dissolve-ease: ease-in-out; }
@@ -269,18 +273,21 @@ input:focus-visible, textarea:focus-visible { outline: 3px solid var(--navy); ou
 ::view-transition-group(root) { animation-duration: var(--fm-dissolve); }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: var(--fm-dissolve); animation-timing-function: var(--fm-dissolve-ease); }
 
-/* Header and bottom bar: the new page's live copy shows from the first frame, nothing moves. */
+/* Header, licence line and bottom bar: the new page's live copy shows from the first frame and
+   nothing moves. The header sits at the same place on every page (the prototype review bar rides
+   inside it), so its group never moves either. */
 .site-header { view-transition-name: fm-header; }
+.license-band { view-transition-name: fm-licence; }
 .sticky-bar { view-transition-name: fm-bar; }
-/* The prototype review bar above the header (TagSwitch.astro) is held the same way. */
-.review-bar { view-transition-name: fm-review; }
-::view-transition-group(fm-header), ::view-transition-group(fm-bar), ::view-transition-group(fm-review) { animation: none; z-index: 3; }
-::view-transition-old(fm-header), ::view-transition-old(fm-bar), ::view-transition-old(fm-review) { animation: none; opacity: 0; }
-::view-transition-new(fm-header), ::view-transition-new(fm-bar), ::view-transition-new(fm-review) { animation: none; }
-/* A bottom bar shown on only one of the two pages goes with its page (the script unnames a
-   hidden bar): dissolves here, uncovered or covered by the band in the full pass. */
-::view-transition-new(fm-bar):only-child { animation: fm-fade-in var(--fm-dissolve) var(--fm-dissolve-ease) both; }
-::view-transition-old(fm-bar):only-child { opacity: 1; animation: fm-fade-out var(--fm-dissolve) var(--fm-dissolve-ease) both; }
+::view-transition-group(fm-header) { animation: none; z-index: 4; }
+::view-transition-group(fm-licence), ::view-transition-group(fm-bar) { animation: none; z-index: 3; }
+::view-transition-old(fm-header), ::view-transition-old(fm-licence), ::view-transition-old(fm-bar) { animation: none; opacity: 0; }
+::view-transition-new(fm-header), ::view-transition-new(fm-licence), ::view-transition-new(fm-bar) { animation: none; }
+/* A licence line or bar wholly on screen on only one of the two pages goes with its page (the
+   script unnames it on the other): dissolves here; in the full pass it is uncovered or covered
+   by the band. */
+::view-transition-new(fm-bar):only-child, ::view-transition-new(fm-licence):only-child { animation: fm-fade-in var(--fm-dissolve) var(--fm-dissolve-ease) both; }
+::view-transition-old(fm-bar):only-child, ::view-transition-old(fm-licence):only-child { opacity: 1; animation: fm-fade-out var(--fm-dissolve) var(--fm-dissolve-ease) both; }
 @keyframes fm-fade-in { from { opacity: 0; } }
 @keyframes fm-fade-out { to { opacity: 0; } }
 
@@ -300,21 +307,42 @@ html:active-view-transition-type(fm-full)::view-transition-new(root) { animation
 html:active-view-transition-type(fm-full)::view-transition-new(fm-bar):only-child { animation: fm-bar-in 1040ms linear both; }
 html:active-view-transition-type(fm-full)::view-transition-old(fm-bar):only-child { animation: fm-bar-out 1040ms linear both; }
 html:active-view-transition-type(fm-bar-out)::view-transition-group(fm-bar) { z-index: 1; }
+/* A bar new to this page drops its upward shadow while the band passes; drawn above the water, the
+   shadow made a straight-edged dark strip across it. The shadow fades back in as the pass ends. */
+html:active-view-transition-type(fm-full):active-view-transition-type(fm-bar-new) .sticky-bar { box-shadow: none; }
+
+/* Licence line new to this page (the old page was scrolled past it): uncovered with the page, then
+   above the band. Leaving (the new page opens scrolled): under the band, covered as it passes.
+   The script sets --fm-lic-new and --fm-lic-old to its top on each page, so the clip edge, kept in
+   screen coordinates, can follow the band's centre line inside the licence line's own box. */
+html:active-view-transition-type(fm-full)::view-transition-new(fm-licence):only-child { animation: fm-lic-in 1040ms linear both; }
+html:active-view-transition-type(fm-full)::view-transition-old(fm-licence):only-child { animation: fm-lic-out 1040ms linear both; }
+html:active-view-transition-type(fm-lic-out)::view-transition-group(fm-licence) { z-index: 1; }
 @keyframes fm-band {
   0% { transform: translateY(calc(-14lvh - 10px)); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
-  84.615%, 100% { transform: translateY(calc(100lvh - 2px)); }
+  84.615%, 100% { transform: translateY(calc(100lvh + 4px)); }
 }
 @keyframes fm-reveal {
   0% { clip-path: polygon(0 0, 100% 0, 100% -7lvh, 0 -7lvh); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
-  84.615%, 100% { clip-path: polygon(0 0, 100% 0, 100% calc(107lvh + 8px), 0 calc(107lvh + 8px)); }
+  84.615%, 100% { clip-path: polygon(0 0, 100% 0, 100% calc(107lvh + 14px), 0 calc(107lvh + 14px)); }
+}
+/* The leaving shapes keep the strip from the band's centre line down to where that line ends,
+   so they shrink to nothing instead of turning inside out once the line passes the box. */
+@keyframes fm-lic-in {
+  0% { clip-path: polygon(0 0, 100% 0, 100% calc(-7lvh - var(--fm-lic-new, 0px)), 0 calc(-7lvh - var(--fm-lic-new, 0px))); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
+  84.615%, 100% { clip-path: polygon(0 0, 100% 0, 100% calc(107lvh + 14px - var(--fm-lic-new, 0px)), 0 calc(107lvh + 14px - var(--fm-lic-new, 0px))); }
+}
+@keyframes fm-lic-out {
+  0% { clip-path: polygon(0 calc(-7lvh - var(--fm-lic-old, 0px)), 100% calc(-7lvh - var(--fm-lic-old, 0px)), 100% calc(107lvh + 14px - var(--fm-lic-old, 0px)), 0 calc(107lvh + 14px - var(--fm-lic-old, 0px))); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
+  84.615%, 100% { clip-path: polygon(0 calc(107lvh + 14px - var(--fm-lic-old, 0px)), 100% calc(107lvh + 14px - var(--fm-lic-old, 0px)), 100% calc(107lvh + 14px - var(--fm-lic-old, 0px)), 0 calc(107lvh + 14px - var(--fm-lic-old, 0px))); }
 }
 @keyframes fm-bar-in {
-  0% { clip-path: polygon(0 0, 100% 0, 100% calc(100% - 107lvh), 0 calc(100% - 107lvh)); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
-  84.615%, 100% { clip-path: polygon(0 0, 100% 0, 100% calc(100% + 7lvh + 8px), 0 calc(100% + 7lvh + 8px)); }
+  0% { clip-path: polygon(0 -32px, 100% -32px, 100% calc(100% - 107lvh), 0 calc(100% - 107lvh)); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
+  84.615%, 100% { clip-path: polygon(0 -32px, 100% -32px, 100% calc(100% + 7lvh + 14px), 0 calc(100% + 7lvh + 14px)); }
 }
 @keyframes fm-bar-out {
-  0% { clip-path: polygon(0 calc(100% - 107lvh), 100% calc(100% - 107lvh), 100% 100%, 0 100%); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
-  84.615%, 100% { clip-path: polygon(0 calc(100% + 7lvh + 8px), 100% calc(100% + 7lvh + 8px), 100% 100%, 0 100%); }
+  0% { clip-path: polygon(0 calc(100% - 107lvh), 100% calc(100% - 107lvh), 100% calc(100% + 7lvh + 14px), 0 calc(100% + 7lvh + 14px)); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
+  84.615%, 100% { clip-path: polygon(0 calc(100% + 7lvh + 14px), 100% calc(100% + 7lvh + 14px), 100% calc(100% + 7lvh + 14px), 0 calc(100% + 7lvh + 14px)); }
 }
 
 /* The band element (Base.astro) exists only while a full pass runs. Its resting place is just

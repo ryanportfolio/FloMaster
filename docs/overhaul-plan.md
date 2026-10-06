@@ -23,6 +23,23 @@ Turn the first build, which reads as flat, into a premium site that feels effort
 - Facts keep coming from `src/data/facts.ts`, with tags. No invented data in display type (no rating histograms, no live-looking timestamps).
 - Use `/codex-image-gen` for photo stand-ins and the `build-flomaster-ui` skill for build and audit rules. Screenshots go to `D:\screenshots\FloMaster\`.
 
+## Design direction for Rounds 2 to 4 (user, 2026-10-05)
+
+The contracts in `CLAUDE.md` and the design brief set the minimum standard, not the target. Restraint means no noise: no sheen, no autoplay, no fake data. It does not mean no character. Every section needs one choice that could only belong to FloMasters in Hampton Roads; a section that would fit any plumber's site is not done.
+
+Take structure, not decoration, from Antonio's world, one per section, using what the thing does rather than how it looks:
+
+- The carbon-copy work order: pricing reads as a written quote, with filled-in fields, line items and a copy for each side.
+- Stamped brass valve tags: licence and phone numbers, stamped and fixed to the thing they identify.
+- Shipyard and Navy hull stencils: Hampton Roads is shipbuilding country, so big numbers are set like hull numbers, large and readable from a distance.
+- The Tidewater chart: the service area, divided the way the water divides it.
+
+Process for every section:
+
+1. Write one line describing the obvious plumber site for that section (navy hero, smiling plumber, three service cards, shield badges, star row, wrench and droplet icons), and don't build it.
+2. Build three directions and show the user screenshots. The user picks; reviewers never pick.
+3. Reviewers score each direction on "could only be this business" alongside "premium".
+
 ## The signature moment: the repair story
 
 The before/after becomes the site's main creative moment and moves up the home page, next to the pricing proof.

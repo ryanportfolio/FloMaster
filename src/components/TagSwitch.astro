@@ -1,21 +1,21 @@
 ---
-// Prototype only: a slim review bar above the header. Shows or hides every
-// "confirm this" tag, links to the full list, and can arm the full page transition
-// again for this tab (it plays once per tab, see Base.astro). It sits in the page
-// flow, so it never covers content.
+// Prototype only: a slim review bar at the top of the sticky header (Header.astro). Shows or
+// hides every "confirm this" tag, links to the full list, and can replay the full page
+// transition for this tab (it plays once per tab, see Base.astro).
 ---
 <div class="review-bar">
   <div class="wrap rb-inner">
     <span class="rb-note">Prototype for review</span>
     <button type="button" aria-pressed="false" data-tag-switch>
       <span class="dot" aria-hidden="true"></span>
-      Items to confirm: <span data-tag-state>Off</span>
+      <span><span class="rb-long">Items to confirm:</span><span class="rb-short" aria-hidden="true">To confirm:</span></span> <span data-tag-state>Off</span>
     </button>
-    <button type="button" aria-pressed="false" data-replay>
+    <a href="/review"><span class="rb-long">See the full list</span><span class="rb-short" aria-hidden="true">Full list</span></a>
+    <button type="button" aria-describedby="rb-replay-state" data-replay>
       <span class="dot" aria-hidden="true"></span>
-      Replay page transition
+      <span><span class="rb-long">Replay page transition</span><span class="rb-short" aria-hidden="true">Replay</span></span>
     </button>
-    <a href="/review">See the full list</a>
+    <span class="rb-state"><span id="rb-replay-state" role="status" data-replay-state></span><span class="rb-size" aria-hidden="true">Plays on the next link</span></span>
   </div>
 </div>
 
@@ -29,6 +29,9 @@
     state.textContent = on ? "On" : "Off";
   };
   sync();
+  // The head script re-reads the setting when a prerendered page is shown or another tab changes it.
+  document.addEventListener("prerenderingchange", sync);
+  addEventListener("storage", (e) => { if (e.key === "fm-tags") sync(); });
   btn.addEventListener("click", () => {
     const on = root.classList.toggle("tags-on");
     try { localStorage.setItem("fm-tags", on ? "on" : "off"); } catch {}
@@ -37,17 +40,58 @@
     history.replaceState(null, "", url);
     sync();
   });
-  // Pressed means the next link followed in this tab plays the full transition (no flag stored).
+
+  // Replay: a plain button that arms the full transition for the next link in this tab by clearing
+  // the once-per-tab flag. While armed (also on a fresh tab, whose first link plays it anyway) the
+  // note says so (on phones, where the note is hidden to keep the bar one row, the button's dot
+  // fills). Without session storage the transition cannot be armed, and with reduced motion it never
+  // plays, so the button is disabled and the note says why.
   const replay = document.querySelector<HTMLButtonElement>("[data-replay]")!;
-  const armed = () => { try { return !sessionStorage.getItem("fm-tide"); } catch { return false; } };
-  const syncReplay = () => replay.setAttribute("aria-pressed", String(armed()));
+  const note = document.querySelector("[data-replay-state]")!;
+  const calm = matchMedia("(prefers-reduced-motion: reduce)");
+  const read = () => { try { return { ok: true, armed: !sessionStorage.getItem("fm-tide") }; } catch { return { ok: false, armed: false }; } };
+  const syncReplay = () => {
+    const s = read();
+    replay.disabled = !s.ok || calm.matches;
+    replay.toggleAttribute("data-armed", s.ok && s.armed && !calm.matches);
+    note.textContent = !s.ok ? "Not available: this browser blocks session storage" : calm.matches ? "Off while reduced motion is on" : s.armed ? "Plays on the next link" : "";
+  };
   syncReplay();
+  calm.addEventListener("change", syncReplay);
   replay.addEventListener("click", () => {
-    try { if (armed()) sessionStorage.setItem("fm-tide", "1"); else sessionStorage.removeItem("fm-tide"); } catch {}
+    try { sessionStorage.removeItem("fm-tide"); } catch {}
     syncReplay();
   });
   // The head script sets the flag on pagereveal, which can come after this script runs.
   addEventListener("pagereveal", syncReplay);
+
+  // Sticky offsets (scroll padding, sticky side panels, the menu's height) follow the real height
+  // of the sticky header, which this bar makes taller and which wraps differently by width.
+  const header = document.querySelector<HTMLElement>(".site-header");
+  if (header) {
+    const setSticky = () => root.style.setProperty("--sticky-h", `${header.offsetHeight}px`);
+    setSticky();
+    new ResizeObserver(setSticky).observe(header);
+    // WCAG 2.4.11: the taller sticky area leaves less room, and Chrome does not scroll a focused
+    // element that is already partly in view. If focus moved by keyboard lands on one under the
+    // sticky area or the phone bottom bar, scroll it clear (scrollIntoView keeps the scroll padding);
+    // one taller than the room between the paddings goes to the top of it. Focus after a click or
+    // tap is left alone, so pressing in a field or panel never moves the page. (`:focus-visible`
+    // cannot tell them apart: Chrome sets it for clicked text fields and script-moved focus.)
+    let byKey = false;
+    addEventListener("keydown", () => { byKey = true; }, true);
+    addEventListener("pointerdown", () => { byKey = false; }, true);
+    document.addEventListener("focusin", (e) => {
+      const el = e.target as HTMLElement;
+      if (!byKey || !(el instanceof HTMLElement) || header.contains(el) || el.closest("[data-sticky]")) return;
+      const r = el.getBoundingClientRect(), top = header.getBoundingClientRect().bottom;
+      const bar = document.querySelector<HTMLElement>("[data-sticky]");
+      const bottom = bar && !bar.classList.contains("is-waiting") && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().top : innerHeight;
+      const cs = getComputedStyle(document.documentElement), room = innerHeight - parseFloat(cs.scrollPaddingTop) - parseFloat(cs.scrollPaddingBottom);
+      if (r.height && (r.top < top || r.bottom > bottom)) el.scrollIntoView({ block: r.height <= room ? "nearest" : "start" });
+    });
+  }
+
   // WCAG 1.4.13: Escape dismisses an open question; it returns on the next hover or focus.
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") root.classList.add("tips-hidden"); });
   const show = (e: Event) => { if ((e.target as Element).closest?.(".fact-tag")) root.classList.remove("tips-hidden"); };
@@ -58,12 +102,42 @@
 <style>
   .review-bar { background: #eef1f5; color: var(--ink); border-bottom: 1px solid var(--line); font-size: 0.9375rem; }
   .rb-inner { display: flex; align-items: center; gap: 0.25rem 1rem; min-height: 2.5rem; flex-wrap: wrap; }
-  .rb-note { color: var(--ink-soft); }
+  .rb-note, .rb-state { color: var(--ink-soft); }
+  /* The note always takes the width of "Plays on the next link" (a hidden copy sits under it) and
+     never wraps, so arming the replay or clearing the note never changes how the bar wraps. */
+  .rb-state { display: inline-grid; white-space: nowrap; }
+  .rb-state > * { grid-area: 1 / 1; }
+  .rb-size { visibility: hidden; }
+  .rb-short { display: none; }
   button { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 2.25rem; padding: 0 0.7rem; border: 1px solid #c3cddb; border-radius: 999px; background: var(--white); font: inherit; font-weight: 700; color: inherit; cursor: pointer; }
   button:hover { border-color: var(--slate); }
+  button:disabled { cursor: not-allowed; color: var(--ink-soft); }
   .dot { width: 0.65rem; height: 0.65rem; border-radius: 50%; background: #9fb0c4; }
   button[aria-pressed="true"] { background: #fff4cc; border-color: #e0a100; }
   button[aria-pressed="true"] .dot { background: #e0a100; }
+  button[data-armed] .dot { background: var(--navy); }
+  button:disabled .dot { visibility: hidden; }
   a { color: var(--navy); font-weight: 600; padding: 0.4rem 0; }
-  @media (max-width: 480px) { .rb-note { display: none; } }
+  /* It sits inside the navy header, whose focus ring is white; on this pale bar it stays navy. */
+  .review-bar :focus-visible { outline-color: var(--navy); }
+  /* Below desktop width: short labels (the full wording stays in each control's name for screen
+     readers), so the bar is one row of the sticky area. On phones the replay note is also left to
+     screen readers and the button's dot. */
+  @media (max-width: 899px) {
+    .rb-note { display: none; }
+    .rb-long { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .rb-short { display: inline; }
+  }
+  /* Too narrow for the note in the row: screen readers still get it; a Replay that cannot play is
+     left out rather than shown disabled with no visible reason. */
+  @media (max-width: 559px) {
+    .rb-state { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    button[data-replay]:disabled { display: none; }
+  }
+  @media (max-width: 480px) {
+    .review-bar { font-size: 0.875rem; }
+    .rb-inner { gap: 0.25rem 0.5rem; }
+    button { padding: 0 0.55rem; }
+  }
+  @media (max-width: 400px) { .review-bar { font-size: 0.8125rem; } }
 </style>
