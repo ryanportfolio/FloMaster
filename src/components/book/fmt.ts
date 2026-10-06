@@ -15,8 +15,10 @@ export type Booking = {
   phone?: string;
 };
 
+// The date is a calendar day in Virginia; format its own components (noon UTC, shown in UTC) so the
+// visitor's timezone can never move it to the day before or after.
 export const shortDay = (iso: string) =>
-  new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "America/New_York" }).replace(",", "");
+  new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" }).replace(",", "");
 
 export const fmtPhone = (raw: string) => {
   const d = raw.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");

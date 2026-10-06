@@ -115,12 +115,20 @@ const priceMap = Object.fromEntries(problems.map((p) => [p.slug, p.prices]));
   try { const saved = sessionStorage.getItem("fm-phone"); if (saved) $<HTMLInputElement>("#phone").value = saved; } catch {}
   $<HTMLInputElement>("#phone").addEventListener("input", (e) => { try { sessionStorage.setItem("fm-phone", (e.target as HTMLInputElement).value); } catch {} });
 
-  // Question 1's price tag shows through CSS; this announces it and keeps it in view.
+  // Question 1's price tag shows through CSS; this announces it and scrolls as much of it into view
+  // as fits without moving the chosen problem (and its focus) under the sticky header.
   const onJob = (scroll: boolean) => {
     const job = checked("job");
     jobStatus.textContent = job?.dataset.say ?? "";
     const tag = job && document.getElementById(job.getAttribute("aria-controls") ?? "");
-    if (scroll && tag) requestAnimationFrame(() => tag.scrollIntoView({ block: "nearest", behavior: reduce.matches ? "auto" : "smooth" }));
+    if (scroll && tag) requestAnimationFrame(() => {
+      const head = document.querySelector(".site-header")?.getBoundingClientRect().bottom ?? 0;
+      const bar = document.querySelector<HTMLElement>("[data-sticky]");
+      const bottom = bar && !bar.classList.contains("is-waiting") && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().top : innerHeight;
+      const over = tag.getBoundingClientRect().bottom - bottom + 8;
+      const room = (job.closest("label") ?? job).getBoundingClientRect().top - head - 8;
+      if (over > 0 && room > 0) scrollBy({ top: Math.min(over, room), behavior: reduce.matches ? "auto" : "smooth" });
+    });
   };
 
   const zipCheck = () => {
@@ -205,6 +213,11 @@ const priceMap = Object.fromEntries(problems.map((p) => [p.slug, p.prices]));
 
   form.addEventListener("change", (e) => { if ((e.target as HTMLInputElement).name === "job") onJob(true); progress(); if (tried) validate(false); });
   form.addEventListener("input", () => { progress(); if (tried) validate(false); });
+  // The callback form below copies its phone number into this form without an input event here.
+  document.addEventListener("input", (e) => {
+    const t = e.target as Element;
+    if (t.matches?.("[data-carry-phone]") && !form.contains(t)) queueMicrotask(() => { progress(); if (tried) validate(false); });
+  });
   $("#zip").addEventListener("input", zipCheck);
   onJob(false);
   progress();
