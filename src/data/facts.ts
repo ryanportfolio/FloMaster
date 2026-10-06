@@ -62,6 +62,7 @@ export const facts = {
   textConsent: f("P37", "Text consent wording", "Message and data rates may apply; reply STOP to opt out.", "Consent wording for booking texts: settle it with the texting provider when the booking system is built.", ["Book"]),
   payment: f("P35", "Payment methods", "Card, check or cash, paid when the job is done", "Which payment methods do you take, and when do you take payment?", ["Pricing", "FAQ"]),
   quoting: f("P34", "Quoting promises", "", "Are you comfortable promising each line in 'How I quote' (written price first, repair options first, no cash-only, no full payment up front)?", ["Pricing", "FAQ"]),
+  startsOnYes: f("P34", "Nothing starts until yes", "Nothing starts until you say yes", "Can you promise that no work starts until the customer says yes to your written price, and that someone who says no owes only the call-out fee?", ["Pricing"]),
   commercialOffer: f("P33", "Commercial offer", "", "What do you offer commercial customers (scheduling around opening hours, certificate of insurance, invoicing terms, backflow testing)?", ["Commercial"]),
   serviceList: f("P32", "Service pages", "", "Which jobs should have their own page, and which do you want fewer of?", ["Residential", "Book"]),
   windows: f("P29", "Arrival windows", "", "Which arrival windows can you commit to (for example two-hour windows, weekdays)?", ["Book"]),

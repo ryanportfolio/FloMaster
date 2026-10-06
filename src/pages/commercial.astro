@@ -1,6 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
-import PageHero from "../components/PageHero.astro";
+import WorkOrderHero from "../components/WorkOrderHero.astro";
+import WorkOrderSlip from "../components/WorkOrderSlip.astro";
 import Photo from "../components/Photo.astro";
 import Fact from "../components/Fact.astro";
 import FactBlock from "../components/FactBlock.astro";
@@ -9,7 +10,12 @@ import commercial from "../assets/photos/commercial.jpg";
 import { facts } from "../data/facts";
 ---
 <Base title="Commercial plumbing" description="Plumbing for restaurants, offices, landlords and property managers across Hampton Roads. Scheduled around your opening hours.">
-  <PageHero title="Commercial plumbing for small businesses and rentals" lead="For restaurants, offices, shops, landlords and property managers across the 7 cities, with work scheduled around your hours" actions />
+  <WorkOrderHero title="Commercial plumbing for small businesses and rentals" lead="For restaurants, offices, shops, landlords and property managers across the 7 cities, with work scheduled around your hours" actions>
+    <WorkOrderSlip title="Site visit" id="wo-commercial">
+      <dl class="wo-f"><div><dt>Insurance</dt><dd><Fact k="insurance" />. <Fact k="contractorLicense" onlyWithTags /></dd></div></dl>
+      <a class="btn btn--navy btn--block go" href="#commercial-visit">Request a site visit</a>
+    </WorkOrderSlip>
+  </WorkOrderHero>
 
   <section class="section">
     <div class="wrap co">
@@ -29,10 +35,9 @@ import { facts } from "../data/facts";
           <li><strong>Paperwork:</strong> a certificate of insurance on request, a written quote before work, and an itemized invoice.</li>
           <li><strong>One contact:</strong> you deal with me directly, every time.</li>
         </ul></FactBlock>
-        <p class="small"><Fact k="insurance" />. <Fact k="contractorLicense" onlyWithTags /></p>
       </div>
 
-      <form class="visit panel" data-visit novalidate method="post" action="/commercial">
+      <form class="visit panel" id="commercial-visit" data-visit novalidate method="post" action="/commercial">
         <h2 class="v-h">Request a site visit</h2>
         <p class="small muted"><Fact k="commercialOffer" text="I'll call within one working day to set a time." /></p>
         <div class="field">
@@ -103,4 +108,5 @@ import { facts } from "../data/facts";
   .v-h { font-size: var(--step-2); margin-bottom: 0.25rem; }
   .ok { color: var(--ok); font-weight: 700; }
   .ok:empty { display: none; }
+  .go { margin-top: 0.6rem; }
 </style>

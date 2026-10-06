@@ -1,0 +1,90 @@
+---
+// Antonio's business card, both sides. The front carries the logo; the back is the site's
+// CardBack (name, trade, license, phone). The card turns over with its own button, or by pressing
+// anywhere on the card that isn't the phone link. The hidden side is inert, so only the side
+// showing can be read or tabbed to. Reduced motion: the sides swap without turning.
+import Logo from "./Logo.astro";
+import CardBack from "./CardBack.astro";
+import { facts } from "../data/facts";
+interface Props { class?: string; tone?: "on-navy" | "on-paper" }
+const { class: cls, tone = "on-paper" } = Astro.props;
+---
+<div class:list={["flip", `flip--${tone}`, cls]} data-flip>
+  <div class="flip-stage" data-flip-stage>
+    <div class="flip-inner">
+      <div class="face face--front" data-face="front">
+        <Logo class="ff-logo" />
+        <p class="ff-sub">Plumbing and Drains</p>
+        <p class="ff-est">Est. {facts.established.value}</p>
+      </div>
+      <div class="face face--back" data-face="back" inert aria-hidden="true">
+        <CardBack class="ff-back" />
+      </div>
+    </div>
+  </div>
+  <div class="flip-row">
+    <button type="button" class="flip-btn" data-flip-btn>
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M4 12a8 8 0 0 1 13.7-5.6M20 12a8 8 0 0 1-13.7 5.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /><path d="M18.5 2.8v4.4h-4.4M5.5 21.2v-4.4h4.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      Turn the card over
+    </button>
+    <p class="flip-state" aria-live="polite" data-flip-state>Front of the card</p>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-flip]").forEach((root) => {
+    const front = root.querySelector<HTMLElement>("[data-face='front']")!;
+    const back = root.querySelector<HTMLElement>("[data-face='back']")!;
+    const state = root.querySelector<HTMLElement>("[data-flip-state]")!;
+    const turn = () => {
+      const toBack = !root.classList.contains("is-back");
+      root.classList.toggle("is-back", toBack);
+      front.inert = toBack;
+      back.inert = !toBack;
+      front.toggleAttribute("aria-hidden", toBack);
+      back.toggleAttribute("aria-hidden", !toBack);
+      state.textContent = toBack ? "Back of the card: name, license and phone" : "Front of the card";
+    };
+    root.querySelector("[data-flip-btn]")!.addEventListener("click", turn);
+    // Press anywhere on the card; the phone link on the back still calls.
+    root.querySelector("[data-flip-stage]")!.addEventListener("click", (e) => {
+      if ((e.target as Element).closest("a")) return;
+      turn();
+    });
+  });
+</script>
+
+<style>
+  .flip { width: min(100%, 24rem); }
+  .flip-stage { perspective: 1600px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .flip-inner { position: relative; aspect-ratio: 1.75; transform-style: preserve-3d; transition: transform 0.65s cubic-bezier(0.3, 0.7, 0.2, 1); }
+  .is-back .flip-inner { transform: rotateY(180deg); }
+  .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .face--back { transform: rotateY(180deg); }
+  .face--back :global(.ff-back) { width: 100%; height: 100%; }
+  .face--front {
+    container-type: inline-size; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem;
+    border-radius: 16px; color: var(--white); background: var(--navy) var(--waves); background-size: 72px 36px;
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.08) inset, var(--shadow-3);
+  }
+  .face--front p { margin: 0; max-width: none; }
+  .face--front :global(.ff-logo) { height: 10.5cqi; }
+  .ff-sub { font: 600 max(0.875rem, 4.1cqi)/1.2 var(--font-body); letter-spacing: 0.17em; text-transform: uppercase; color: var(--sky-300); margin-top: 0.35rem !important; }
+  .ff-est { font: 600 max(0.875rem, 3.6cqi)/1.2 var(--font-slab); letter-spacing: 0.12em; text-transform: uppercase; color: var(--white); opacity: 0.9; margin-top: 0.3rem !important; }
+
+  .flip-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin-top: 1rem; }
+  .flip-btn {
+    display: inline-flex; align-items: center; gap: 0.55rem; min-height: 2.75rem; padding: 0.5rem 1rem;
+    border-radius: var(--radius); border: 2px solid currentColor; background: transparent; cursor: pointer;
+    font: 700 1.0625rem/1.2 var(--font-body);
+  }
+  .flip-btn svg { width: 1.25rem; height: 1.25rem; transition: transform 0.65s cubic-bezier(0.3, 0.7, 0.2, 1); }
+  .is-back .flip-btn svg { transform: rotate(180deg); }
+  .flip-state { margin: 0; font-size: var(--step--1); }
+  .flip--on-paper .flip-btn { color: var(--navy); }
+  .flip--on-paper .flip-btn:hover { background: var(--sky-100); }
+  .flip--on-paper .flip-state { color: var(--ink-soft); }
+  .flip--on-navy .flip-btn { color: var(--white); }
+  .flip--on-navy .flip-btn:hover { background: rgb(255 255 255 / 0.1); }
+  .flip--on-navy .flip-state { color: var(--sky-300); }
+</style>

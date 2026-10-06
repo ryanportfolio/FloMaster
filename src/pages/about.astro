@@ -1,60 +1,38 @@
 ---
 import Base from "../layouts/Base.astro";
-import PageHero from "../components/PageHero.astro";
+import WorkOrderHero from "../components/WorkOrderHero.astro";
+import WorkOrderSlip from "../components/WorkOrderSlip.astro";
 import Photo from "../components/Photo.astro";
-import Fact from "../components/Fact.astro";
-import FactBlock from "../components/FactBlock.astro";
-import CardBack from "../components/CardBack.astro";
+import FlipCard from "../components/FlipCard.astro";
+import AboutSheet from "../components/AboutSheet.astro";
 import CallToAction from "../components/CallToAction.astro";
-import hero from "../assets/photos/hero.jpg";
 import portrait from "../assets/photos/portrait.jpg";
 import { facts } from "../data/facts";
 ---
 <Base title="About Antonio Spence" description="Antonio Spence is a Virginia master plumber and the owner of FloMasters Plumbing and Drains, established 2024 in Hampton Roads.">
-  <PageHero title="I'm Antonio Spence, and FloMasters is me" lead={`Virginia Master Plumber, license #${facts.license.value}, and owner of FloMasters Plumbing and Drains since ${facts.established.value}`} />
-  <section class="section">
-    <div class="wrap ab">
-      <div class="story">
-        <p class="lead">I've been a plumber for <Fact k="yearsInTrade" />, and I started FloMasters in {facts.established.value} to give customers what I'd want in my own house</p>
-        <p>That means a straight answer, a fair price written down before the work starts, and the same person from the phone call to the clean-up.</p>
-        <FactBlock k="workPromises"><p>There's no call center and no sales team. When you call, I pick up, or I call you back as soon as I'm out from under the sink. When you book, I'm the one who turns up, and I'm the one who stands behind the work.</p></FactBlock>
-        <h2>How I work</h2>
-        <FactBlock k="workPromises"><ul class="ticks">
-          <li>I find the cause before I name a price.</li>
-          <li>You get repair and replacement prices side by side, and you choose.</li>
-          <li>I show you the old part and explain what failed.</li>
-          <li>Drop cloths down, mess cleaned up, everything tested before I leave.</li>
-          <li><Fact k="laborWarranty" /> on every job.</li>
-        </ul></FactBlock>
-        <h2>Licensed and insured</h2>
-        <ul class="creds">
-          <li><strong>Virginia Master Plumber</strong><span class="num">License #{facts.license.value}</span></li>
-          {facts.contractorLicense.status === "confirmed" ? <li><strong>Contractor license</strong><span>{facts.contractorLicense.value}</span></li> : <li class="tags-only"><strong>Contractor license</strong><span><Fact k="contractorLicense" /></span></li>}
-          <li><strong>Insurance</strong><span><Fact k="insurance" /></span></li>
-          <li><strong>Bonding</strong><span><Fact k="bonded" /></span></li>
-        </ul>
-        <p class="small">Check my license yourself on the <a href="https://www.dpor.virginia.gov/LicenseLookup" rel="noopener">Virginia DPOR license lookup</a>: search for license <span class="num">{facts.license.value}</span>.</p>
+  <WorkOrderHero title="I'm Antonio Spence, and FloMasters is me" lead={`Virginia Master Plumber and owner of FloMasters Plumbing and Drains since ${facts.established.value}`}>
+    <WorkOrderSlip title="Who turns up" id="wo-about">
+      <div class="who">
+        <Photo src={portrait} fact="portrait" alt="Antonio Spence in his navy FloMasters work shirt" widths={[240, 480, 768]} sizes="(min-width: 1000px) 12rem, 7rem" priority class="who-pic" shot="portrait" />
+        <FlipCard class="who-card" />
       </div>
-      <div class="pics">
-        <Photo src={portrait} fact="portrait" alt="Antonio Spence in his navy FloMasters work shirt" widths={[480, 768, 1024]} sizes="(min-width: 1000px) 420px, 100vw" class="ab-portrait" shot="portrait" />
-        <CardBack class="ab-card" />
-        <Photo src={hero} fact="hero" alt="Antonio beside his van, shelves of parts inside" widths={[480, 768, 1080]} sizes="(min-width: 1000px) 420px, 100vw" class="ab-van" shot="Antonio with the van" />
-      </div>
-    </div>
-  </section>
+    </WorkOrderSlip>
+  </WorkOrderHero>
+  <AboutSheet />
   <CallToAction />
 </Base>
 
 <style>
-  .ab { display: grid; gap: var(--space-4); }
-  @media (min-width: 1000px) { .ab { grid-template-columns: minmax(0, 1fr) 26rem; align-items: start; } }
-  .story h2 { font-size: var(--step-2); margin-top: var(--space-4); }
-  .creds { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: 0; }
-  :global(.tags-on) .creds li.tags-only { display: grid !important; }
-  .creds li { display: grid; grid-template-columns: 12rem 1fr; gap: 1rem; padding: 0.7rem 0; border-bottom: 1px solid var(--line); }
-  @media (max-width: 560px) { .creds li { grid-template-columns: 1fr; gap: 0; } }
-  .pics { display: grid; gap: 1.5rem; justify-items: center; }
-  .pics :global(.ab-portrait) { border-radius: var(--radius-lg); aspect-ratio: 1; width: 100%; }
-  .pics :global(.ab-van) { border-radius: var(--radius-lg); aspect-ratio: 4 / 3; width: 100%; }
-  .pics :global(.ab-card) { transform: rotate(-2deg); margin-top: -4rem; position: relative; z-index: 2; }
+  /* The card's parts join the slip's grid: on a phone the portrait sits beside the turn-over
+     button with the card full width below it, so the card stays wide enough to read; from 700 px
+     the portrait sits beside the card. */
+  .who { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); grid-template-areas: "pic row" "card card"; gap: 0.75rem; align-items: center; padding-top: 0.6rem; }
+  .who :global(.who-pic) { grid-area: pic; border-radius: var(--radius); aspect-ratio: 4 / 5; width: 100%; margin: 0; }
+  .who :global(.who-card) { display: contents; }
+  .who :global(.flip-stage) { grid-area: card; }
+  .who :global(.flip-row) { grid-area: row; margin: 0; flex-direction: column; align-items: flex-start; gap: 0.35rem; }
+  @media (min-width: 700px) {
+    .who { grid-template-columns: 9rem minmax(0, 1fr); grid-template-areas: "pic card" "pic row"; gap: 0.75rem 1.1rem; align-items: start; }
+    .who :global(.flip-row) { flex-direction: row; align-items: center; }
+  }
 </style>

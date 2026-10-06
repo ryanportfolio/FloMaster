@@ -1,6 +1,7 @@
 ---
 import Base from "../../layouts/Base.astro";
-import PageHero from "../../components/PageHero.astro";
+import WorkOrderHero from "../../components/WorkOrderHero.astro";
+import WorkOrderSlip from "../../components/WorkOrderSlip.astro";
 import Photo from "../../components/Photo.astro";
 import CallToAction from "../../components/CallToAction.astro";
 import Icon from "../../components/Icon.astro";
@@ -8,7 +9,15 @@ import Fact from "../../components/Fact.astro";
 import { services } from "../../data/services";
 ---
 <Base title="Home plumbing services and prices" description="Drain clearing, water heaters, leak and pipe repair, fixtures and sewer lines for homes across Hampton Roads, with typical prices for every job.">
-  <PageHero title="Home plumbing, with the prices up front" lead="Typical price ranges for the jobs I do most, and a written, flat price for your job before I start" actions />
+  <WorkOrderHero title="Home plumbing, with the prices up front" lead="Typical price ranges for the jobs I do most, and a written, flat price for your job before I start" actions>
+    <WorkOrderSlip title="On every home job" id="wo-home">
+      <dl class="wo-f">
+        <div><dt>Call-out</dt><dd><Fact k="calloutFee" />, <Fact k="calloutCredited" /></dd></div>
+        <div><dt>Your price</dt><dd><Fact k="pricingModel" text="Flat, agreed in writing before I start" /></dd></div>
+        <div><dt>Guarantee</dt><dd><Fact k="laborWarranty" /></dd></div>
+      </dl>
+    </WorkOrderSlip>
+  </WorkOrderHero>
   <section class="section">
     <div class="wrap list">
       {services.map((s, i) => (
@@ -45,4 +54,5 @@ import { services } from "../../data/services";
   .mini th { font-weight: 500; }
   .mini td { text-align: right; font-family: var(--font-slab); font-weight: 700; color: var(--navy); white-space: nowrap; padding-left: 1rem; }
   .more { font-weight: 600; }
+
 </style>

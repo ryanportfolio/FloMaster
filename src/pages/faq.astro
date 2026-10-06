@@ -1,56 +1,28 @@
 ---
 import Base from "../layouts/Base.astro";
-import PageHero from "../components/PageHero.astro";
-import Fact from "../components/Fact.astro";
+import WorkOrderHero from "../components/WorkOrderHero.astro";
+import WorkOrderSlip from "../components/WorkOrderSlip.astro";
+import FaqKey from "../components/FaqKey.astro";
+import FaqTerms from "../components/FaqTerms.astro";
 import CallToAction from "../components/CallToAction.astro";
-import { facts } from "../data/facts";
+import { groups } from "../data/faq";
+const figLabel: Record<string, string> = { fees: "Call-out fee", booking: "Callback", emergencies: "Emergency arrival", guarantee: "Labor warranty" };
 ---
-<Base title="Questions" description="Answers about FloMasters fees, arrival windows, the guarantee, payment and emergencies.">
-  <PageHero title="Questions people ask" lead="Fees, arrival times, the guarantee and payment; if your question isn't here, call or text me" />
-  <section class="section">
-    <div class="wrap faq">
-      <section>
-        <h2>Fees and prices</h2>
-        <h3>Do you charge just to come out?</h3>
-        <p>There's a call-out fee of <Fact k="calloutFee" />, <Fact k="calloutCredited" />. Every other fee is on the <a href="/pricing">price page</a>; if it isn't listed, I don't charge it.</p>
-        <h3>Do you charge by the hour?</h3>
-        <p><Fact k="pricingModel" /></p>
-        <h3>Do you add a fee for paying by card?</h3>
-        <p><Fact k="cardFee" />. <Fact k="payment" />.</p>
-        <h3>Will the price change once you start?</h3>
-        <p>Not without asking you. If I find something new, I stop, show you, and give you the price before going further.</p>
-      </section>
-      <section>
-        <h2>Booking and arrival</h2>
-        <h3>How do arrival windows work?</h3>
-        <p>You pick a two-hour window when you book. I text to confirm, again the evening before, and when I'm on my way with how long I'll be.</p>
-        <h3>What if you can't make my window?</h3>
-        <p>Emergencies sometimes push my day back. If that happens I text you as soon as I know, with a new time or the option to rebook.</p>
-        <h3>Can I cancel or move a visit?</h3>
-        <p><Fact k="cancellation" />. Reply to any of my texts or call.</p>
-      </section>
-      <section>
-        <h2>Emergencies</h2>
-        <h3>Do you really answer at night?</h3>
-        <p><Fact k="emergency247" />. <Fact k="afterHoursAnswer" />, and I'm <Fact k="emergencyArrival" /> in the 7 cities. After-hours visits cost <Fact k="afterHoursFee" />.</p>
-        <h3>What should I do while I wait?</h3>
-        <p>Turn off your main water shut-off. The <a href="/emergency">emergency page</a> shows where to find it.</p>
-      </section>
-      <section>
-        <h2>Guarantee</h2>
-        <h3>What if the repair fails?</h3>
-        <p><Fact k="laborWarranty" />: I come back and fix it at no charge. Parts carry the <Fact k="partsWarranty" text="manufacturer's warranty, and I handle the claim" />. <a href="/pricing#guarantee">Full guarantee</a></p>
-        <h3>Are you licensed and insured?</h3>
-        <p>Yes. Virginia Master Plumber, license <span class="num">#{facts.license.value}</span>. <Fact k="insurance" />.</p>
-      </section>
-    </div>
-  </section>
+<Base title="Questions" description="Answers about FloMasters fees, arrival times, the guarantee, payment and emergencies.">
+  <WorkOrderHero title="Questions people ask" lead="Fees, arrival times, the guarantee and payment; if your question isn't here, call or text me">
+    <WorkOrderSlip title="The figures" sub="from terms 1 to 4" id="wo-faq">
+      <ol class="wo-rows">
+        {groups.map((g) => (
+          <li><a class="wo-row-link" href={`#${g.id}`}><span class="wo-fno" aria-hidden="true">{g.n}</span><span class="wo-row-l">{figLabel[g.id]}</span><span class="fig-v num"><FaqKey g={g} part="num" plain /></span></a></li>
+        ))}
+      </ol>
+    </WorkOrderSlip>
+  </WorkOrderHero>
+  <FaqTerms />
   <CallToAction />
 </Base>
 
 <style>
-  .faq { display: grid; gap: var(--space-4); }
-  @media (min-width: 900px) { .faq { grid-template-columns: 1fr 1fr; gap: var(--space-4) var(--space-5); } }
-  .faq h2 { font-size: var(--step-2); padding-bottom: 0.5rem; border-bottom: 3px solid var(--sky); }
-  .faq h3 { font-family: var(--font-body); font-size: 1.25rem; margin: 1.5rem 0 0.35rem; }
+  .fig-v { font: 800 clamp(1.5rem, 1.3rem + 1vw, 2.125rem)/1 var(--font-slab); letter-spacing: -0.02em; white-space: nowrap; color: var(--navy-900); }
+  .fig-v :global(.kn-unit) { font-size: max(0.875rem, 0.55em); font-weight: 700; letter-spacing: 0; }
 </style>

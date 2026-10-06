@@ -1,0 +1,133 @@
+---
+// FAQ page body as a work order: the answers set out as the numbered terms of a work order, each
+// group a section with its key figure in the amount column, each question a numbered clause
+// ("2.3") a customer can point to on the phone. "Print these terms" prints the sheet with every
+// clause open, a copy to keep. The page header's slip (pages/faq.astro) holds the figures box.
+import FaqKey from "./FaqKey.astro";
+import FaqAnswer from "./FaqAnswer.astro";
+import Chevron from "./Chevron.astro";
+import { groups } from "../data/faq";
+import { facts } from "../data/facts";
+import { cities } from "../data/area";
+---
+<section class="section fa">
+  <div class="wrap">
+    <article class="sheet" aria-labelledby="terms-h">
+      <header class="sh-top">
+        <div>
+          <h2 id="terms-h">The terms on every job</h2>
+          <p class="sh-lead">Numbered like the back of a work order, so you can point to one when you call: "about 2.3".</p>
+        </div>
+        <p class="sh-no">No. <span class="num">{facts.license.value}</span><span class="sh-no-k">Va. Master Plumber license</span></p>
+      </header>
+      <p class="sh-area"><span class="sh-k">Service area</span><span class="sh-v">{cities.join(" · ")}</span></p>
+
+      {groups.map((g) => (
+        <section class="term" id={g.id} aria-labelledby={`${g.id}-h`}>
+          <div class="term-head">
+            <span class="fno fno--lg" aria-hidden="true">{g.n}</span>
+            <h3 id={`${g.id}-h`}>{g.title}</h3>
+            <p class="term-amt"><span class="amt num"><FaqKey g={g} part="num" /></span><span class="amt-cap"><FaqKey g={g} part="cap" /></span></p>
+          </div>
+          {g.qs.map((q, i) => (
+            <details class="clause" id={q.id} data-faq>
+              <summary><span class="cl-no num">{g.n}.{i + 1}</span><span class="cl-q">{q.q}</span><Chevron class="chev" /></summary>
+              <div class="cl-a"><FaqAnswer id={q.id} cityList /></div>
+            </details>
+          ))}
+        </section>
+      ))}
+
+      <footer class="sh-foot">
+        <p>Question not on here? Call or text <a class="num" href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a> and I'll answer it.</p>
+        <button type="button" class="btn btn--ghost sh-print" data-print>Print these terms</button>
+      </footer>
+    </article>
+  </div>
+</section>
+
+<script>
+  // Opens the question a link points to (#q-callout), on click and when the page opens at that
+  // address, and opens every question for printing. Questions are <details data-faq id="q-...">,
+  // so they work without this script; it only saves the extra tap after following a link.
+  const openFor = (hash: string | null) => {
+    if (!hash || hash.length < 2) return;
+    const el = document.getElementById(decodeURIComponent(hash.slice(1)));
+    const d = el?.closest("details");
+    if (d) d.open = true;
+  };
+  openFor(location.hash);
+  addEventListener("hashchange", () => openFor(location.hash));
+  document.addEventListener("click", (e) => {
+    const a = (e.target as Element).closest?.('a[href^="#"]');
+    if (a) openFor(a.getAttribute("href"));
+  });
+  addEventListener("beforeprint", () => {
+    document.querySelectorAll<HTMLDetailsElement>("details[data-faq]:not([open])").forEach((d) => { d.open = true; d.dataset.printOpened = ""; });
+  });
+  addEventListener("afterprint", () => {
+    document.querySelectorAll<HTMLDetailsElement>("details[data-print-opened]").forEach((d) => { d.open = false; delete d.dataset.printOpened; });
+  });
+</script>
+
+<script>
+  document.querySelector("[data-print]")?.addEventListener("click", () => print());
+</script>
+
+<style>
+  .fno { display: inline-grid; place-content: center; width: 1.6rem; height: 1.6rem; border: 2px solid var(--navy); border-radius: 4px; font: 700 0.9375rem/1 var(--font-slab); color: var(--navy); flex: none; }
+  .fno--lg { width: 2.2rem; height: 2.2rem; font-size: 1.125rem; background: var(--navy); color: var(--white); }
+
+  /* The sheet. */
+  .sheet { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--ring), var(--shadow-2); padding: 1.25rem 1.1rem 1.5rem; }
+  @media (min-width: 760px) { .sheet { padding: 2rem 2.5rem 2.25rem; } }
+  .sheet p { max-width: 68ch; }
+  .sh-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 0.75rem 2rem; padding-bottom: 0.9rem; border-bottom: 3px solid var(--navy); }
+  .sh-top h2 { font-size: var(--step-3); margin-bottom: 0.3rem; }
+  .sh-lead { margin: 0; color: var(--ink-soft); }
+  .sh-no { margin: 0; font: 700 var(--step-1)/1.2 var(--font-slab); color: var(--navy-900); text-align: right; }
+  .sh-no-k { display: block; font: 600 var(--step--1)/1.3 var(--font-body); color: var(--ink-soft); }
+  @media (max-width: 559px) { .sh-no { text-align: left; } }
+  .sh-area { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; margin: 0 !important; padding: 0.7rem 0; border-bottom: 1px solid var(--line); max-width: none !important; }
+  .sh-k { font-weight: 700; font-size: var(--step--1); color: var(--ink-soft); }
+  .sh-v { font: 600 var(--step--1)/1.5 var(--font-slab); color: var(--navy-900); }
+
+  .term { padding-top: 1.75rem; }
+  .term-head { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 0.85rem; padding-bottom: 0.6rem; border-bottom: 2px solid var(--navy); }
+  .term-head h3 { margin: 0; font-size: var(--step-2); }
+  .term-amt { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.1rem 0.85rem; margin: 0.6rem 0 0 !important; max-width: none !important; }
+  @media (min-width: 760px) {
+    .term-head { grid-template-columns: auto 1fr minmax(14rem, 22rem); }
+    .term-amt { grid-column: auto; flex-direction: column; align-items: flex-end; text-align: right; margin: 0 !important; }
+  }
+  .amt { font: 800 clamp(2.5rem, 1.8rem + 2.4vw, 3.75rem)/0.95 var(--font-slab); letter-spacing: -0.03em; color: var(--navy-900); white-space: nowrap; }
+  .amt :global(.kn-unit) { font-size: 0.5em; font-weight: 700; letter-spacing: 0; }
+  .amt-cap { font-size: var(--step--1); line-height: 1.35; color: var(--ink-soft); }
+
+  .clause { border-bottom: 1px solid var(--line); }
+  .clause summary {
+    display: grid; grid-template-columns: 2.85rem 1fr auto; align-items: center; gap: 0.6rem; min-height: 3.5rem; padding: 0.55rem 0;
+    cursor: pointer; list-style: none; font-weight: 600; line-height: 1.35;
+  }
+  .clause summary::-webkit-details-marker { display: none; }
+  .clause summary:hover .cl-q { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+  .cl-no { font: 700 1.0625rem/1 var(--font-slab); color: var(--slate-ink); }
+  .chev { width: 1.6rem; height: 1.6rem; color: var(--navy); transition: transform 0.2s ease; }
+  .clause[open] .chev { transform: rotate(180deg); }
+  .clause[open] summary { color: var(--navy-900); }
+  .cl-a { padding: 0 0 1.1rem 3.45rem; }
+  .cl-a :global(p) { margin: 0; }
+  @media (max-width: 479px) { .cl-a { padding-left: 0; } }
+  .clause:target summary { background: var(--sky-100); box-shadow: -0.5rem 0 0 var(--sky-100), 0.5rem 0 0 var(--sky-100); }
+
+  .sh-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 2rem; margin-top: 1.75rem; padding-top: 1.1rem; border-top: 3px solid var(--navy); }
+  .sh-foot p { margin: 0; }
+  .sh-foot a { font-weight: 700; white-space: nowrap; }
+  .sh-print { color: var(--navy); }
+
+  @media print {
+    :global(.wo-hero), :global(.cta), :global(.tag-switch), :global(.license-band), .sh-print { display: none !important; }
+    .sheet { box-shadow: none; padding: 0; }
+    .chev { display: none; }
+  }
+</style>

@@ -1,0 +1,68 @@
+---
+// Inner page header: the business card's navy wave band, cut along the bottom by one wave of the
+// same 96 px period, with the page's work order slip (the default slot, usually a WorkOrderSlip)
+// in the right half, hung over the wave edge into the page. Crumb, title, lead and, on pages that
+// carry them in their first screen, Call and Book (marked for the mobile sticky bar, as PageHero
+// does). On a phone the slip drops under the lead and overlaps the page by 1.5rem.
+import Icon from "./Icon.astro";
+import { facts } from "../data/facts";
+interface Props { title: string; lead?: string; crumb?: { href: string; label: string }; actions?: boolean; class?: string }
+const { title, lead, crumb, actions = false, class: cls } = Astro.props;
+---
+<section class:list={["wo-hero on-navy", cls]} data-page-header>
+  <div class="wo-bg" aria-hidden="true"></div>
+  <div class="wrap wo-grid">
+    <div class="wo-intro">
+      {crumb && <p class="wo-crumb"><a href={crumb.href}>{crumb.label}</a></p>}
+      <h1 class="wo-title">{title}</h1>
+      {lead && <p class="lead wo-lead">{lead}</p>}
+      {actions && (
+        <div class="wo-actions" data-hero-actions>
+          <a class="btn btn--ghost" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> Call {facts.phone.value}</a>
+          <a class="btn btn--primary" href="/book"><Icon name="calendar" /> Book a time</a>
+        </div>
+      )}
+    </div>
+    {Astro.slots.has("default") && <div class="wo-obj"><slot /></div>}
+  </div>
+</section>
+
+<style>
+  /* z-index 1 keeps the hanging slip above the next section (often position: relative itself). */
+  .wo-hero { --hv: 1.5rem; position: relative; z-index: 1; isolation: isolate; color: var(--white); padding-block: 1.75rem calc(1.75rem + 24px); }
+  @media (min-width: 1000px) { .wo-hero { --hv: 5rem; padding-block: 2.75rem calc(3rem + 24px); } }
+  /* The section after the header makes room for the part of the slip that hangs into it. */
+  :global(.wo-hero:has(.wo-obj) + .section) { padding-top: calc(var(--space-5) + 1.5rem); }
+  :global(.wo-hero:has(.wo-obj) + .band) { padding-top: calc(var(--band-space) + 1.5rem); }
+  @media (min-width: 1000px) {
+    :global(.wo-hero:has(.wo-obj) + .section) { padding-top: calc(var(--space-5) + 5rem); }
+    :global(.wo-hero:has(.wo-obj) + .band) { padding-top: calc(var(--band-space) + 5rem); }
+  }
+  .wo-bg {
+    position: absolute; inset: 0; z-index: -1;
+    background: var(--navy) var(--waves) 0 0 / 96px 48px;
+    --edge: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='24'%3E%3Cpath d='M0 14C12 3.33 36 3.33 48 14S84 24.67 96 14V0H0Z'/%3E%3C/svg%3E");
+    -webkit-mask: linear-gradient(#000 0 0) 0 0 / 100% calc(100% - 23px) no-repeat, var(--edge) 0 100% / 96px 24px repeat-x;
+    mask: linear-gradient(#000 0 0) 0 0 / 100% calc(100% - 23px) no-repeat, var(--edge) 0 100% / 96px 24px repeat-x;
+  }
+  .wo-grid { display: grid; gap: 1.25rem; }
+  .wo-obj { position: relative; z-index: 2; margin-bottom: calc(-1.75rem - 24px - var(--hv)); min-width: 0; }
+  @media (min-width: 1000px) {
+    .wo-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 32rem); gap: 3rem; align-items: center; }
+    .wo-obj { margin-bottom: calc(-3rem - 24px - var(--hv)); }
+  }
+  .wo-crumb { margin: 0 0 0.5rem; font-size: var(--step--1); }
+  /* At least 24 px tall, so the crumb clears the target-size minimum on its own. */
+  .wo-crumb a { display: inline-flex; align-items: center; min-height: 1.75rem; color: var(--sky-300); }
+  .wo-title { color: var(--white); font-size: var(--step-4); max-width: 22ch; margin-bottom: 0.5rem; }
+  .wo-lead { color: var(--sky-100); max-width: 52ch; margin-bottom: 0; }
+  .wo-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }
+  .wo-actions .btn--ghost { color: var(--white); }
+  .wo-actions .btn--primary { color: var(--navy-950); }
+  /* Phones: a slightly smaller lead, so title, lead and slip fit the first screen. */
+  @media (max-width: 699px) {
+    .wo-title { font-size: clamp(2rem, 1.5rem + 2.5vw, 2.25rem); line-height: 1.12; }
+    .wo-lead { font-size: var(--step-0); line-height: 1.45; }
+    .wo-actions { margin-top: 1rem; gap: 0.6rem; }
+  }
+</style>

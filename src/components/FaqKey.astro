@@ -1,0 +1,13 @@
+---
+// A FAQ group's key number (part "num") or the short line that says what it is (part "cap").
+// The number goes through Fact with its tag; the direction styles .kn-big and .kn-unit.
+import Fact from "./Fact.astro";
+import type { Group } from "../data/faq";
+interface Props { g: Group; part: "num" | "cap"; plain?: boolean }
+const { g, part, plain = false } = Astro.props;
+---
+{part === "num" && <Fact k={g.key} plain={plain}><span class="kn-big">{g.big}</span>{g.unit && <span class="kn-unit">{" "}{g.unit}</span>}</Fact>}
+{part === "cap" && g.id === "fees" && <>call-out fee, <Fact k="calloutCredited" /></>}
+{part === "cap" && g.id === "booking" && <>to call you back, during working hours</>}
+{part === "cap" && g.id === "emergencies" && <>usually, to reach an emergency in the 7 cities</>}
+{part === "cap" && g.id === "guarantee" && <>labor warranty on every job</>}

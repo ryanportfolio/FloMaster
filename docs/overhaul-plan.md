@@ -1,6 +1,6 @@
 # Visual overhaul plan
 
-Status, 2026-10-06: Rounds 1 and 2 are built; the user picked one of three directions for each Round 2 section. Rounds 3 and 4 are not started.
+Status, 2026-10-06: Rounds 1, 2 and 3 are built. The user picked one of three directions for each Round 2 section and for the Round 3 pricing body; the other Round 3 picks were made by recommendation while the user was away and are listed under Round 3 for review. Round 4 is not started.
 
 ## Goal
 
@@ -75,6 +75,18 @@ Stop after Round 2 for the user to review.
 2. Pricing: a written example quote, labelled "Example quote", with line items from the price data and "If it isn't on this list, I don't charge it" as its footer.
 3. "How a job runs" in four steps: I look and find the cause; you get a written price; you say yes, or no and owe only the call-out; I fix it, test it, clean up and show you the old part. "Nothing starts until you say yes" is confirmed with Antonio.
 4. Service area as city tiles (not a map yet, because the ZIP lists are unchecked); FAQ as accordions with the key number for each group in large type; about page with a two-sided business card that flips with its own button.
+
+### Round 3 picks, made while the user was away (2026-10-06)
+
+The user asked me to pick by recommendation and note the choices so they can change them. Each section was built three ways and scored by a fresh reviewer (only this business / premium / clarity, 1 to 5). The pick is the highest score, with the reviewer's defects fixed during integration. Screenshots of every direction: `D:\screenshots\FloMaster\directions\round-3\<section>\` (each has `sheet.png`; reviewer captures in `review\`). The direction code is backed up before it is deleted from the tree.
+
+| Section | Picked | A | B | C | Notes |
+|---|---|---|---|---|---|
+| Inner page headers | A, carbon-copy work order slip | 4/4/4 | 3/3/4 valve tags | 3/4/4 hull numbers | A was more than one phone screen tall on 5 of 6 pages: tightened. Its pricing slip had its own example quote, so the pricing page would have shown two; the body quote stays. C is the calmer alternative if the slip feels busy |
+| Pricing body | C, stamped valve tags | 3/4/4 work order | 2/3/4 hull numbers | 4/4/3 | The user picked this one. Price notes for the trap leak and shut-off fixed to match the price list |
+| Service area | A, Tidewater chart | 5/4/4 | 3/4/4 valve tags | 2/4/4 hull numbers | On phones Virginia Beach was drawn under Norfolk: fixed to sit east of it |
+| FAQ | A, work order clauses | 4/4/5 | 3/4/4 hull numbers | 3/3/4 valve tags | Keyboard focus was invisible on the figures links: fixed |
+| About | A, work order | 4/4/5 | 3/4/4 hull numbers | 4/3/4 valve tags | C's "This van runs to" line was the most local detail; on phones its name tag covered Antonio's face |
 
 ## Round 4: motion system and small delights
 
