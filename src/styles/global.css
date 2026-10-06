@@ -302,15 +302,48 @@ input:focus-visible, textarea:focus-visible { outline: 3px solid var(--navy); ou
 
 /* Full pass: 1040 ms. A band of the business card's water (navy-900 with the card's wave tile,
    14lvh core, 8px wave edges) travels down from under the header and is off the screen at 880 ms.
-   The new page is uncovered behind the band's center line, so the straight clip edge is always
-   under opaque water. Band and clip share one curve: an ease-out whose speed settles to 30% of
-   its start speed instead of zero, so the tail slides off rather than creeping along the bottom.
-   Positions are in lvh, the unit of the snapshot area the transition draws in. */
+   The new page is uncovered behind the band's center line through a soft edge: a gradient mask
+   that goes from opaque to clear over --fm-reveal-feather, its midpoint on the center line, so the
+   soft line stays under the band's opaque middle. Band and reveal share one curve: an ease-out
+   whose speed settles to 30% of its start speed instead of zero, so the tail slides off rather
+   than creeping along the bottom. Positions are in lvh, the unit of the snapshot area the
+   transition draws in.
+   Softening values chosen by the owner on 2026-10-06 from a scrubbable mock-up of this pass:
+   band fades in over 0 to 200 ms and out over 600 to 880 ms (keyframes in fm-tide-fade), peak
+   opacity 1, band edges soft over 24 px at the wet (top) and foam (bottom) edges, reveal feather
+   48 px. */
+:root {
+  --fm-tide-soft-top: 24px;    /* wet line edge of the band */
+  --fm-tide-soft-bottom: 24px; /* foam edge of the band */
+  --fm-reveal-feather: 48px;   /* soft reveal line, centred on the band's center line */
+  /* The new page and anything arriving with it: opaque above the line, clear below. Things leaving
+     with the old page get the opposite. The image is 300lvh tall, its midpoint is the line, and the
+     fm-reveal, fm-bar-* and fm-lic-* keyframes move it with mask-position. */
+  --fm-reveal-mask: linear-gradient(#000 calc(50% - var(--fm-reveal-feather) / 2), transparent calc(50% + var(--fm-reveal-feather) / 2));
+  --fm-cover-mask: linear-gradient(transparent calc(50% - var(--fm-reveal-feather) / 2), #000 calc(50% + var(--fm-reveal-feather) / 2));
+}
 html:active-view-transition-type(fm-full)::view-transition-image-pair(root) { isolation: auto; }
 html:active-view-transition-type(fm-full)::view-transition-old(root) { animation: none; }
 html:active-view-transition-type(fm-full)::view-transition-new(root) { animation: fm-reveal 1040ms linear both; mix-blend-mode: normal; }
+html:active-view-transition-type(fm-full)::view-transition-new(root),
+html:active-view-transition-type(fm-full)::view-transition-new(fm-bar):only-child,
+html:active-view-transition-type(fm-full)::view-transition-new(fm-licence):only-child { mask-image: var(--fm-reveal-mask); mask-size: 100% 300lvh; mask-repeat: no-repeat; }
+html:active-view-transition-type(fm-full)::view-transition-old(fm-bar):only-child,
+html:active-view-transition-type(fm-full)::view-transition-old(fm-licence):only-child { mask-image: var(--fm-cover-mask); mask-size: 100% 300lvh; mask-repeat: no-repeat; }
+/* The bar's mask also covers its upward shadow, outside its box. */
+html:active-view-transition-type(fm-full)::view-transition-new(fm-bar):only-child,
+html:active-view-transition-type(fm-full)::view-transition-old(fm-bar):only-child { mask-clip: no-clip; }
 ::view-transition-group(fm-tide) { animation: fm-band 1040ms linear both; z-index: 2; }
-::view-transition-new(fm-tide) { animation: none; }
+::view-transition-new(fm-tide) { animation: fm-tide-fade 1040ms linear both; }
+/* Band opacity. Keyframe offsets are fractions of the 1040 ms pass and cannot read custom
+   properties: --fm-tide-fade-in-start 0 ms (0%), --fm-tide-fade-in-end 200 ms (19.231%),
+   --fm-tide-fade-out-start 600 ms (57.692%), --fm-tide-fade-out-end 880 ms (84.615%, the band is
+   off screen); --fm-tide-peak 1. Each ramp is ease-in-out. */
+@keyframes fm-tide-fade {
+  0% { opacity: 0; animation-timing-function: ease-in-out; }
+  19.231%, 57.692% { opacity: 1; animation-timing-function: ease-in-out; }
+  84.615%, 100% { opacity: 0; }
+}
 /* Bar new to this page: uncovered with the page, then above the band's tail (as in the animatic).
    Bar leaving with the old page: under the band, covered as the water passes. */
 html:active-view-transition-type(fm-full)::view-transition-new(fm-bar):only-child { animation: fm-bar-in 1040ms linear both; }
@@ -322,7 +355,7 @@ html:active-view-transition-type(fm-full):active-view-transition-type(fm-bar-new
 
 /* Licence line new to this page (the old page was scrolled past it): uncovered with the page, then
    above the band. Leaving (the new page opens scrolled): under the band, covered as it passes.
-   The script sets --fm-lic-new and --fm-lic-old to its top on each page, so the clip edge, kept in
+   The script sets --fm-lic-new and --fm-lic-old to its top on each page, so the soft edge, kept in
    screen coordinates, can follow the band's centre line inside the licence line's own box. */
 html:active-view-transition-type(fm-full)::view-transition-new(fm-licence):only-child { animation: fm-lic-in 1040ms linear both; }
 html:active-view-transition-type(fm-full)::view-transition-old(fm-licence):only-child { animation: fm-lic-out 1040ms linear both; }
@@ -331,27 +364,35 @@ html:active-view-transition-type(fm-lic-out)::view-transition-group(fm-licence) 
   0% { transform: translateY(calc(-14lvh - 10px)); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
   84.615%, 100% { transform: translateY(calc(100lvh + 4px)); }
 }
+/* The reveal line, in screen coordinates, runs from -7lvh (the band's center line at the start)
+   to 107lvh + 14px (its center line at 880 ms), plus --fm-reveal-end-extra, which moves the end
+   below the screen when the feather is wider than the band (0 at 48 px), so nothing pops when the
+   pass ends. Each mask image's midpoint (150lvh down it) sits on that line: mask-position is the
+   line minus 150lvh minus the box's own top. */
+:root { --fm-reveal-end-extra: max(0px, var(--fm-reveal-feather) / 2 - 7lvh - 10px); }
 @keyframes fm-reveal {
-  0% { clip-path: polygon(0 0, 100% 0, 100% -7lvh, 0 -7lvh); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
-  84.615%, 100% { clip-path: polygon(0 0, 100% 0, 100% calc(107lvh + 14px), 0 calc(107lvh + 14px)); }
+  0% { mask-position: 0 calc(-7lvh - 150lvh); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
+  84.615%, 100% { mask-position: 0 calc(107lvh + 14px + var(--fm-reveal-end-extra) - 150lvh); }
 }
-/* The leaving shapes keep the strip from the band's centre line down to where that line ends,
-   so they shrink to nothing instead of turning inside out once the line passes the box. */
+/* The licence line's box top is --fm-lic-new or --fm-lic-old (set by the script). */
 @keyframes fm-lic-in {
-  0% { clip-path: polygon(0 0, 100% 0, 100% calc(-7lvh - var(--fm-lic-new, 0px)), 0 calc(-7lvh - var(--fm-lic-new, 0px))); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
-  84.615%, 100% { clip-path: polygon(0 0, 100% 0, 100% calc(107lvh + 14px - var(--fm-lic-new, 0px)), 0 calc(107lvh + 14px - var(--fm-lic-new, 0px))); }
+  0% { mask-position: 0 calc(-7lvh - 150lvh - var(--fm-lic-new, 0px)); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
+  84.615%, 100% { mask-position: 0 calc(107lvh + 14px + var(--fm-reveal-end-extra) - 150lvh - var(--fm-lic-new, 0px)); }
 }
 @keyframes fm-lic-out {
-  0% { clip-path: polygon(0 calc(-7lvh - var(--fm-lic-old, 0px)), 100% calc(-7lvh - var(--fm-lic-old, 0px)), 100% calc(107lvh + 14px - var(--fm-lic-old, 0px)), 0 calc(107lvh + 14px - var(--fm-lic-old, 0px))); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
-  84.615%, 100% { clip-path: polygon(0 calc(107lvh + 14px - var(--fm-lic-old, 0px)), 100% calc(107lvh + 14px - var(--fm-lic-old, 0px)), 100% calc(107lvh + 14px - var(--fm-lic-old, 0px)), 0 calc(107lvh + 14px - var(--fm-lic-old, 0px))); }
+  0% { mask-position: 0 calc(-7lvh - 150lvh - var(--fm-lic-old, 0px)); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
+  84.615%, 100% { mask-position: 0 calc(107lvh + 14px + var(--fm-reveal-end-extra) - 150lvh - var(--fm-lic-old, 0px)); }
 }
+/* The bar's box ends at the bottom of the screen (100lvh), so its mask is placed from the box's
+   bottom: the image's bottom edge sits at the line + 150lvh, that is -50lvh - line from the box's
+   bottom. */
 @keyframes fm-bar-in {
-  0% { clip-path: polygon(0 -32px, 100% -32px, 100% calc(100% - 107lvh), 0 calc(100% - 107lvh)); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
-  84.615%, 100% { clip-path: polygon(0 -32px, 100% -32px, 100% calc(100% + 7lvh + 14px), 0 calc(100% + 7lvh + 14px)); }
+  0% { mask-position: left 0 bottom calc(-50lvh + 7lvh); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
+  84.615%, 100% { mask-position: left 0 bottom calc(-50lvh - 107lvh - 14px - var(--fm-reveal-end-extra)); }
 }
 @keyframes fm-bar-out {
-  0% { clip-path: polygon(0 calc(100% - 107lvh), 100% calc(100% - 107lvh), 100% calc(100% + 7lvh + 14px), 0 calc(100% + 7lvh + 14px)); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
-  84.615%, 100% { clip-path: polygon(0 calc(100% + 7lvh + 14px), 100% calc(100% + 7lvh + 14px), 100% calc(100% + 7lvh + 14px), 0 calc(100% + 7lvh + 14px)); }
+  0% { mask-position: left 0 bottom calc(-50lvh + 7lvh); animation-timing-function: cubic-bezier(0.3333, 0.8, 0.6667, 0.9); }
+  84.615%, 100% { mask-position: left 0 bottom calc(-50lvh - 107lvh - 14px - var(--fm-reveal-end-extra)); }
 }
 
 /* The band element (Base.astro) exists only while a full pass runs. Its resting place is just
@@ -362,7 +403,12 @@ html:active-view-transition-type(fm-full) .fm-tide {
   display: block; position: fixed; top: 0; left: 0; z-index: 35; width: 100vw; height: calc(14lvh + 20px);
   transform: translateY(-100%); pointer-events: none; overflow: hidden; view-transition-name: fm-tide;
 }
-.fm-tide-sheet { position: absolute; top: 0; bottom: 0; left: -96px; width: calc(100% + 96px); animation: fm-drift 1040ms linear both; }
+/* The sheet's box runs from 10px above the wet line to 10px below the foam line; its mask softens
+   both edges (static, so it costs no work per frame, and it travels with the band). */
+.fm-tide-sheet {
+  position: absolute; top: 0; bottom: 0; left: -96px; width: calc(100% + 96px); animation: fm-drift 1040ms linear both;
+  mask-image: linear-gradient(transparent 0, #000 var(--fm-tide-soft-top), #000 calc(100% - var(--fm-tide-soft-bottom)), transparent 100%);
+}
 @keyframes fm-drift { to { transform: translateX(96px); } }
 /* Body: navy-900 with the card's waves, cut to the two wave edges (top edge half a period out of step). */
 .fm-tide-body {

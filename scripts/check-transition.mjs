@@ -116,7 +116,14 @@ async function stills(opts, { from, scroll = 0, link, times, full = true, region
       // so the band and the reveal are only read in the full pass.
       at[t] = await page.evaluate((full) => {
         const cs = (p) => getComputedStyle(document.documentElement, p);
-        return { band: full ? cs("::view-transition-group(fm-tide)").transform : "", clip: full ? cs("::view-transition-new(root)").clipPath : "", head: cs("::view-transition-group(fm-header)").transform };
+        // The reveal is a gradient mask (opaque above the band's center line, clear below, over the
+        // feather); its fully opaque edge is the mask image's midpoint less half the feather.
+        const reveal = () => {
+          const n = cs("::view-transition-new(root)"), px = (v) => parseFloat(String(v).trim().split(/\s+/)[1]);
+          const feather = parseFloat(cs().getPropertyValue("--fm-reveal-feather"));
+          return px(n.maskPosition) + px(n.maskSize) / 2 - feather / 2;
+        };
+        return { band: full ? cs("::view-transition-group(fm-tide)").transform : "", opaqueY: full ? reveal() : NaN, head: cs("::view-transition-group(fm-header)").transform };
       }, full);
       at[t].shots = {};
       for (const r of regions) at[t].shots[r] = await page.screenshot({ clip: await rect(r) });
@@ -133,7 +140,6 @@ async function stills(opts, { from, scroll = 0, link, times, full = true, region
       for (const k of regions) r.changed[k] = await changedPx(r.shots[k], settled[k]);
       r.bandY = lastNumber(r.band);
       r.headY = lastNumber(r.head);
-      r.clipY = lastNumber(String(r.clip).replace(/\)$/, ""));
     }
     return { ...info, at, H };
   } finally { await ctx.close(); }
@@ -358,7 +364,7 @@ try {
   for (const [name, opts, from, link] of [["desktop", desktop, "/", "header nav a[href='/pricing']"], ["phone", phone, "/reviews", "header a.brand"]]) {
     const r = await stills(opts, { from, link, times: [50, 120, 800, 1000], regions: ["bottom", "licence"] });
     check(`${name}: licence line stays above the water (50 and 120 ms)`, r.at[50].changed.licence === 0 && r.at[120].changed.licence === 0, `${r.at[50].changed.licence} and ${r.at[120].changed.licence} px differ from the settled line`);
-    check(`${name}: screen below the header uncovered by 800 ms`, r.at[800].clipY >= r.H, `reveal edge at ${r.at[800].clipY} of ${r.H} px`);
+    check(`${name}: screen below the header uncovered by 800 ms`, r.at[800].opaqueY >= r.H, `new page fully opaque down to ${Math.round(r.at[800].opaqueY)} of ${r.H} px`);
     check(`${name}: band fully off the screen by 1000 ms`, r.at[1000].bandY + 1 >= r.H && r.at[1000].changed.bottom === 0, `band top ${r.at[1000].bandY} of ${r.H} px, ${r.at[1000].changed.bottom} bottom-row px differ from the settled page`);
   }
 
