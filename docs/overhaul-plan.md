@@ -17,7 +17,7 @@ Turn the first build, which reads as flat, into a premium site that feels effort
 ## Rules for every round
 
 - Mobile Core Web Vitals stay good on the production build: LCP 2.5 s or less, INP 200 ms or less, CLS 0.1 or less. Home page weight stays under 400 KB, except that the user set the weight limit aside on 2026-10-06 ("we'll optimize for perf at the very end"); a final performance pass restores it.
-- WCAG 2.2 AA. Every moving piece has a designed reduced-motion state. Nothing in the first screen fades or slides in, because the phone LCP element is the headline.
+- WCAG 2.2 AA. Motion built before 2026-10-06 keeps its designed reduced-motion state; anything new that moves plays the same under reduced motion (user decision, 2026-10-06). Nothing in the first screen fades or slides in, because the phone LCP element is the headline.
 - Motion only where it shows something real: proof, price, progress or a step to follow. No sheen, scroll drift, count-up numbers, stamp effects, autoplay loops or scroll locking.
 - Effortless means direct manipulation: press or drag anywhere on the thing you want to move, large targets, immediate response, no hidden controls.
 - Facts keep coming from `src/data/facts.ts`, with tags. No invented data in display type (no rating histograms, no live-looking timestamps).
@@ -101,7 +101,13 @@ The user asked for a scroll-driven repair story with images made for it, and pic
 - No labels that name the effect ("X-ray", stage numbers); the camera tells the story.
 - Lenis smooths wheel scrolling.
 - Scrolling into the section starts it, and it plays on its own clock as one continuous camera move at its intended speed, however fast or slow people scroll. The camera holds only where there is a line to read. This overrides "no autoplay" for this section: the visitor's scroll starts it. End, Home, links, Tab and reduced motion skip it.
+- Beside the image, a carbon-copy work order fills in as the camera finds things (user's pick of three sidebar directions; the others were a hull-number readout and valve tags on a pipe).
+- As long as the story needs and no longer; around 35 s is acceptable, not a target. The text beside the image builds up: each beat adds its line and nothing is removed until the end, so nobody needs time to read before the camera moves on.
 - Images sharp at the size they are drawn on large screens, in WebP. The page weight limit waits for the final performance pass.
+
+## Page load reveal (user, 2026-10-06)
+
+The user scrapped the page transition (the water band) and asked for harnessfirmware.com's load reveal on every page load instead, tiered so elements arrive in an order that shows the page's structure. This overrides "Nothing in the first screen fades or slides in" in Rules for every round; phone LCP is measured before and after so the cost is visible. The reveal plays under reduced motion too (user decision); with no script everything shows at once.
 
 ## Dropped for now
 

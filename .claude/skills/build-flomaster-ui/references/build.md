@@ -54,7 +54,7 @@ The brief's section 8 describes the behaviour (still a proposal; build it as wri
 - Tabular figures (`font-variant-numeric: tabular-nums`) for prices, fees, phone and licence numbers.
 - One font family at most, self-hosted and subset, with a size-adjusted fallback so text doesn't jump when it loads. A system font stack is acceptable.
 - Visible focus style on every interactive element; never remove outlines without a replacement.
-- Motion: none is required. Anything that moves respects `prefers-reduced-motion`. Never `transition: all`.
+- Motion: none is required. New motion (from 2026-10-06 on) plays the same under `prefers-reduced-motion`, by the user's decision; motion built before then keeps its existing reduced-motion state. Never `transition: all`.
 - Text must survive 200% zoom, 320px-wide reflow and increased letter and line spacing without clipping.
 
 ## Content structure
