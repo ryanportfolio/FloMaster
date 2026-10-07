@@ -18,6 +18,9 @@ try {
     for (const tags of ["off", "on"]) {
       for (const p of pages) {
         await page.goto(`${server.base}${p}?tags=${tags}`, { waitUntil: "load" });
+        // Contrast is measured on the page at rest: end the load reveal (src/scripts/reveal.js), which
+        // holds blocks below the fold at a trace of opacity until they scroll in.
+        await page.evaluate(() => window.fmReveal?.finish());
         await page.addScriptTag({ content: axeSource });
         const r = await page.evaluate(async () => await window.axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"] } }));
         for (const v of r.violations) {

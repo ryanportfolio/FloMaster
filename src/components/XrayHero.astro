@@ -495,7 +495,9 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
       root.classList.add("is-ready");
       requestAnimationFrame(() => requestAnimationFrame(() => root.classList.add("is-anim")));
       if (skip || touched) return;
-      arm();
+      // Start the find only once the page load reveal has brought the photo fully in (2.5 s at most).
+      const settled = (window as unknown as { fmReveal?: { settled: Promise<void> } }).fmReveal?.settled;
+      Promise.race([settled, new Promise((r) => setTimeout(r, 2500))]).then(arm);
     };
 
     // Load the X-ray only after the photo, so it never slows the first screen.

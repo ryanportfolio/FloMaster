@@ -1,13 +1,10 @@
 ---
 // FloMasters logo, recreated from the business card (scripts/build-logo.mjs).
-// `water` adds the page transition's ring water and drop (header only: that version
-// carries a clipPath id, so it may appear once per page).
-import logoWater from "../assets/logo.svg?raw";
 import logoStatic from "../assets/logo-static.svg?raw";
-interface Props { class?: string; dark?: boolean; water?: boolean }
-const { class: cls, dark = false, water = false } = Astro.props;
+interface Props { class?: string; dark?: boolean }
+const { class: cls, dark = false } = Astro.props;
 ---
-<span class:list={["logo", cls, { "logo--dark": dark }]} set:html={water ? logoWater : logoStatic} />
+<span class:list={["logo", cls, { "logo--dark": dark }]} set:html={logoStatic} />
 <style>
   .logo { display: inline-block; line-height: 0; }
   .logo :global(svg) { height: 100%; width: auto; display: block; }

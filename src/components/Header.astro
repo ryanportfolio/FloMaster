@@ -15,11 +15,11 @@ const nav = [
 ---
 <header class="site-header on-navy">
   {/* Prototype only: the review bar rides in the sticky header, so the header sits at the same
-      place on every page and scroll position (and never moves during a page transition). */}
+      place on every page and scroll position. */}
   {!isPublicBuild && <TagSwitch />}
   <div class="bar wrap">
     <a class="brand" href="/" aria-label="FloMasters Plumbing and Drains, home">
-      <Logo class="brand-logo" water />
+      <Logo class="brand-logo" />
       <span class="brand-sub">Plumbing and Drains</span>
     </a>
     <nav class="nav" aria-label="Main">
@@ -66,7 +66,7 @@ const nav = [
   /* What the bar shows depends on its own width in rem (container queries below), so a larger
      browser font size collapses the nav, hides the Book button and the number, and tightens the
      brand before anything collides; plain px breakpoints ignored the font size. The bar's height
-     never changes with these steps, which keeps the header fixed during page transitions. */
+     never changes with these steps. */
   .bar { display: flex; align-items: center; gap: 0.5rem; height: var(--header-h); container: hbar / inline-size; }
   .brand { display: flex; flex-direction: column; text-decoration: none; color: var(--white); }
   .brand :global(.brand-logo) { height: 1.15rem; }
