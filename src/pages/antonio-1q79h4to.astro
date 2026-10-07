@@ -169,14 +169,50 @@ const choicesFor = (it: Item) =>
           return fb;
         }
       };
+      // Another tab of this page writes the same keys, so merge: per item the newer record wins,
+      // with its own unsaved mark. Equal times: unsaved only while neither tab has saved it.
+      let localOk = true;
       const writeLocal = () => {
         try {
-          localStorage.setItem(LS_ANS, JSON.stringify(state));
-          localStorage.setItem(LS_PEND, JSON.stringify([...pending]));
+          const kept = readLocal<Record<string, unknown>>(LS_ANS, {});
+          const keptPend = new Set(readLocal<string[]>(LS_PEND, []));
+          const ans: Record<string, Rec> = {};
+          const pend = new Set<string>();
+          for (const [id, r] of Object.entries(kept)) if (isRec(r)) { ans[id] = r; if (keptPend.has(id)) pend.add(id); }
+          for (const [id, r] of Object.entries(state)) {
+            const k = ans[id];
+            if (!k || r.updatedAt > k.updatedAt) { ans[id] = r; if (pending.has(id)) pend.add(id); else pend.delete(id); }
+            else if (r.updatedAt === k.updatedAt && !pending.has(id)) pend.delete(id);
+          }
+          localStorage.setItem(LS_ANS, JSON.stringify(ans));
+          localStorage.setItem(LS_PEND, JSON.stringify([...pend]));
+          localOk = true;
         } catch {
-          /* storage full or blocked: answers still live in this page and keep retrying */
+          // Storage full or blocked: answers live only in this page until the server takes them.
+          localOk = false;
         }
       };
+      // Answers typed in another tab show here too, and are kept if that tab closes unsaved.
+      // The two keys can arrive as separate events, so an unsaved mark for a record this tab
+      // already holds is picked up on its own.
+      addEventListener("storage", (e) => {
+        if (e.key !== LS_ANS && e.key !== LS_PEND) return;
+        const keptPend = new Set(readLocal<string[]>(LS_PEND, []));
+        let changed = false;
+        for (const [id, r] of Object.entries(readLocal<Record<string, unknown>>(LS_ANS, {}))) {
+          const el = byId.get(id);
+          const mine = state[id];
+          if (!el || !isRec(r)) continue;
+          if (mine && r.updatedAt === mine.updatedAt && keptPend.has(id) && !pending.has(id)) { pending.add(id); changed = true; }
+          if (mine && r.updatedAt <= mine.updatedAt) continue;
+          state[id] = r;
+          if (keptPend.has(id)) pending.add(id);
+          else pending.delete(id);
+          toForm(el, r);
+          changed = true;
+        }
+        if (changed) { count(); status(); }
+      });
 
       // ---- form <-> record ----
       const radios = (el: HTMLElement) => [...el.querySelectorAll<HTMLInputElement>("input[type=radio]")];
@@ -239,9 +275,9 @@ const choicesFor = (it: Item) =>
         let tone = "ok";
         let say = "";
         if (failures > 0 && waiting.length) {
-          text = "Not saved, retrying";
+          text = localOk ? "Not saved, retrying" : "Not saved, keep this page open";
           tone = "bad";
-          say = "Not saved, retrying. Answers kept on this device";
+          say = localOk ? "Not saved, retrying. Answers kept on this device" : "Not saved, retrying. This browser won't keep them, so keep this page open";
         } else if (inflight.size || waiting.length) {
           text = "Saving";
           tone = "busy";
