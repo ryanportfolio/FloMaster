@@ -252,11 +252,13 @@
     const later = pending.filter((el) => !now.includes(el));
     batch(now, 5, next);
     if (later.length) {
+      // Pixel margin a little inside the first-screen line, so no block below that line counts as in
+      // view at load (Chrome rounds a -8% margin to 777 px against a 776.5 px line on a 844 px phone).
       io = new IntersectionObserver((es) => {
         const hit = es.filter((e) => e.isIntersecting).map((e) => e.target);
         hit.forEach((el) => io.unobserve(el));
         batch(hit.sort((a, b) => (a.compareDocumentPosition(b) & 4 ? -1 : 1)), 6, 0);
-      }, { rootMargin: "0px 0px -8% 0px" });
+      }, { rootMargin: `0px 0px -${Math.ceil(vh * 0.08) + 1}px 0px` });
       later.forEach((el) => io.observe(el));
     }
   }
