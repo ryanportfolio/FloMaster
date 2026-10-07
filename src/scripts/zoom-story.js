@@ -424,8 +424,11 @@ import { createSide } from "./zoom-story-side.js";
   }, { passive: false, capture: true });
   const SCROLL_KEYS = ["ArrowDown", "ArrowUp", "PageDown", "PageUp", " "];
   const NAV_KEYS = ["End", "Home", "PageDown", "PageUp", " ", "ArrowDown", "ArrowUp", "Tab"];
-  // the same for a link to a place on this page
-  addEventListener("click", (e) => { const a = e.target.closest?.("a[href]"); if (a?.hash && a.pathname === location.pathname) lenis?.reset(); }, { capture: true });
+  // the same for a link to a place on this page, and the review bar's Replay, which scrolls to the top
+  addEventListener("click", (e) => {
+    const a = e.target.closest?.("a[href]");
+    if ((a?.hash && a.pathname === location.pathname) || e.target.closest?.("[data-replay]")) lenis?.reset();
+  }, { capture: true });
   const onKey = (e) => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     // keys typed into a field move its caret, not the page
