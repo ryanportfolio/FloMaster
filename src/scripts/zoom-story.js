@@ -25,7 +25,7 @@
 // down into it again. Every layer is fetched and decoded before playback; if one is not ready when
 // its moment comes, the clock waits on a sharp level; one that still fails after two retries lets go
 // of the page and the section shows at rest. It plays the same with prefers-reduced-motion (owner's
-// decision). At rest (no script, no WebGL 2, or a failed load) the markup shows the whole work order
+// decision). At rest (no script, no WebGL 2, a failed load or a lost WebGL context) the markup shows the whole work order
 // and five stills instead.
 // The column beside the stage (zoom-story-side.js) fills in at the story's beats.
 import Lenis from "lenis";
@@ -41,6 +41,8 @@ import { createSide } from "./zoom-story-side.js";
   const canvas = stageEl.querySelector("canvas");
   const gl = canvas.getContext("webgl2", { alpha: false, antialias: false, premultipliedAlpha: true, preserveDrawingBuffer: false, powerPreference: "high-performance" });
   if (!gl) { root.classList.remove("zs-on"); return; }
+  // the GPU dropped the context (driver reset, too many contexts): stay at rest, as after a failed load
+  canvas.addEventListener("webglcontextlost", () => fail(), { once: true });
   const Side = createSide(section.querySelector(".zs-side"));
   const params = new URLSearchParams(location.search);
   const S = Math.sqrt(5), O = 1.25, IW = 1500, IH = 1000, STRIP = 0.5;
@@ -421,10 +423,16 @@ import { createSide } from "./zoom-story-side.js";
     if (e.cancelable) e.preventDefault();
   }, { passive: false, capture: true });
   const SCROLL_KEYS = ["ArrowDown", "ArrowUp", "PageDown", "PageUp", " "];
+  const NAV_KEYS = ["End", "Home", "PageDown", "PageUp", " ", "ArrowDown", "ArrowUp", "Tab"];
+  // the same for a link to a place on this page
+  addEventListener("click", (e) => { const a = e.target.closest?.("a[href]"); if (a?.hash && a.pathname === location.pathname) lenis?.reset(); }, { capture: true });
   const onKey = (e) => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     // keys typed into a field move its caret, not the page
     if (e.target.closest?.("input, textarea, select, [contenteditable]")) return;
+    // a key the browser scrolls by itself: stop Lenis easing a wheel scroll first, or it carries on
+    // and pulls the page back from where the key took it
+    if (NAV_KEYS.includes(e.key)) lenis?.reset();
     // End from above jumps past the story: it shows its end state and does not start on the way
     if (mode === "armed" && e.key === "End") { finish("key"); holdEnded = performance.now() + 1500; return; }
     if (mode !== "playing") return;
