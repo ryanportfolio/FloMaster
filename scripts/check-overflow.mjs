@@ -33,3 +33,4 @@ try {
   server.stop();
 }
 console.log(bad ? `${bad} overflowing page views` : "no horizontal overflow");
+process.exitCode = bad ? 1 : 0;

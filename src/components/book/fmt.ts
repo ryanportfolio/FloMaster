@@ -9,6 +9,8 @@ export type Booking = {
   windowDate?: string;
   windowStart?: number;
   windowEnd?: number;
+  /** The window is on a day that carries the after-hours fee (Saturday). */
+  afterHours?: boolean;
   street?: string;
   zip?: string;
   city?: string | null;

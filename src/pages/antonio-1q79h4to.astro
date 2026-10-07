@@ -193,13 +193,19 @@ const choicesFor = (it: Item) =>
         return { value: picked, note };
       }
 
+      // Also used on the card being edited, when a newer answer arrives for it before anything is
+      // typed: every control must show what is stored, or the next keystroke would send the old
+      // values back with a fresh time. A focused text box keeps its caret.
       function toForm(el: HTMLElement, rec: Rec) {
+        const a = document.activeElement;
+        const caret = a instanceof HTMLTextAreaElement && el.contains(a) ? [a.selectionStart, a.selectionEnd] : null;
         let pick = rec.value;
         const fix = fixInput(el);
         if (el.dataset.kind === "fact" && rec.value.startsWith("no:")) pick = "no";
         for (const r of radios(el)) r.checked = r.value === pick;
         if (fix) fix.value = pick === "no" ? rec.value.slice(3) : fix.value;
         noteInput(el).value = rec.note;
+        if (caret) (a as HTMLTextAreaElement).setSelectionRange(caret[0], caret[1]);
         paint(el);
       }
 
@@ -303,8 +309,7 @@ const choicesFor = (it: Item) =>
               pending.delete(id);
               if (j.stale && isRec(j.saved)) {
                 state[id] = j.saved;
-                const el = byId.get(id)!;
-                if (!el.contains(document.activeElement)) toForm(el, j.saved);
+                toForm(byId.get(id)!, j.saved);
                 count();
               }
               writeLocal();
@@ -370,7 +375,7 @@ const choicesFor = (it: Item) =>
             if (!mine || rec.updatedAt > mine.updatedAt) {
               state[id] = rec;
               pending.delete(id);
-              if (!el.contains(document.activeElement)) toForm(el, rec);
+              toForm(el, rec);
             } else if (rec.updatedAt === mine.updatedAt) {
               pending.delete(id);
             }

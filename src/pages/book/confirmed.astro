@@ -52,6 +52,7 @@ const s = answerTexts({
 
         <dl class="details">
           <div><dt>Call-out</dt><dd><Fact k="calloutFee" />, <Fact k="calloutCredited" /></dd></div>
+          <div data-after-hours hidden><dt>After-hours</dt><dd><Fact k="afterHoursFee" />, because your window is on a Saturday</dd></div>
           <div><dt>Changes</dt><dd><Fact k="cancellation" /></dd></div>
         </dl>
         <p class="sample-note small muted" data-sample>Showing a sample booking. Fill in the booking form to see your own details here.</p>
@@ -93,6 +94,7 @@ const s = answerTexts({
       (inner ?? el).textContent = (t[el.dataset.ans!] ?? "").replace(/ ([ap])\.m\./g, " $1.m.");
     });
     document.querySelector<HTMLElement>("[data-sample]")!.hidden = true;
+    document.querySelector<HTMLElement>("[data-after-hours]")!.hidden = !b.afterHours;
   }
   // Calendar file with the real arrival window. The window is Virginia time;
   // convert it to UTC so every calendar app places it correctly.
@@ -144,6 +146,7 @@ const s = answerTexts({
   h1 { font-size: var(--step-3); }
   .details { display: grid; gap: 0; margin: 0 0 0.75rem; }
   .details div { display: grid; grid-template-columns: 8rem 1fr; gap: 1rem; padding: 0.6rem 0; border-bottom: 1px solid var(--line); }
+  .details div[hidden] { display: none; }
   dt { font-weight: 700; }
   dd { margin: 0; }
   .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.5rem 0 2rem; }

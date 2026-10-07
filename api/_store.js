@@ -13,13 +13,28 @@ const memoryStore = {
   async all() {
     return Object.fromEntries(memory);
   },
-  async get(id) {
-    return memory.get(id) ?? null;
-  },
-  async set(id, rec) {
+  // Compare and write with no await in between, so overlapping saves cannot interleave.
+  async putIfNewer(id, rec) {
+    const cur = memory.get(id);
+    if (cur && Number.isSafeInteger(cur.updatedAt) && cur.updatedAt > rec.updatedAt) return cur;
     memory.set(id, rec);
+    return null;
   },
 };
+
+// Keeps the stored answer when it is newer than the incoming one (returns it), else writes the
+// incoming one (returns nil). One script, so Redis runs the compare and the write as one step.
+const PUT_IF_NEWER = `
+local cur = redis.call("HGET", KEYS[1], ARGV[1])
+if cur then
+  local ok, rec = pcall(cjson.decode, cur)
+  if ok and type(rec) == "table" and type(rec.updatedAt) == "number" and rec.updatedAt > tonumber(ARGV[3]) then
+    return cur
+  end
+end
+redis.call("HSET", KEYS[1], ARGV[1], ARGV[2])
+return false
+`;
 
 let redisStore = null;
 function makeRedisStore() {
@@ -47,11 +62,8 @@ function makeRedisStore() {
       }
       return out;
     },
-    async get(id) {
-      return parse(await redis.hget(KEY, id));
-    },
-    async set(id, rec) {
-      await redis.hset(KEY, { [id]: JSON.stringify(rec) });
+    async putIfNewer(id, rec) {
+      return parse(await redis.eval(PUT_IF_NEWER, [KEY], [id, JSON.stringify(rec), String(rec.updatedAt)]));
     },
   };
 }

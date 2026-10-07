@@ -79,3 +79,4 @@ try {
   server.stop();
 }
 console.log(problems ? `${problems} problems` : "keyboard and target checks passed");
+process.exitCode = problems ? 1 : 0;

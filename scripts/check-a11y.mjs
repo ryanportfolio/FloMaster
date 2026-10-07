@@ -37,4 +37,5 @@ try {
   server.stop();
 }
 console.log(`${violations} violations across ${pages.length} pages x 2 viewports x tags off/on`);
+process.exitCode = violations ? 1 : 0;
 console.log("Needs manual check (axe incomplete):", [...incomplete].map(([k, n]) => `${k}=${n}`).join(", ") || "none");

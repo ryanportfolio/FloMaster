@@ -156,6 +156,7 @@ const priceMap = Object.fromEntries(problems.map((p) => [p.slug, p.prices]));
       jobId: job?.value,
       window: win?.value, windowDay: win?.dataset.dayLabel, windowLabel: win?.dataset.winLabel, windowDate: win?.dataset.date,
       windowStart: win ? Number(win.dataset.start) : undefined, windowEnd: win ? Number(win.dataset.end) : undefined,
+      afterHours: win ? win.dataset.weekend === "true" : undefined,
       street: done.where ? street : undefined, zip: done.where ? zip : undefined, city,
       phone: done.phone ? phone : undefined,
     };
@@ -227,11 +228,16 @@ const priceMap = Object.fromEntries(problems.map((p) => [p.slug, p.prices]));
     tried = true;
     if (!validate(true)) return;
     const btn = $<HTMLButtonElement>("[data-submit]");
+    const { b } = current();
+    // Session storage only: no personal details in the URL. If the browser refuses it, the
+    // confirmation would show an older booking or the sample, so stay here and say so.
+    try { sessionStorage.setItem("fm-booking", JSON.stringify({ ...b, city: zipCheck() })); }
+    catch {
+      summary.textContent = "This browser wouldn't let the page keep your booking, so the confirmation can't show it. Please call to book.";
+      return;
+    }
     btn.disabled = true;
     btn.textContent = "Booking...";
-    const { b } = current();
-    // Session storage only: no personal details in the URL.
-    try { sessionStorage.setItem("fm-booking", JSON.stringify({ ...b, city: zipCheck() })); } catch {}
     setTimeout(() => { location.href = "/book/confirmed"; }, 500);
   });
 </script>

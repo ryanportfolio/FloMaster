@@ -82,10 +82,9 @@ async function handle(request) {
     if (why) return json(400, { error: why });
 
     const rec = { value: body.value, note: body.note ?? "", updatedAt: body.updatedAt };
-    // Read, compare, write: not atomic, which is fine for one person filling in one list.
-    const cur = clean(await store.get(body.id));
-    if (cur && cur.updatedAt > rec.updatedAt) return json(200, { ok: true, saved: cur, stale: true });
-    await store.set(body.id, rec);
+    // Compare and write in one step in the store, so two overlapping saves keep the newer answer.
+    const kept = await store.putIfNewer(body.id, rec);
+    if (kept) return json(200, { ok: true, saved: clean(kept) ?? rec, stale: true });
     return json(200, { ok: true, saved: rec, stale: false });
   } catch (err) {
     console.error("answers store error:", err);

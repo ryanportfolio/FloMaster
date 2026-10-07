@@ -187,6 +187,8 @@ ul, ol { padding-left: 1.2em; }
   border-radius: 6px; box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
 }
 .tags-on .fact-tag:hover .fact-q, .tags-on .fact-tag:focus .fact-q { display: block; }
+/* Bridges the 4px gap above the question, so moving the pointer from the label into it keeps it open. */
+.fact-q::before { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 4px; }
 .tips-hidden .fact-q { display: none !important; }
 .fact-block { position: relative; }
 .tags-on .fact-block[data-open] { outline: 2px dashed #e0a100; outline-offset: 6px; border-radius: 4px; }
