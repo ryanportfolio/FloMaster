@@ -45,10 +45,12 @@ try {
   await page.goto(`${server.base}/`, { waitUntil: "load" });
   await page.tap("#zip-home"); await page.keyboard.type("23320");
   await page.tap("form[data-zipcheck] button");
-  await page.focus("[data-story-range]"); await page.keyboard.press("ArrowLeft");
-  await page.locator("[data-story] [data-story-stage]").scrollIntoViewIfNeeded();
-  await page.tap("[data-story] [data-story-stage]");
-  await page.tap("[data-story] [data-go='100']");
+  // Zoom story: End just above it jumps to its end state (the story's heaviest key response).
+  await page.waitForFunction(() => window.__zs);
+  await page.evaluate(() => scrollTo(0, window.__zs.pinY() - Math.round(innerHeight * 0.12) - 40));
+  await page.evaluate(() => document.activeElement?.blur());
+  await page.waitForTimeout(300);
+  await page.keyboard.press("End");
   await page.waitForTimeout(500);
   const home = await page.evaluate(() => window.__inp);
   const all = [...book, ...home];

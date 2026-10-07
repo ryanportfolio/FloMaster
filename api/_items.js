@@ -24,7 +24,9 @@ const photos = ["portrait", "hero", "jobs", "beforeAfter"].map((k) => `ph.${k}`)
 const prices = ["drains", "water-heaters", "leaks-and-pipes", "fixtures", "sewer-lines"].map((k) => `price.${k}`);
 const zips = ["chesapeake", "hampton", "newport-news", "norfolk", "portsmouth", "suffolk", "virginia-beach"].map((k) => `zip.${k}`);
 const questions = Array.from({ length: 6 }, (_, i) => `q.${i + 1}`);
-const shots = Array.from({ length: 18 }, (_, i) => `shot.${i + 1}`);
+// shot.11 and shot.12 (the sink job's repair and test, shown by the old repair story) are retired;
+// the zoom story's shots keep their ids 13 to 18.
+const shots = [...Array.from({ length: 10 }, (_, i) => i + 1), 13, 14, 15, 16, 17, 18].map((n) => `shot.${n}`);
 
 /** @type {Record<string, "fact" | "question" | "shot">} */
 export const ITEMS = Object.fromEntries([

@@ -66,7 +66,7 @@ export const facts = {
   commercialOffer: f("P33", "Commercial offer", "", "What do you offer commercial customers (scheduling around opening hours, certificate of insurance, invoicing terms, backflow testing)?", ["Commercial"]),
   serviceList: f("P32", "Service pages", "", "Which jobs should have their own page, and which do you want fewer of?", ["Residential", "Book"]),
   windows: f("P29", "Arrival windows", "", "Which arrival windows can you commit to (for example two-hour windows, weekdays)?", ["Book"]),
-  sampleJob: f("P40", "Sample job (repair story)", "Norfolk kitchen: rusted sink trap found, replaced with PVC, leak-tested dry, price from the listed range", "Can you give me one real job to show here: what failed, how you found it, what you changed, how you tested it, and the written price? A sink or water heater job works best.", ["Home"]),
+  sampleJob: f("P40", "Sample job (zoom story)", "Norfolk gable wall: pinhole at a corroded copper joint, new copper sweated in, tested dry under pressure", "Can you give me one real job to show here: what failed, how you found it, what you changed, how you tested it, and the written price? A sink or water heater job works best.", ["Home"]),
   zipList: f("P32", "Service area ZIP codes", "", "Which ZIP codes do you cover fully, and which only sometimes?", ["Service area", "Book"]),
 } satisfies Record<string, Fact>;
 
