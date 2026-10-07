@@ -23,8 +23,10 @@
 // it at once (end state). When it ends, scrolling carries on down the page. Coming back up shows
 // the end state; the story replays only after the visitor has left the section upward and comes
 // down into it again. Every layer is fetched and decoded before playback; if one is not ready when
-// its moment comes, the clock waits on a sharp level. It plays the same with prefers-reduced-motion
-// (owner's decision); without script (or without WebGL 2) the markup's still sequence shows instead.
+// its moment comes, the clock waits on a sharp level; one that still fails after two retries lets go
+// of the page and the section shows at rest. It plays the same with prefers-reduced-motion (owner's
+// decision). At rest (no script, no WebGL 2, or a failed load) the markup shows the whole work order
+// and five stills instead.
 // The column beside the stage (zoom-story-side.js) fills in at the story's beats.
 import Lenis from "lenis";
 import { createSide } from "./zoom-story-side.js";
@@ -59,6 +61,7 @@ import { createSide } from "./zoom-story-side.js";
   // bar in prototype builds), so the page holds at top - stick.
   let geo = { top: 0, stick: 0, w: 1, h: 1, base: 1, dpr: 1, zStart: 0, phone: false };
   const measure = () => {
+    if (failed) return; // the stage is hidden
     const r = stageEl.getBoundingClientRect();
     const w = r.width, h = r.height;
     // On a phone each level is a half-width strip: at rest it must still span the stage, which the
@@ -274,7 +277,23 @@ import { createSide } from "./zoom-story-side.js";
   };
   let currentVariant = null, loadRun = 0;
   const frame = () => new Promise((r) => requestAnimationFrame(r));
+  // One picture: fetched and decoded, up to RETRIES more times after a failure (a bad status, a
+  // network error, a decode error or no answer within 20 s), waiting 0.6 s, then 1.2 s.
+  const RETRIES = 2;
+  const fetchBitmap = async (url) => {
+    for (let k = 0; ; k++) {
+      try {
+        const r = await fetch(url, { signal: AbortSignal.timeout(20000) });
+        if (!r.ok) throw new Error(`${r.status} ${url}`);
+        return await createImageBitmap(await r.blob(), { premultiplyAlpha: "premultiply" });
+      } catch (e) {
+        if (k >= RETRIES) throw e;
+        await new Promise((res) => setTimeout(res, 600 * 2 ** k));
+      }
+    }
+  };
   const loadAll = async () => {
+    if (failed) return;
     // the postmark's chart crop: an SVG <image> would load with the page, so its URL waits until now
     for (const im of section.querySelectorAll("image[data-href]")) { im.setAttribute("href", im.dataset.href); im.removeAttribute("data-href"); }
     const v = variant();
@@ -284,12 +303,15 @@ import { createSide } from "./zoom-story-side.js";
     for (const L of LAYERS) { L.ready = false; if (L.tex) { gl.deleteTexture(L.tex); L.tex = null; } }
     // story order: the levels the camera reaches first come first
     const order = [...LAYERS].sort((a, b) => a.level - b.level || (a.patchOf ? 1 : 0) - (b.patchOf ? 1 : 0));
-    const bitmaps = order.map((L) => fetch(`${L.img.dataset.base}-${v}.webp`).then((r) => r.blob()).then((b) => createImageBitmap(b, { premultiplyAlpha: "premultiply" })));
+    const bitmaps = order.map((L) => fetchBitmap(`${L.img.dataset.base}-${v}.webp`));
+    for (const p of bitmaps) p.catch(() => {}); // each failure is handled where it is awaited
+    const drop = (from) => { for (const p of bitmaps.slice(from)) p.then((b) => b.close(), () => {}); };
     for (let i = 0; i < order.length; i++) {
       const L = order[i];
       let bmp;
-      try { bmp = await bitmaps[i]; } catch { continue; }
-      if (run !== loadRun) { bmp.close(); return; }
+      // a picture that still fails after its retries: the story cannot play (see fail())
+      try { bmp = await bitmaps[i]; } catch { drop(i + 1); if (run === loadRun) fail(); return; }
+      if (run !== loadRun || failed) { bmp.close(); return; }
       placeLayer(L, v);
       L.avg = avgColour(bmp);
       const tex = gl.createTexture();
@@ -335,6 +357,16 @@ import { createSide } from "./zoom-story-side.js";
   let endWhy = null, holdEnded = 0; // holdEnded: while the page scrolls on after End, do not re-arm on the way
   const finish = (why = "end") => { if (unclip) { clearTimeout(unclip); unclip = 0; root.style.overflow = ""; } endWhy = { why, T: Math.round(T), y: Math.round(scrollY), pin: pinY() }; mode = "ended"; T = TOTAL; clock = null; last = null; };
   const late = () => performance.now() - startAt >= GRACE;
+  // A picture that cannot be loaded: let go of the page and show the section at rest instead, as
+  // without script: the five stills and the whole work order (html without .zs-on).
+  let failed = false;
+  const fail = () => {
+    if (failed) return;
+    finish("failed");
+    failed = true;
+    Side.update(TOTAL, "ended", true);
+    root.classList.remove("zs-on");
+  };
 
   // Input. During playback the first gesture is absorbed and a second one ends the story;
   // otherwise normal scrolling, and a downward movement that reaches the section top starts it.
@@ -396,7 +428,7 @@ import { createSide } from "./zoom-story-side.js";
   const tick = (now) => {
     raf = requestAnimationFrame(tick);
     lenis?.raf(now);
-    if (frozen) return;
+    if (frozen || failed) return;
     const y = lenis ? lenis.scroll : scrollY;
     if (mode === "playing") {
       if (Math.abs(y - pinY()) > 2) {

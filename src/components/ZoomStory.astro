@@ -7,7 +7,9 @@
 // Playback (src/scripts/zoom-story.js): scrolling down into the section starts it; the page holds
 // while it plays. A second scroll or swipe ends it (end state) and the page moves on; so do End,
 // Home, Tab, anchor links, find-in-page and the scrollbar. It plays the same with reduced motion.
-// Without script: five stills with captions.
+// At rest (no script, no WebGL 2, or the story's code or a picture failed to load): the whole work
+// order, filled in, and five stills with captions. "Sample job" stays visible on the work order and
+// the first caption: the job is an illustration, not a real one (P40).
 //
 // Pictures: public/zoom/ (fixed URLs, see src/data/zoom-story.ts). Nothing here loads with the
 // first screen: the layers are fetched by script once the section is about two screens away,
@@ -54,7 +56,7 @@ const RING = "M170 22 C 140 4, 50 2, 20 26 C -6 48, 18 92, 96 94 C 176 96, 204 6
       <div class="sa-stack">
         <div class="sa-slip">
           <div class="sa-top">
-            <p class="sa-title"><Fact k="sampleJob" text="Work order" /></p>
+            <p class="sa-title"><Fact k="sampleJob" text="Work order" /> <span class="sample-label">Sample job</span></p>
             <p class="sa-no"><span class="sa-no-k">Va. Master Plumber license</span> <span class="sa-no-v">No. {facts.license.value}</span></p>
           </div>
           <dl class="sa-f">
@@ -90,16 +92,17 @@ const RING = "M170 22 C 140 4, 50 2, 20 26 C -6 48, 18 92, 96 94 C 176 96, 204 6
     </div>
   </div>
   <div class="zs-stills">
-    {zoomStills.map((s) => {
+    {zoomStills.map((s, i) => {
       const row = zoomRows[s.row];
       const note = s.note !== undefined ? zoomNotes[s.note].text : null;
+      const caption = <><b>{row.label}:</b> {row.value}{note && <><br>{note}</>}</>;
       return (
         <figure class="zs-still">
           <div class="zs-still-img"><div class:list={["zs-still-frame", { "zs-still-frame--whole": s.whole }]}>
             <img src={`${Z}${s.src}-d2000.webp`} alt={s.alt} width="1500" height="1000" loading="lazy" decoding="async">
             {s.patch && <img class="zs-patch" src={`${Z}${s.patch}-d2000.webp`} alt="" style={s.style} loading="lazy" decoding="async">}
           </div></div>
-          <figcaption><b>{row.label}:</b> {row.value}{note && <><br>{note}</>}</figcaption>
+          <figcaption>{i === 0 && <><span class="sample-label">Sample job</span> </>}{caption}</figcaption>
         </figure>
       );
     })}
@@ -113,17 +116,30 @@ const RING = "M170 22 C 140 4, 50 2, 20 26 C -6 48, 18 92, 96 94 C 176 96, 204 6
   // first scroll, swipe or key press, or once the section is about two screens away, whichever
   // comes first. Loaded with the page, its 32 KB sat in the first screen's critical path and cost
   // the phone LCP about 0.25 s in Lighthouse.
+  // If the code does not arrive, the section shows at rest (the stills and the whole work order,
+  // as without script) and the next scroll, swipe or key press tries once more. Chrome remembers a
+  // module that failed to load and fails the same import again without asking the server, so the
+  // retry asks for the chunk's address (named in the error) with a query added.
   const section = document.getElementById("zoom");
-  let loaded = false;
-  const go = () => {
-    if (loaded) return;
-    loaded = true;
-    for (const t of INPUT) removeEventListener(t, go, true);
-    io?.disconnect();
-    import("../scripts/zoom-story.js");
-  };
   const INPUT = ["wheel", "touchstart", "keydown", "scroll"];
-  for (const t of INPUT) addEventListener(t, go, { capture: true, passive: true });
+  let state: "idle" | "loading" | "done" = "idle";
+  let tries = 0;
+  let again = "";
+  const listen = (on: boolean) => { for (const t of INPUT) (on ? addEventListener : removeEventListener)(t, go, { capture: true, passive: true } as AddEventListenerOptions); };
+  const go = () => {
+    if (state !== "idle") return;
+    state = "loading";
+    listen(false);
+    io?.disconnect();
+    (again ? import(/* @vite-ignore */ again) : import("../scripts/zoom-story.js")).then(() => { state = "done"; }, (e) => {
+      document.documentElement.classList.remove("zs-on");
+      const url = String(e?.message ?? "").match(/https?:\/\/\S+?\.js/)?.[0];
+      again = url ? `${url}?retry=${Date.now()}` : "";
+      state = ++tries < 2 ? "idle" : "done";
+      if (state === "idle") listen(true);
+    });
+  };
+  listen(true);
   const io = section && "IntersectionObserver" in window ? new IntersectionObserver((e) => { if (e.some((x) => x.isIntersecting)) go(); }, { rootMargin: "200% 0px" }) : null;
   if (section) io?.observe(section);
 </script>
@@ -161,7 +177,20 @@ const RING = "M170 22 C 140 4, 50 2, 20 26 C -6 48, 18 92, 96 94 C 176 96, 204 6
     .zs-pin { grid-template-columns: minmax(22rem, 31%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); padding: 1.25rem; gap: 1.5rem; }
     .zs-poster { inset: 3%; width: 94%; height: 94%; object-fit: contain; }
   }
-  /* No script (or no WebGL 2): a short still sequence instead of the zoom */
+  /* At rest (no script, no WebGL 2, or the story's code or a picture failed to load): the whole
+     work order, filled in, then a short still sequence instead of the zoom */
+  html:not(.zs-on) .zs-pin { position: static; height: auto; max-width: 34rem; margin: 0 auto; padding: var(--band-space) clamp(0.6rem, 3vw, 1.25rem) 0; }
+  html:not(.zs-on) .zs-stage { display: none; }
+  html:not(.zs-on) .zs .sr-word { transform: none; }
+  html:not(.zs-on) .zs .sr-char { opacity: 1; }
+  html:not(.zs-on) .zs .sa-post { opacity: .95; }
+  html:not(.zs-on) .zs .sa-stamp { opacity: .9; }
+  html:not(.zs-on) .zs .sa-snap { opacity: 1; }
+  html:not(.zs-on) .zs :is(.sa-tick, .sa-snap-ring) { stroke-dashoffset: 0; }
+  html:not(.zs-on) .zs .sa-row--tested .fact-tag { opacity: 1; }
+  html.tags-on:not(.zs-on) .zs .sa-row--tested .fact-v { outline-color: #e0a100; }
+  @media (min-width: 900px) { html:not(.zs-on) [data-side="a"] { min-height: 38rem; } }
+  .zs-stills .sample-label { vertical-align: 0.2em; }
   .zs-stills { display: grid; gap: 2.5rem; max-width: 60rem; margin: 0 auto; padding: var(--band-space) 1.25rem; }
   .zs-still { margin: 0; }
   .zs-still-img { aspect-ratio: 3 / 2; overflow: hidden; border-radius: 18px; background: var(--paper); }
@@ -170,8 +199,8 @@ const RING = "M170 22 C 140 4, 50 2, 20 26 C -6 48, 18 92, 96 94 C 176 96, 204 6
   .zs-still-frame img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .zs-still-frame .zs-patch { inset: auto; }
   .zs-still figcaption { margin-top: 0.75rem; font: 600 1.25rem/1.35 var(--font-slab); color: var(--navy-900); }
-  .zs-pin, .zs-on .zs-stills { display: none; }
-  .zs-on .zs-pin { display: grid; }
+  html:not(.zs-on) .zs-pin { display: block; }
+  .zs-on .zs-stills { display: none; }
 
   /* ---------- Text reveal: harnessfirmware.com split-reveal (masked line > word > character) ---------- */
   .zs .sr { --mt: .12em; --mx: .15em; --mb: .28em; }
@@ -308,11 +337,14 @@ const RING = "M170 22 C 140 4, 50 2, 20 26 C -6 48, 18 92, 96 94 C 176 96, 204 6
        --zs-stage-min of the pin). With tags on (prototype review) the tags can overflow the slip:
        the notes give way first, then the rows; the license line at the foot always stays. */
     .zs-pin { grid-template-rows: minmax(var(--zs-stage-min, 46%), 1fr) minmax(0, auto); }
+    /* "Sample job" sits on the navy band between the postmark and the snapshots, so it costs the
+       slip no line */
+    .sa-title .sample-label { position: absolute; z-index: 2; left: 7.6rem; top: -2.05rem; }
     .sa-stack { display: flex; flex-direction: column; min-height: 0; }
     .sa-slip { min-height: 0; }
     .sa-title, .sa-no { flex: none; }
     .tags-on .zs-pin { --zs-stage-min: 30%; }
-    .tags-on .zs .sa-slip { overflow: hidden; }
+
     .tags-on .zs .sa-f { flex: 0 1 auto; min-height: 0; overflow: clip; overflow-clip-margin: .6rem; }
     /* a note that does not fit wraps into a second column out of view, so no line shows half cut */
     .tags-on .zs .sa-notes { flex: 0 100 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start; }
@@ -328,6 +360,7 @@ const RING = "M170 22 C 140 4, 50 2, 20 26 C -6 48, 18 92, 96 94 C 176 96, 204 6
     .sa-snap { top: .2rem; width: 3.8rem; }
     .sa-snap--fixed { right: 3.9rem; top: .5rem; }
     .sa-title { padding-right: 7.6rem; }
+    .sa-title .sample-label { left: 5.9rem; top: -1.65rem; }
     .sa-row dd, .sa-line { font-size: 1rem; }
     .sa-row { padding: .06rem 0; }
   }

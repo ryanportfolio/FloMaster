@@ -193,8 +193,9 @@ const choicesFor = (it: Item) =>
         }
       };
       // Answers typed in another tab show here too, and are kept if that tab closes unsaved.
-      // The two keys can arrive as separate events, so an unsaved mark for a record this tab
-      // already holds is picked up on its own.
+      // The two keys can arrive as separate events, so the unsaved mark for a record this tab
+      // already holds is followed on its own: set when the other tab has it unsaved, cleared once
+      // the other tab has saved that same version.
       addEventListener("storage", (e) => {
         if (e.key !== LS_ANS && e.key !== LS_PEND) return;
         const keptPend = new Set(readLocal<string[]>(LS_PEND, []));
@@ -203,7 +204,11 @@ const choicesFor = (it: Item) =>
           const el = byId.get(id);
           const mine = state[id];
           if (!el || !isRec(r)) continue;
-          if (mine && r.updatedAt === mine.updatedAt && keptPend.has(id) && !pending.has(id)) { pending.add(id); changed = true; }
+          if (mine && r.updatedAt === mine.updatedAt && keptPend.has(id) !== pending.has(id)) {
+            if (keptPend.has(id)) pending.add(id);
+            else pending.delete(id);
+            changed = true;
+          }
           if (mine && r.updatedAt <= mine.updatedAt) continue;
           state[id] = r;
           if (keptPend.has(id)) pending.add(id);
