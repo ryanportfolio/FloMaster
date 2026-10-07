@@ -240,6 +240,14 @@ const priceMap = Object.fromEntries(problems.map((p) => [p.slug, p.prices]));
     btn.textContent = "Booking...";
     setTimeout(() => { location.href = "/book/confirmed"; }, 500);
   });
+  // Back from the confirmation restores this page as it was left, with the button still on
+  // "Booking..."; give it back so the restored form can be sent again.
+  addEventListener("pageshow", (e) => {
+    if (!e.persisted) return;
+    const btn = $<HTMLButtonElement>("[data-submit]");
+    btn.disabled = false;
+    btn.textContent = "Book this time";
+  });
 </script>
 
 <style>
