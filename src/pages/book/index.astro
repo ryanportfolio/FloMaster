@@ -113,6 +113,20 @@ const priceMap = Object.fromEntries(problems.map((p) => [p.slug, p.prices]));
   if (pre) { const r = form.querySelector<HTMLInputElement>(`input[name=job][value="${CSS.escape(pre)}"]`); if (r) r.checked = true; }
   // Carry the phone number between the booking and callback forms (WCAG 3.3.7).
   try { const saved = sessionStorage.getItem("fm-phone"); if (saved) $<HTMLInputElement>("#phone").value = saved; } catch {}
+  // "Change the time" on the confirmation (?change): bring back the booking's job and address,
+  // so only the time needs choosing again.
+  if (new URLSearchParams(location.search).has("change")) {
+    let prev: Booking | null = null;
+    try { prev = JSON.parse(sessionStorage.getItem("fm-booking") || "null"); } catch {}
+    const r = prev?.jobId ? form.querySelector<HTMLInputElement>(`input[name=job][value="${CSS.escape(prev.jobId)}"]`) : null;
+    if (prev && r) {
+      r.checked = true;
+      if (prev.jobId === "other" && prev.job && prev.job !== r.dataset.label) $<HTMLInputElement>("#other-note").value = prev.job;
+    }
+    if (prev?.street) $<HTMLInputElement>("#street").value = prev.street;
+    if (prev?.zip) $<HTMLInputElement>("#zip").value = prev.zip;
+    if (prev?.phone) $<HTMLInputElement>("#phone").value = prev.phone;
+  }
   $<HTMLInputElement>("#phone").addEventListener("input", (e) => { try { sessionStorage.setItem("fm-phone", (e.target as HTMLInputElement).value); } catch {} });
 
   // Question 1's price tag shows through CSS; this announces it and scrolls as much of it into view
@@ -197,11 +211,13 @@ const priceMap = Object.fromEntries(problems.map((p) => [p.slug, p.prices]));
   const firstWindow = () => [...form.querySelectorAll<HTMLInputElement>("input[name=window]")].find((i) => i.offsetParent !== null) ?? form.querySelector<HTMLElement>("input[name=window]")!;
   const validate = (focus: boolean) => {
     const job = checked("job"), win = checked("window");
+    // A page left open past the day of its window: that window has gone.
+    const gone = !!win && win.dataset.date! <= new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
     const street = $<HTMLInputElement>("#street"), zip = $<HTMLInputElement>("#zip"), phone = $<HTMLInputElement>("#phone");
     const digits = phone.value.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
     const checks: [boolean, HTMLElement][] = [
       [setErr("err-job", job ? "" : "Pick the problem closest to yours, or Something else."), form.querySelector<HTMLElement>("input[name=job]")!],
-      [setErr("err-when", win ? "" : "Pick an arrival window, or ask for a callback below."), firstWindow()],
+      [setErr("err-when", gone ? "That day has passed. Reload the page for new days, or ask for a callback below." : win ? "" : "Pick an arrival window, or ask for a callback below."), firstWindow()],
       [setErr("err-street", street.value.trim().length > 3 ? "" : "Enter the street address where the job is.", street), street],
       [setErr("err-zip", /^\d{5}$/.test(zip.value.trim()) ? (zipCheck() ? "" : "I don't cover that ZIP online. Please call so we can talk about it.") : "Enter a 5-digit ZIP code.", zip), zip],
       [setErr("err-phone", digits.length === 10 ? "" : "Enter a 10-digit mobile number so I can text you the confirmation.", phone), phone],
@@ -221,6 +237,7 @@ const priceMap = Object.fromEntries(problems.map((p) => [p.slug, p.prices]));
   });
   $("#zip").addEventListener("input", zipCheck);
   onJob(false);
+  zipCheck();
   progress();
 
   form.addEventListener("submit", (e) => {

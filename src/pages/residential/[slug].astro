@@ -41,7 +41,7 @@ const related = reviews.find((r) => r.service.toLowerCase().split(" ")[0] === s.
             <tbody>{s.prices.map((p, i) => <tr class="vt-target" id={`tag-price-${i}`} tabindex="-1" aria-labelledby={`tag-price-${i}-job tag-price-${i}-range`}><th scope="row" id={`tag-price-${i}-job`}><ValveStamp mark={markOf(tags, `tag-price-${i}`)} />{p.job}</th><td class="num" id={`tag-price-${i}-range`}><Fact k="priceRanges" text={p.range} /></td></tr>)}</tbody>
           </table>
           <p class="small"><strong>What puts a job at the top of the range:</strong> {s.topOfRange}</p>
-          <p class="small"><strong>Time on site:</strong> {s.timeOnSite}</p>
+          <p class="small"><strong>Time on site:</strong> <Fact k="priceRanges" text={s.timeOnSite} /></p>
           <p class="small muted vt-target" id="tag-callout" tabindex="-1"><ValveStamp mark={markOf(tags, "tag-callout")} />Call-out <Fact k="calloutFee" />, <Fact k="calloutCredited" />. You get a written, flat price before I start. <a href="/pricing">All fees</a></p>
           <a class="btn btn--navy btn--block" href={`/book?job=${s.slug}`}><Icon name="calendar" /> Book {s.bookLabel.toLowerCase()}</a>
           <a class="btn btn--ghost btn--block call" href="/emergency"><Icon name="phone" /> It's an emergency</a>

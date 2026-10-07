@@ -45,7 +45,7 @@ export const facts = {
   afterHoursWhen: f("P14", "After-hours window", "after 6 p.m., weekends and holidays", "Which hours count as after-hours?", ["Pricing", "Emergency"]),
   cancellation: f("P15", "Cancellation terms", "Free to cancel or move up to 2 hours before", "What are your cancellation terms?", ["Pricing", "Confirmation"]),
   cardFee: f("P16", "Card fee", "None", "Do you add a fee for card payments?", ["Pricing", "FAQ"]),
-  priceRanges: f("P17", "Price ranges", "", "Are these typical prices right for your jobs? Change any range you would not stand behind.", ["Service pages", "Pricing", "Book"]),
+  priceRanges: f("P17", "Price ranges", "", "Are these typical prices and times on site right for your jobs? Change any you would not stand behind.", ["Service pages", "Pricing", "Book"]),
   pricingModel: f("P18", "How I charge", "A flat price for the job, agreed in writing before I start. No hourly meter running.", "Do you charge a flat price per job, or time and materials?", ["Pricing"]),
   laborWarranty: f("P19", "Labor warranty", "1-year labor warranty", "How long do you guarantee your labor?", ["Pricing", "Trust strip", "Done update"]),
   warrantyExclusions: f("P19", "Warranty exclusions", "damage from freezing, misuse, or work someone else does on the same fixture after me", "What does your guarantee not cover? Are the full terms printed on your invoices?", ["Pricing"]),

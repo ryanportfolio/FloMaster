@@ -54,7 +54,7 @@ Each item shows its code (P12 and so on), what the site says now in quotes, the 
   Which jobs should have their own page, and which do you want fewer of? *(Residential, Book)*\
   Change to: ______________________________________________
 
-**P17 Price ranges.** Are these typical prices right for your jobs? Change any range you would not stand behind. *(Service pages, Pricing, Book)* The note under each service is what the site says puts a job at the top of its range.
+**P17 Price ranges.** Are these typical prices and times on site right for your jobs? Change any you would not stand behind. *(Service pages, Pricing, Book)* The note under each service is what the site says puts a job at the top of its range.
 
 - [ ] **Drain clearing:** Sink, tub or shower drain "$150 to $275" · Toilet blockage "$150 to $250" · Main line from a cleanout "$275 to $450"\
   Top of range: "No accessible cleanout, a line that needs a camera to find the problem, or roots."\

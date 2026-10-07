@@ -136,9 +136,9 @@ const priceItems = (): FactItem[] =>
     code: facts.priceRanges.code,
     label: s.title,
     now: null,
-    lines: s.prices.map((p) => `${p.job}: ${p.range}`),
+    lines: [...s.prices.map((p) => `${p.job}: ${p.range}`), `Time on site: ${s.timeOnSite}`],
     sub: `Top of range: ${s.topOfRange}`,
-    ask: "Prices right? Change any you won't stand behind",
+    ask: "Prices and times right? Change any you won't stand behind",
     pages: facts.priceRanges.pages,
   }));
 const zipItems = (): FactItem[] =>
@@ -284,7 +284,7 @@ export const parts: Part[] = [
     groups: [
       fg("license", "License, insurance, business", ["contractorLicense", "insurance", "bonded", "yearsInTrade", "email"]),
       fg("fees", "Prices and fees", ["calloutFee", "calloutCredited", "diagnosticFee", "afterHoursFee", "afterHoursWhen", "cancellation", "pricingModel", "permits", "serviceList"]),
-      { id: "prices", title: "Price ranges", intro: ["Typical prices right for your jobs? Change any range you won't stand behind.", "Top of range: what the site says puts a job at the top."], items: priceItems() },
+      { id: "prices", title: "Price ranges", intro: ["Typical prices and times on site right for your jobs? Change any you won't stand behind.", "Top of range: what the site says puts a job at the top."], items: priceItems() },
       fg("hours", "Hours, arrival, emergencies", ["hours", "emergency247", "afterHoursAnswer", "emergencyArrival", "valveTypes", "callback", "callbackAfterHours", "windows", "bookingConfirm", "textConsent"]),
       { id: "area", title: "Service area", intro: ["ZIP list typed from memory, not checked with the Post Office."], items: zipItems() },
       fg("promises", "Promises and warranty", ["laborWarranty", "warrantyExclusions", "partsWarranty", "workPromises", "quoting", "startsOnYes", "commercialOffer"]),

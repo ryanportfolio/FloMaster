@@ -70,8 +70,52 @@ const first = days[0];
 </fieldset>
 
 <script>
+  import { nextDays, monthSpan, weekendIsAfterHours } from "./schedule";
   // A strip of days, then the windows for the chosen day; the board repeats the pick.
   const root = document.querySelector<HTMLElement>(".hw[data-when]")!;
+
+  // The page is built ahead of time, so opened on a later day its dates would have passed.
+  // Then the strip and the windows are rebuilt from today, with the built ones as templates.
+  const fresh = nextDays(6);
+  const strip = root.querySelector<HTMLElement>(".strip")!;
+  const builtDays = [...strip.querySelectorAll<HTMLInputElement>("input[name=when-day]")];
+  if (builtDays[0].value !== fresh[0].iso) {
+    const built = [...root.querySelectorAll<HTMLElement>("[data-day-panel]")];
+    const dayT = builtDays[0].closest("label")!;
+    const winT = built[0].querySelector("label.win")!;
+    const wkT = root.querySelector(".wins .wk");
+    root.querySelector("#hw-days")!.textContent = monthSpan(fresh);
+    strip.replaceChildren(...fresh.map((d, i) => {
+      const l = dayT.cloneNode(true) as HTMLElement;
+      const inp = l.querySelector("input")!;
+      inp.value = d.iso;
+      inp.checked = i === 0;
+      Object.assign(inp.dataset, { dow: d.dow, dateNum: String(d.date), dayLabel: d.label, hours: d.hoursLabel });
+      l.querySelector(".dow")!.textContent = d.dow;
+      l.querySelector(".dnum")!.textContent = String(d.date);
+      l.querySelector(".visually-hidden")!.textContent = d.label;
+      return l;
+    }));
+    const fill = fresh.map((d) => {
+      const p = built[0].cloneNode(false) as HTMLElement;
+      p.dataset.dayPanel = d.iso;
+      p.setAttribute("aria-label", `Arrival windows, ${d.label}`);
+      for (const w of d.windows) {
+        const l = winT.cloneNode(true) as HTMLElement;
+        const inp = l.querySelector("input")!;
+        inp.checked = false;
+        inp.value = `${d.label}, ${w.label}`;
+        Object.assign(inp.dataset, { date: d.iso, start: String(w.start), end: String(w.end), dayLabel: d.label, winLabel: w.label, moveBy: w.moveBy, weekend: String(d.weekend && weekendIsAfterHours) });
+        const [hn, mer] = [l.querySelectorAll(".hn"), l.querySelectorAll(".mer")];
+        [hn[0].textContent, mer[0].textContent, hn[1].textContent, mer[1].textContent] = [w.from, w.fromMer, w.to, w.toMer];
+        p.append(l);
+      }
+      if (d.weekend && wkT) p.append(wkT.cloneNode(true));
+      return p;
+    });
+    built.slice(1).forEach((p) => p.remove());
+    built[0].replaceWith(...fill);
+  }
   const panels = [...root.querySelectorAll<HTMLElement>("[data-day-panel]")];
   const set = (sel: string, text: string) => root.querySelectorAll<HTMLElement>(sel).forEach((el) => (el.textContent = text));
   const render = () => {
