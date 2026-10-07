@@ -62,7 +62,7 @@ const fullTitle = title === "home" ? `${facts.name.value} | Master plumber in Ha
     <script>document.querySelectorAll("[data-needs-js]").forEach((b) => b.removeAttribute("disabled"));</script>
     {/* Prerender likely next pages, so following a link shows the next page at once (its load
         reveal waits for the page to be shown). Not the home page (its
-        repair story starts work at load), /book* and /emergency (they read sessionStorage at load). */}
+        zoom story starts work at load), /book* and /emergency (they read sessionStorage at load). */}
     <script type="speculationrules" is:inline set:html={JSON.stringify({
       prerender: [{
         source: "document",

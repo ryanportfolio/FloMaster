@@ -8,7 +8,7 @@ import CardBack from "../components/CardBack.astro";
 import RatingLine from "../components/RatingLine.astro";
 import ReviewCard from "../components/ReviewCard.astro";
 import ZipCheck from "../components/ZipCheck.astro";
-import RepairStory from "../components/RepairStory.astro";
+import ZoomStory from "../components/ZoomStory.astro";
 import SectionHead from "../components/SectionHead.astro";
 import ProofBar from "../components/ProofBar.astro";
 import XrayHero from "../components/XrayHero.astro";
@@ -26,7 +26,7 @@ const newest = reviews[0];
   <!--
     Section rhythm (surface / layout). No two neighbours share both.
     hero navy / photo · proof bar raised / license + five-column list · newest review paper / quote + panel ·
-    repair story raised / wide photo slider + job ticket · services navy / feature grid ·
+    zoom story paper / full-screen pinned stage + work order · services navy / feature grid ·
     meet paper / layered photo · emergency navy / valve panel + steps ·
     area paper / list + panel · reviews tint / card row · closing paper / navy card
   -->
@@ -88,15 +88,8 @@ const newest = reviews[0];
     </div>
   </section>
 
-  <!-- The repair story: one sample job, from the leak to the dry test, next to how I price. -->
-  <section class="band band--lg band--raised" aria-labelledby="story-h">
-    <div class="wrap">
-      <SectionHead title="From drip to dry" id="story-h" split>
-        <p class="lead">Drag across the photo, or tap a step, to follow one job from the leak to the dry test</p>
-      </SectionHead>
-      <RepairStory />
-    </div>
-  </section>
+  <!-- The zoom story: one sample job, from the chart of Hampton Roads down to the leak and back to the dry wall. -->
+  <ZoomStory />
 
   <!-- Services -->
   <section class="band band--navy navy on-navy" aria-labelledby="svc-h">

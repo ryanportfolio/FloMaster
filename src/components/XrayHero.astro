@@ -5,8 +5,7 @@
 // in a tab the lens finds the leak once on its own, once the photo is in view and
 // the page has stopped scrolling, then only moves when the visitor moves it.
 // Reduced motion: the found state, with no movement.
-// The X-ray layer loads after the photo. Same image files as the repair story,
-// so the browser reuses them further down the page.
+// The X-ray layer loads after the photo.
 import { Image, getImage } from "astro:assets";
 import Fact from "./Fact.astro";
 import problem from "../assets/photos/story-1-problem.jpg";
@@ -21,7 +20,6 @@ const { class: cls } = Astro.props;
 const leak = services.find((s) => s.slug === "leaks-and-pipes")!;
 const job = leak.prices[0];
 
-// Keep widths and quality in step with RepairStory.astro so both use the same files.
 const widths = [480, 760, 1080, 1440];
 const sizes = "(min-width: 900px) 70vw, 100vw";
 const ray = await getImage({ src: xray, widths, sizes, format: "webp", quality: 70 });

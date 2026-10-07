@@ -204,7 +204,7 @@ const questions: Omit<QuestionItem, "id" | "kind" | "n">[] = [
   {
     title: "Real street on the map",
     body: [
-      "Scroll story being built for the home page: zooms from a Hampton Roads map down to 1 Norfolk house, into the leak in its wall.",
+      "Zoom story on the home page: zooms from a Hampton Roads map down to 1 Norfolk house, into the leak in its wall.",
       "Map shows a real Norfolk block around W 36th St (Park Place). House on it is made up.",
     ],
     options: ["Fine as it is", "Use a street from a real job (customer's OK)", "Use a made-up place"],
@@ -212,7 +212,7 @@ const questions: Omit<QuestionItem, "id" | "kind" | "n">[] = [
 ];
 
 // ---- Part 3: photo shot list ----
-type Shot = Omit<ShotItem, "id" | "kind" | "n">;
+type Shot = Omit<ShotItem, "id" | "kind" | "n"> & { id?: string };
 const shotGroups: { title: string; intro?: string[]; outro?: string[]; shots: Shot[] }[] = [
   {
     title: "You and the van",
@@ -235,39 +235,39 @@ const shotGroups: { title: string; intro?: string[]; outro?: string[]; shots: Sh
     ],
   },
   {
-    title: "The leaking sink job (P28, P40)",
+    title: "The leaking sink job (P28)",
     intro: [
-      "Home page first screen and the repair story both use 1 sink job, shot from 1 spot.",
-      "Tripod (or wedge your phone) at cabinet-floor height, facing straight into the open cabinet, both doors open, whole cabinet in frame. Leak about 40% from the left and 60% down: on a computer the left part sits behind the headline; on phones it's cropped to 4:3 or 3:2 around the leak. Don't move the camera between shots.",
+      "Home page first screen uses 1 sink job: the photo under the X-ray lens.",
+      "Tripod (or wedge your phone) at cabinet-floor height, facing straight into the open cabinet, both doors open, whole cabinet in frame. Leak about 40% from the left and 60% down: on a computer the left part sits behind the headline; on phones it's cropped to 4:3 or 3:2 around the leak.",
     ],
     outro: [
-      "See-through pipe view (step 2, and inside the lens on the first screen) is a drawing and stays labeled as one. It gets redrawn over your shot 10: no photo needed.",
+      "See-through pipe view (inside the lens on the first screen) is a drawing and stays labeled as one. It gets redrawn over your shot 10: no photo needed.",
       "Close-up of the cause (4th shot in P28) optional: helps whoever redraws it.",
     ],
     shots: [
-      { title: "The problem, as you found it", codes: "P28, P40", body: "Leak, drip, stain. Before you touch anything.", where: "Home page top and repair story, step 1" },
-      { title: "The repair", codes: "P28, P40", body: "Your gloved hands fitting the new part, old part on a towel beside it.", where: "Repair story, step 3" },
-      { title: "The finished test", codes: "P28, P40", body: "New part over a dry cabinet floor, dry paper towel under it.", where: "Repair story, step 4" },
+      { title: "The problem, as you found it", codes: "P28", body: "Leak, drip, stain. Before you touch anything.", where: "Home page top, under the X-ray lens" },
     ],
   },
   {
-    title: "The scroll story (planned, not on site yet)",
+    title: "The zoom story (P28, P40)",
     intro: [
-      "Story zooms from Hampton Roads into 1 house, through its wall to a cracked copper joint, shows the repair, pulls back out to a dry wall.",
-      "Map part (all of Hampton Roads down to about a dozen blocks) is drawn from OpenStreetMap, the free public map: no photos. Everything closer in is AI drawings now.",
+      "On the home page now: zooms from Hampton Roads into 1 Norfolk house, through its gable wall to a corroded copper joint, shows the repair, pulls back out to the closed, dry wall.",
+      "Map part (all of Hampton Roads down to about a dozen blocks) is drawn from OpenStreetMap, the free public map: no photos. Everything closer in is AI drawings now (P28), and the job is a sample (P40).",
       "From 1 real job, minimum 6 shots of 1 leak inside a wall. Each shot centered on what the next one shows. All straight on, landscape, camera's highest resolution.",
     ],
     outro: [
       "2 limits: real photos won't line up as perfectly as drawings, so the zoom fades photo to photo instead of gliding.",
       "Map zooms to the customer's real block, so the house would be findable. See question 6 in Part 2.",
     ],
+    // Ids kept from when the sink job had 3 shots (shot.11 and shot.12 retired), so answers
+    // already saved stay with their shots; the numbers shown run on from 10.
     shots: [
-      { title: "The house", codes: "", body: "Outside of the house, straight on, leak wall in the middle. Straight down from above (drone) matches the map best; from the street works if the story cuts from map to it." },
-      { title: "The wall before", codes: "", body: "Stained wall, straight on, stain in the center." },
-      { title: "The wall opened", codes: "", body: "Same spot as 14: the opening, pipe between the studs, wet stain." },
-      { title: "The failed joint", codes: "", body: "Close, joint in the center, crack or drip sharp." },
-      { title: "The joint repaired", codes: "", body: "Same spot and framing as 16." },
-      { title: "The wall closed and dry", codes: "", body: "Same spot as 14." },
+      { id: "shot.13", title: "The house", codes: "P28, P40", body: "Outside of the house, straight on, leak wall in the middle. Straight down from above (drone) matches the map best; from the street works if the story cuts from map to it.", where: "Home page, zoom story" },
+      { id: "shot.14", title: "The wall before", codes: "P28, P40", body: "Stained wall, straight on, stain in the center.", where: "Home page, zoom story" },
+      { id: "shot.15", title: "The wall opened", codes: "P28, P40", body: "Same spot as 12: the opening, pipe between the studs, wet stain.", where: "Home page, zoom story" },
+      { id: "shot.16", title: "The failed joint", codes: "P28, P40", body: "Close, joint in the center, crack or drip sharp.", where: "Home page, zoom story" },
+      { id: "shot.17", title: "The joint repaired", codes: "P28, P40", body: "Same spot and framing as 14.", where: "Home page, zoom story" },
+      { id: "shot.18", title: "The wall closed and dry", codes: "P28, P40", body: "Same spot as 12.", where: "Home page, zoom story" },
     ],
   },
 ];
@@ -311,7 +311,7 @@ export const parts: Part[] = [
       title: g.title,
       intro: g.intro,
       outro: g.outro,
-      items: g.shots.map((s) => ({ ...s, id: `shot.${++shotN}`, kind: "shot", n: shotN })),
+      items: g.shots.map((s) => { const n = ++shotN; return { ...s, id: s.id ?? `shot.${n}`, kind: "shot", n }; }),
     })),
   },
 ];

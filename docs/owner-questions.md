@@ -187,7 +187,7 @@ Every photo on the site now is AI-generated and must be replaced with a real one
 - [ ] **P28 Before and after:** "AI-generated stand-in"\
   Can you photograph one real job in four shots from the same spot (the problem, the cause up close, the repair, the finished test), and will that customer agree to them being shown? *(Home, Service pages)*\
   Change to: ______________________________________________
-- [ ] **P40 Sample job (repair story):** "Norfolk kitchen: rusted sink trap found, replaced with PVC, leak-tested dry, price from the listed range"\
+- [ ] **P40 Sample job (zoom story):** "Norfolk gable wall: pinhole at a corroded copper joint, new copper sweated in, tested dry under pressure"\
   Can you give me one real job to show here: what failed, how you found it, what you changed, how you tested it, and the written price? A sink or water heater job works best. *(Home)*\
   Change to: ______________________________________________
 
@@ -209,7 +209,7 @@ These came up while building the site and aren't in the list above yet.
    Notes: ______________________________________________
 5. **What puts a price at the top of its range.** Each service has one note today (in the P17 list above), shared by its three jobs: for example, toilet repair and installing a fixture share one note. Would you rather give each job its own note?\
    ☐ One note per service is fine ☐ One note per job (write them beside the ranges in Part 1)
-6. **The real street on the map.** A scroll story is being built for the home page: it zooms from a map of Hampton Roads down to one Norfolk house and into the leak in its wall. The map shows a real Norfolk block around W 36th St (Park Place), and the house on it is invented.\
+6. **The real street on the map.** The zoom story on the home page zooms from a map of Hampton Roads down to one Norfolk house and into the leak in its wall. The map shows a real Norfolk block around W 36th St (Park Place), and the house on it is invented.\
    ☐ Fine as it is ☐ Use a street where I did a real job (with the customer's OK) ☐ Use a made-up place\
    Notes: ______________________________________________
 
@@ -236,27 +236,25 @@ Each of these is cropped to 3:2, so keep the work in the middle two-thirds.
 8. **Shut-off valve.** A gloved hand turning a main water shut-off, close, the valve right of center, some water on the floor behind and out of focus. Use the valve type you named in P39. Cropped to 4:3. *Emergency page, beside the steps.*
 9. **Commercial job.** You working on the drain of a stainless three-compartment sink in a restaurant kitchen, after hours, kneeling at the sink. You on the left half, the sink and pipes on the right. Needs the business owner's OK. *Commercial page.*
 
-### The leaking sink job (P28, P40)
+### The leaking sink job (P28)
 
-The home page's first screen and the repair story further down both use one sink job, shot from one spot. Put the camera on a tripod (or wedge your phone) at the height of the cabinet floor, facing straight into the open cabinet, both doors open, the whole cabinet in frame. Keep the leak at about 40% from the left and 60% down: on a computer screen the left part of the photo sits behind the headline, and on phones it's cropped to 4:3 or 3:2 around the leak. Don't move the camera between shots.
+The home page's first screen uses one sink job: the photo under the X-ray lens. Put the camera on a tripod (or wedge your phone) at the height of the cabinet floor, facing straight into the open cabinet, both doors open, the whole cabinet in frame. Keep the leak at about 40% from the left and 60% down: on a computer screen the left part of the photo sits behind the headline, and on phones it's cropped to 4:3 or 3:2 around the leak.
 
-10. **The problem, as you found it.** The leak, the drip and the stain, before you touch anything. *Home hero (XrayHero) and repair story (RepairStory), step 1.*
-11. **The repair.** Your gloved hands fitting the new part, the old part on a towel beside it. *Repair story, step 3.*
-12. **The finished test.** The new part over a dry cabinet floor, a dry paper towel under it. *Repair story, step 4.*
+10. **The problem, as you found it.** The leak, the drip and the stain, before you touch anything. *Home hero (XrayHero), under the X-ray lens.*
 
-The see-through view of the pipes (step 2, and inside the lens on the first screen) is a drawing and stays labelled as one. It gets redrawn over your shot 10, so it needs no photo. A close-up of the cause (the fourth shot in P28) is optional: it helps whoever redraws it.
+The see-through view of the pipes (inside the lens on the first screen) is a drawing and stays labelled as one. It gets redrawn over your shot 10, so it needs no photo. A close-up of the cause (the fourth shot in P28) is optional: it helps whoever redraws it.
 
-### The scroll story (planned, not on the site yet)
+### The zoom story (P28, P40)
 
-The scroll story zooms from Hampton Roads into one house, through its wall to a cracked copper joint, shows the repair, then pulls back out to a dry wall. The map part (from all of Hampton Roads down to about a dozen blocks) is drawn from OpenStreetMap, the free public map, and needs no photos. Everything closer in is AI-generated drawings now.
+The zoom story is on the home page now. It zooms from Hampton Roads into one Norfolk house, through its gable wall to a corroded copper joint, shows the repair, then pulls back out to the closed, dry wall. The map part (from all of Hampton Roads down to about a dozen blocks) is drawn from OpenStreetMap, the free public map, and needs no photos. Everything closer in is AI-generated drawings now (P28), and the job it shows is a sample (P40).
 
 To make it from one real job, the minimum is six shots of one leak inside a wall. Each shot centers on what the next one shows, all taken from straight in front, landscape, at your camera's highest resolution.
 
-13. **The house.** The outside of the house, straight on, with the wall where the leak was in the middle. Straight down from above (a drone) matches the map best; from the street works if the story cuts from the map to it.
-14. **The wall before.** The stained wall, straight on, the stain in the center.
-15. **The wall opened.** Same spot as 14: the opening, the pipe between the studs, the wet stain.
-16. **The failed joint.** Close, the joint in the center, the crack or drip sharp.
-17. **The joint repaired.** Same spot and framing as 16.
-18. **The wall closed and dry.** Same spot as 14.
+11. **The house.** The outside of the house, straight on, with the wall where the leak was in the middle. Straight down from above (a drone) matches the map best; from the street works if the story cuts from the map to it. *Home page, zoom story.*
+12. **The wall before.** The stained wall, straight on, the stain in the center. *Home page, zoom story.*
+13. **The wall opened.** Same spot as 12: the opening, the pipe between the studs, the wet stain. *Home page, zoom story.*
+14. **The failed joint.** Close, the joint in the center, the crack or drip sharp. *Home page, zoom story.*
+15. **The joint repaired.** Same spot and framing as 14. *Home page, zoom story.*
+16. **The wall closed and dry.** Same spot as 12. *Home page, zoom story.*
 
 Two limits to know about. Photos taken this way won't line up as perfectly as the drawings do, so the zoom would fade from one photo to the next rather than glide through. And the map zooms to the customer's real block, so the house would be findable; see question 6 in Part 2.
