@@ -1,0 +1,112 @@
+---
+import Base from "../layouts/Base.astro";
+import WorkOrderHero from "../components/WorkOrderHero.astro";
+import WorkOrderSlip from "../components/WorkOrderSlip.astro";
+import Photo from "../components/Photo.astro";
+import Fact from "../components/Fact.astro";
+import FactBlock from "../components/FactBlock.astro";
+import Icon from "../components/Icon.astro";
+import commercial from "../assets/photos/commercial.jpg";
+import { facts } from "../data/facts";
+---
+<Base title="Commercial plumbing" description="Plumbing for restaurants, offices, landlords and property managers across Hampton Roads. Scheduled around your opening hours.">
+  <WorkOrderHero title="Commercial plumbing for small businesses and rentals" lead="For restaurants, offices, shops, landlords and property managers across the 7 cities, with work scheduled around your hours" actions>
+    <WorkOrderSlip title="Site visit" id="wo-commercial">
+      <dl class="wo-f"><div><dt>Insurance</dt><dd><Fact k="insurance" />. <Fact k="contractorLicense" onlyWithTags /></dd></div></dl>
+      <a class="btn btn--navy btn--block go" href="#commercial-visit">Request a site visit</a>
+    </WorkOrderSlip>
+  </WorkOrderHero>
+
+  <section class="section">
+    <div class="wrap co">
+      <div>
+        <Photo src={commercial} fact="jobs" alt="A plumber servicing the drain of a stainless three-compartment sink in a restaurant kitchen" widths={[480, 768, 1080, 1536]} sizes="(min-width: 1000px) 560px, 100vw" class="co-photo" shot="after-hours restaurant job" />
+        <h2>What I do for businesses</h2>
+        <ul class="ticks">
+          <li>Kitchen and restroom drains, grease lines and floor drains</li>
+          <li>Commercial water heaters and fixture repairs</li>
+          <li>Leaks, shut-off valves and supply lines</li>
+          <li>Tenant turnovers and rental unit repairs</li>
+          <li>Sewer camera inspections with video for your records</li>
+        </ul>
+        <h2>How it works with a business</h2>
+        <FactBlock k="commercialOffer"><ul class="ticks">
+          <li><strong>Scheduled around you:</strong> early mornings, after close or weekends, so customers and staff aren't disturbed.</li>
+          <li><strong>Paperwork:</strong> a certificate of insurance on request, a written quote before work, and an itemized invoice.</li>
+          <li><strong>One contact:</strong> you deal with me directly, every time.</li>
+        </ul></FactBlock>
+      </div>
+
+      <form class="visit panel" id="commercial-visit" data-visit novalidate method="post" action="/commercial">
+        <h2 class="v-h">Request a site visit</h2>
+        <p class="small muted"><Fact k="commercialOffer" text="I'll call within one working day to set a time." /></p>
+        <div class="field">
+          <label for="biz">Business name</label>
+          <input id="biz" name="biz" type="text" autocomplete="organization" aria-describedby="err-biz" />
+          <span class="error" id="err-biz"></span>
+        </div>
+        <div class="field">
+          <label for="cphone">Contact number</label>
+          <input id="cphone" name="phone" type="tel" autocomplete="tel" inputmode="tel" aria-describedby="err-cphone" />
+          <span class="error" id="err-cphone"></span>
+        </div>
+        <div class="field">
+          <label for="caddr">Site address</label>
+          <input id="caddr" name="addr" type="text" autocomplete="street-address" aria-describedby="err-caddr" />
+          <span class="error" id="err-caddr"></span>
+        </div>
+        <div class="field">
+          <label for="need">What's needed?</label>
+          <textarea id="need" name="need" rows="4" aria-describedby="err-need"></textarea>
+          <span class="error" id="err-need"></span>
+        </div>
+        <button class="btn btn--navy btn--block" type="submit" data-vsubmit disabled data-needs-js>Request a visit</button>
+        <p class="small ok" role="status" data-vdone></p>
+        <p class="small">Urgent? Call <a href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a>.</p>
+      </form>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("[data-visit]")!;
+  const rules: [string, string, (v: string) => boolean, string][] = [
+    ["biz", "err-biz", (v) => v.length > 1, "Enter the business name."],
+    ["cphone", "err-cphone", (v) => v.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "").length === 10, "Enter a 10-digit number I can call."],
+    ["caddr", "err-caddr", (v) => v.length > 4, "Enter the site address."],
+    ["need", "err-need", (v) => v.length > 2, "Tell me briefly what's needed."],
+  ];
+  let tried = false;
+  const validate = (focus: boolean) => {
+    let first: HTMLElement | null = null;
+    for (const [id, err, ok, msg] of rules) {
+      const el = document.getElementById(id) as HTMLInputElement;
+      const good = ok(el.value.trim());
+      document.getElementById(err)!.textContent = good ? "" : msg;
+      if (good) el.removeAttribute("aria-invalid"); else { el.setAttribute("aria-invalid", "true"); first ??= el; }
+    }
+    if (first && focus) first.focus();
+    return !first;
+  };
+  form.addEventListener("input", () => { if (tried) validate(false); });
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    tried = true;
+    if (!validate(true)) return;
+    const b = form.querySelector<HTMLButtonElement>("[data-vsubmit]")!;
+    b.disabled = true; b.textContent = "Sending...";
+    setTimeout(() => { b.textContent = "Requested"; form.querySelector("[data-vdone]")!.textContent = "Thanks. I'll call within one working day. (Prototype: nothing was sent.)"; }, 500);
+  });
+</script>
+
+<style>
+  .co { display: grid; gap: var(--space-4); }
+  @media (min-width: 1000px) { .co { grid-template-columns: minmax(0, 1fr) 24rem; align-items: start; } }
+  .co :global(.co-photo) { border-radius: var(--radius-lg); aspect-ratio: 3 / 2; margin-bottom: var(--space-3); }
+  .co h2 { font-size: var(--step-2); margin-top: var(--space-3); }
+  .visit { position: sticky; top: calc(var(--sticky-h) + 1rem); border-top: 5px solid var(--sky); }
+  .v-h { font-size: var(--step-2); margin-bottom: 0.25rem; }
+  .ok { color: var(--ok); font-weight: 700; }
+  .ok:empty { display: none; }
+  .go { margin-top: 0.6rem; }
+</style>

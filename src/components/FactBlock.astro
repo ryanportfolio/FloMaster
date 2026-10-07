@@ -1,0 +1,18 @@
+---
+// Wraps a block of copy that makes promises about how the business works
+// (lists, paragraphs). While the fact is open, the block gets the same
+// "confirm this" outline and label as an inline fact when tags are on.
+import { facts, isPublicBuild, type FactKey } from "../data/facts";
+interface Props { k: FactKey; class?: string }
+const { k, class: cls } = Astro.props;
+const fact = facts[k];
+const open = fact.status === "open" && !isPublicBuild;
+---
+{open ? (
+  <div class:list={["fact-block", cls]} data-open>
+    <span class="fact-tag fact-tag--block" tabindex="0">Confirm {fact.code}<span class="fact-q" role="tooltip">{fact.question}</span></span>
+    <slot />
+  </div>
+) : (
+  <div class={cls}><slot /></div>
+)}

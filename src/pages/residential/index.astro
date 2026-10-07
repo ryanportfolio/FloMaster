@@ -1,0 +1,58 @@
+---
+import Base from "../../layouts/Base.astro";
+import WorkOrderHero from "../../components/WorkOrderHero.astro";
+import WorkOrderSlip from "../../components/WorkOrderSlip.astro";
+import Photo from "../../components/Photo.astro";
+import CallToAction from "../../components/CallToAction.astro";
+import Icon from "../../components/Icon.astro";
+import Fact from "../../components/Fact.astro";
+import { services } from "../../data/services";
+---
+<Base title="Home plumbing services and prices" description="Drain clearing, water heaters, leak and pipe repair, fixtures and sewer lines for homes across Hampton Roads, with typical prices for every job.">
+  <WorkOrderHero title="Home plumbing, with the prices up front" lead="Typical price ranges for the jobs I do most, and a written, flat price for your job before I start" actions>
+    <WorkOrderSlip title="On every home job" id="wo-home">
+      <dl class="wo-f">
+        <div><dt>Call-out</dt><dd><Fact k="calloutFee" />, <Fact k="calloutCredited" /></dd></div>
+        <div><dt>Your price</dt><dd><Fact k="pricingModel" text="Flat, agreed in writing before I start" /></dd></div>
+        <div><dt>Guarantee</dt><dd><Fact k="laborWarranty" /></dd></div>
+      </dl>
+    </WorkOrderSlip>
+  </WorkOrderHero>
+  <section class="section">
+    <div class="wrap list">
+      {services.map((s, i) => (
+        <article class:list={["row", { flip: i % 2 }]}>
+          <Photo src={s.photo} alt={s.photoAlt} fact="jobs" widths={[480, 768, 1080]} sizes="(min-width: 900px) 520px, 100vw" class="row-photo" shot={s.shot} />
+          <div>
+            <h2><a href={`/residential/${s.slug}`}>{s.title}</a></h2>
+            <p>{s.intro}</p>
+            <table class="mini">
+              <caption class="visually-hidden">Typical prices for {s.title.toLowerCase()}</caption>
+              <tbody>{s.prices.map((p) => <tr><th scope="row">{p.job}</th><td class="num"><Fact k="priceRanges" text={p.range} /></td></tr>)}</tbody>
+            </table>
+            <a class="more" href={`/residential/${s.slug}`}>{s.title}: what's covered and what changes the price <Icon name="arrow" class="i-arrow" /></a>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+  <CallToAction />
+</Base>
+
+<style>
+  .list { display: grid; gap: var(--space-5); }
+  .row { display: grid; gap: var(--space-3); align-items: center; }
+  @media (min-width: 900px) {
+    .row { grid-template-columns: 520px 1fr; gap: var(--space-4); }
+    .row.flip > :first-child { order: 2; }
+  }
+  .row :global(.row-photo) { border-radius: var(--radius-lg); aspect-ratio: 3 / 2; }
+  h2 a { text-decoration: none; color: inherit; }
+  h2 a:hover { text-decoration: underline; }
+  .mini { border-collapse: collapse; width: 100%; max-width: 34rem; margin: 0.5rem 0 1rem; }
+  .mini th, .mini td { padding: 0.55rem 0; border-bottom: 1px solid var(--line); text-align: left; font-size: 1.0625rem; }
+  .mini th { font-weight: 500; }
+  .mini td { text-align: right; font-family: var(--font-slab); font-weight: 700; color: var(--navy); white-space: nowrap; padding-left: 1rem; }
+  .more { font-weight: 600; }
+
+</style>

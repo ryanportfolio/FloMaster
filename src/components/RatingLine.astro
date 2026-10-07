@@ -1,0 +1,25 @@
+---
+import Fact from "./Fact.astro";
+import Icon from "./Icon.astro";
+import { reviews, shortDate } from "../data/reviews";
+interface Props { class?: string }
+const { class: cls } = Astro.props;
+const newest = reviews[0];
+---
+<a class:list={["rating", cls]} href="/reviews">
+  <span class="stars" aria-hidden="true">{[1, 2, 3, 4, 5].map(() => <Icon name="star" />)}</span>
+  <span>
+    <strong class="num"><Fact k="rating" plain /></strong> stars from <span class="num"><Fact k="reviewCount" plain /></span> <Fact k="reviewSource" plain /> reviews
+    <span class="sep" aria-hidden="true">·</span>
+    <span class="newest">newest review {shortDate(newest.date)}</span>
+  </span>
+</a>
+
+<style>
+  /* Inline flow, so the text wraps beside the stars instead of dropping below them. */
+  .rating { display: inline-block; text-decoration: none; color: inherit; font-size: 1.0625rem; line-height: 1.45; padding: 0.25rem 0; }
+  .rating:hover > span:last-child { text-decoration: underline; }
+  .stars { display: inline-flex; gap: 1px; margin-right: 0.5rem; vertical-align: -0.12em; color: #f5b301; }
+  .stars :global(svg) { width: 1.05rem; height: 1.05rem; }
+  .sep { margin: 0 0.15rem; opacity: 0.7; }
+</style>

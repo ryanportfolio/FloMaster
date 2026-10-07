@@ -1,0 +1,105 @@
+---
+// Prototype only: a slim review bar at the top of the sticky header (Header.astro). Shows or
+// hides every "confirm this" tag, links to the full list, and plays the page's load reveal
+// again (src/scripts/reveal.js).
+---
+<div class="review-bar">
+  <div class="wrap rb-inner">
+    <span class="rb-note">Prototype for review</span>
+    <button type="button" aria-pressed="false" data-tag-switch>
+      <span class="dot" aria-hidden="true"></span>
+      <span><span class="rb-long">Items to confirm:</span><span class="rb-short" aria-hidden="true">To confirm:</span></span> <span data-tag-state>Off</span>
+    </button>
+    <a href="/review"><span class="rb-long">See the full list</span><span class="rb-short" aria-hidden="true">Full list</span></a>
+    <button type="button" data-replay>
+      <span><span class="rb-long">Replay page reveal</span><span class="rb-short" aria-hidden="true">Replay</span></span>
+    </button>
+  </div>
+</div>
+
+<script>
+  const root = document.documentElement;
+  const btn = document.querySelector<HTMLButtonElement>("[data-tag-switch]")!;
+  const state = document.querySelector("[data-tag-state]")!;
+  const sync = () => {
+    const on = root.classList.contains("tags-on");
+    btn.setAttribute("aria-pressed", String(on));
+    state.textContent = on ? "On" : "Off";
+  };
+  sync();
+  // The head script re-reads the setting when a prerendered page is shown or another tab changes it.
+  document.addEventListener("prerenderingchange", sync);
+  addEventListener("storage", (e) => { if (e.key === "fm-tags") sync(); });
+  btn.addEventListener("click", () => {
+    const on = root.classList.toggle("tags-on");
+    try { localStorage.setItem("fm-tags", on ? "on" : "off"); } catch {}
+    const url = new URL(location.href);
+    url.searchParams.delete("tags");
+    history.replaceState(null, "", url);
+    sync();
+  });
+
+  // Replay: scrolls to the top and plays this page's load reveal again.
+  document.querySelector("[data-replay]")!.addEventListener("click", () => (window as unknown as { fmReveal?: { replay(): void } }).fmReveal?.replay());
+
+  // Sticky offsets (scroll padding, sticky side panels, the menu's height) follow the real height
+  // of the sticky header, which this bar makes taller and which wraps differently by width.
+  const header = document.querySelector<HTMLElement>(".site-header");
+  if (header) {
+    const setSticky = () => root.style.setProperty("--sticky-h", `${header.offsetHeight}px`);
+    setSticky();
+    new ResizeObserver(setSticky).observe(header);
+    // WCAG 2.4.11: the taller sticky area leaves less room, and Chrome does not scroll a focused
+    // element that is already partly in view. If focus moved by keyboard lands on one under the
+    // sticky area or the phone bottom bar, scroll it clear (scrollIntoView keeps the scroll padding);
+    // one taller than the room between the paddings goes to the top of it. Focus after a click or
+    // tap is left alone, so pressing in a field or panel never moves the page. (`:focus-visible`
+    // cannot tell them apart: Chrome sets it for clicked text fields and script-moved focus.)
+    let byKey = false;
+    addEventListener("keydown", () => { byKey = true; }, true);
+    addEventListener("pointerdown", () => { byKey = false; }, true);
+    document.addEventListener("focusin", (e) => {
+      const el = e.target as HTMLElement;
+      if (!byKey || !(el instanceof HTMLElement) || header.contains(el) || el.closest("[data-sticky]")) return;
+      const r = el.getBoundingClientRect(), top = header.getBoundingClientRect().bottom;
+      const bar = document.querySelector<HTMLElement>("[data-sticky]");
+      const bottom = bar && !bar.classList.contains("is-waiting") && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().top : innerHeight;
+      const cs = getComputedStyle(document.documentElement), room = innerHeight - parseFloat(cs.scrollPaddingTop) - parseFloat(cs.scrollPaddingBottom);
+      if (r.height && (r.top < top || r.bottom > bottom)) el.scrollIntoView({ block: r.height <= room ? "nearest" : "start" });
+    });
+  }
+
+  // WCAG 1.4.13: Escape dismisses an open question; it returns on the next hover or focus.
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") root.classList.add("tips-hidden"); });
+  const show = (e: Event) => { if ((e.target as Element).closest?.(".fact-tag")) root.classList.remove("tips-hidden"); };
+  document.addEventListener("focusin", show);
+  document.addEventListener("pointerover", show);
+</script>
+
+<style>
+  .review-bar { background: #eef1f5; color: var(--ink); border-bottom: 1px solid var(--line); font-size: 0.9375rem; }
+  .rb-inner { display: flex; align-items: center; gap: 0.25rem 1rem; min-height: 2.5rem; flex-wrap: wrap; }
+  .rb-note { color: var(--ink-soft); }
+  .rb-short { display: none; }
+  button { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 2.25rem; padding: 0 0.7rem; border: 1px solid #c3cddb; border-radius: 999px; background: var(--white); font: inherit; font-weight: 700; color: inherit; cursor: pointer; }
+  button:hover { border-color: var(--slate); }
+  .dot { width: 0.65rem; height: 0.65rem; border-radius: 50%; background: #9fb0c4; }
+  button[aria-pressed="true"] { background: #fff4cc; border-color: #e0a100; }
+  button[aria-pressed="true"] .dot { background: #e0a100; }
+  a { color: var(--navy); font-weight: 600; padding: 0.4rem 0; }
+  /* It sits inside the navy header, whose focus ring is white; on this pale bar it stays navy. */
+  .review-bar :focus-visible { outline-color: var(--navy); }
+  /* Below desktop width: short labels (the full wording stays in each control's name for screen
+     readers), so the bar is one row of the sticky area. */
+  @media (max-width: 899px) {
+    .rb-note { display: none; }
+    .rb-long { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .rb-short { display: inline; }
+  }
+  @media (max-width: 480px) {
+    .review-bar { font-size: 0.875rem; }
+    .rb-inner { gap: 0.25rem 0.5rem; }
+    button { padding: 0 0.55rem; }
+  }
+  @media (max-width: 400px) { .review-bar { font-size: 0.8125rem; } }
+</style>

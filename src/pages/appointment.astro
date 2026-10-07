@@ -1,0 +1,11 @@
+---
+// How appointment updates look: the six texts a booked customer gets, played one at a time
+// when tapped, beside the arrival window and the step number set large (AppointmentSteps).
+import Base from "../layouts/Base.astro";
+import PageHero from "../components/PageHero.astro";
+import AppointmentSteps from "../components/appointment/AppointmentSteps.astro";
+---
+<Base title="How appointment updates look" description="The texts FloMasters customers get from booking to job done.">
+  <PageHero title="What you'll hear from me, and when" lead="Every booking gets the same updates by text, so you always know when I'll turn up" />
+  <AppointmentSteps />
+</Base>

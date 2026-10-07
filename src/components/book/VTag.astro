@@ -1,0 +1,32 @@
+---
+// A stamped valve tag: names one exact thing (an answer, the next step) in heavy slab type.
+// With `ans`, the text comes from the booking answers and the tag stays hidden until there is
+// something to stamp. `caps` stamps short values in capitals; longer ones (an address, a date and
+// time) stay in normal case so they read quickly.
+interface Props { ans?: string; tone?: "light" | "blank"; size?: "md" | "lg"; caps?: boolean; class?: string }
+const { ans, tone = "light", size = "md", caps = false, class: cls } = Astro.props;
+const classes = ["vtag", `vtag--${tone}`, `vtag--${size}`, { "vtag--caps": caps }, cls];
+---
+{ans ? <span class:list={classes} data-ans={ans}><slot /></span> : <span class:list={classes}><slot /></span>}
+
+<style>
+  .vtag {
+    position: relative; display: inline-flex; flex-wrap: wrap; align-items: center; column-gap: 0.4em; max-width: 100%;
+    min-height: 2.6rem; padding: 0.4rem 1rem 0.4rem 2.35rem;
+    border: 2px solid var(--slate); border-radius: 1.3rem 12px 12px 1.3rem;
+    font: 700 1.0625rem/1.3 var(--font-slab); letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+  }
+  .vtag--caps { text-transform: uppercase; letter-spacing: 0.06em; }
+  /* The punched slot the tag hangs by: a dark bar, so it can't be mistaken for a radio. */
+  .vtag::before {
+    content: ""; position: absolute; left: 0.9rem; top: 50%; width: 0.4rem; height: 1rem; margin-top: -0.5rem;
+    border-radius: 0.2rem; background: var(--slate-ink);
+  }
+  .vtag:empty { display: none; }
+  .vtag--light { background: var(--sky-100); color: var(--navy-900); }
+  .vtag--blank { background: transparent; color: var(--ink-soft); border-style: dashed; border-color: #74869e; }
+  .vtag--blank::before { background: #74869e; }
+  .vtag--lg { font-size: var(--step-1); min-height: 3.25rem; padding-left: 2.75rem; }
+  .vtag--lg::before { left: 1.05rem; width: 0.45rem; height: 1.25rem; margin-top: -0.625rem; }
+</style>

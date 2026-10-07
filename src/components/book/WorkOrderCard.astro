@@ -1,0 +1,60 @@
+---
+// The compact work order in the booking page's header: the four fields a paper work order
+// would carry, filled in as each question is answered, with Antonio's Virginia Master Plumber
+// licence printed where a work order prints its order number. The page script writes the
+// answers (data-ans), marks answered fields (data-job etc. on .bp) and the count.
+import { facts } from "../../data/facts";
+const fields = [
+  { k: "job", n: 1, label: "Job", ans: "job" },
+  { k: "when", n: 2, label: "Arrival window", ans: "when-short" },
+  { k: "where", n: 3, label: "Address", ans: "where" },
+  { k: "phone", n: 4, label: "Texts to", ans: "phone" },
+];
+---
+<div class="wo">
+  <div class="wo-top">
+    <p class="wo-title">Work order</p>
+    <p class="wo-no">No. <span class="num">{facts.license.value}</span> <span class="wo-no-k">Va. Master Plumber licence</span></p>
+  </div>
+  <dl class="wo-fields">
+    {fields.map((f) => (
+      <div class:list={["wo-row", `wo-row--${f.k}`]}>
+        <dt><span class="fno" aria-hidden="true">{f.n}</span> {f.label}</dt>
+        <dd><span class="wo-val" data-ans={f.ans}></span><span class="wo-blank visually-hidden">Not filled in yet</span></dd>
+      </div>
+    ))}
+  </dl>
+  <p class="wo-count" data-count-text>0 of 4 filled in</p>
+</div>
+
+<style>
+  .wo { background: var(--white); color: var(--ink); border-radius: var(--radius-lg); box-shadow: var(--shadow-2); padding: 0.9rem 1rem 0.8rem; }
+  @media (min-width: 700px) { .wo { padding: 1.1rem 1.4rem 1rem; } }
+  .wo p { margin: 0; max-width: none; }
+  .wo-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--navy); }
+  .wo-title { font: 700 var(--step-1)/1.2 var(--font-slab); color: var(--navy-900); }
+  .wo-no { font: 700 var(--step--1)/1.3 var(--font-slab); color: var(--navy-900); }
+  .wo-no-k { display: block; font: 600 var(--step--2)/1.3 var(--font-body); color: var(--ink-soft); text-align: right; }
+
+  .wo-fields { margin: 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: 1rem; }
+  .wo-row { padding: 0.45rem 0 0.35rem; border-bottom: 1px solid var(--line); min-width: 0; }
+  dt { display: flex; align-items: center; gap: 0.45rem; font-weight: 700; font-size: var(--step--1); line-height: 1.3; color: var(--ink-soft); }
+  .fno { display: inline-grid; place-content: center; width: 1.5rem; height: 1.5rem; border: 2px solid var(--navy); border-radius: 4px; font: 700 0.9375rem/1 var(--font-slab); color: var(--navy); flex: none; transition: background-color 0.2s, color 0.2s; }
+  dd { margin: 0.15rem 0 0; min-height: 1.6rem; font: 700 var(--step--1)/1.4 var(--font-slab); color: var(--navy-900); overflow-wrap: anywhere; }
+  /* One line per value, so the order never changes height above the question being answered;
+     each question shows its full answer on its own tag. */
+  .wo-val { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wo-val:empty { display: none; }
+  .wo-val:not(:empty) + .wo-blank { display: none; }
+  /* Filled fields: the number box is inked in, like a ticked field on a paper order. */
+  :global(.bp[data-job]) .wo-row--job .fno, :global(.bp[data-when]) .wo-row--when .fno,
+  :global(.bp[data-where]) .wo-row--where .fno, :global(.bp[data-phone]) .wo-row--phone .fno { background: var(--navy); color: var(--white); }
+  @media (max-width: 699px) {
+    .wo-row { padding: 0.35rem 0 0.2rem; }
+    dd { min-height: 1.45rem; margin-top: 0.05rem; }
+    .wo-top { padding-bottom: 0.35rem; }
+    /* The licence line in the site header, just above, already names this number. */
+    .wo-no-k { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  }
+  .wo-count { margin-top: 0.4rem !important; font-weight: 700; font-size: var(--step--1); color: var(--slate-ink); }
+</style>

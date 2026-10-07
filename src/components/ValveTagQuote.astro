@@ -1,0 +1,367 @@
+---
+// Pricing page body: the example quote and how a job runs, as stamped valve tags. A valve tag is a
+// stamped mark fixed to the exact valve or line it identifies. The example quote starts from the
+// home page's sample job (a kitchen sink in Norfolk): four tags stamped with the part's name are
+// fixed to the parts under that sink, and the quote's job line carries the tag it prices. Press a
+// part (or its tag in the list) and the quote rewrites itself.
+// "How a job runs" hangs its four numbered tags off one pipe, with a lever valve between step 3 and
+// step 4: it stays across the pipe (off) until you answer yes, the same quarter turn the home page
+// teaches. The fee rows the page header's tags name carry that tag's letter (valve-tags.ts).
+// One mark, one meaning: numbers 1 to 4 are only the steps, letters A to D only the header tags,
+// and the sink's tags carry names.
+import Fact from "./Fact.astro";
+import FactBlock from "./FactBlock.astro";
+import ValveStamp from "./ValveStamp.astro";
+import { pricingTags, markOf } from "./valve-tags";
+import { services } from "../data/services";
+import { facts } from "../data/facts";
+
+// One price row of services.ts (P17): its job name and range, and its service's top-of-range note.
+// services.ts keeps that note per service, not per job, so the quote names the service it belongs
+// to. Printed bare under "Accessible leak repair", the leak service's "walls or slabs" note read as
+// if it described the sink trap in the drawing.
+const row = (slug: string, i: number) => {
+  const s = services.find((x) => x.slug === slug);
+  const p = s?.prices[i];
+  if (!s || !p) throw new Error(`ValveTagQuote: no price row ${slug}[${i}] in services.ts`);
+  return { job: p.job, range: p.range, top: `What puts ${s.title.toLowerCase()} at the top of the range: ${s.topOfRange.charAt(0).toLowerCase()}${s.topOfRange.slice(1)}` };
+};
+// `tag` is the name stamped on the part's tag in the drawing and in the list; `w` is that tag's
+// width in the drawing, and (x, y) its corner, (wx, wy) where its wire meets the part.
+const parts = [
+  { id: "faucet", tag: "Faucet", words: "The faucet drips", job: row("fixtures", 1), w: 90, x: 262, y: 20, wx: 248, wy: 36 },
+  { id: "trap", tag: "Trap", words: "It leaks at the trap", job: row("leaks-and-pipes", 0), w: 70, x: 146, y: 266, wx: 210, wy: 252 },
+  { id: "shutoff", tag: "Shut-off", words: "The shut-off won't close", job: row("leaks-and-pipes", 1), w: 104, x: 6, y: 236, wx: 122, wy: 312 },
+  { id: "drain", tag: "Drain", words: "Water won't go down", job: row("drains", 0), w: 78, x: 300, y: 236, wx: 320, wy: 210 },
+];
+const start = parts[1];
+const payload = JSON.stringify(parts.map((p) => ({ id: p.id, tag: p.tag, job: p.job.job, range: p.job.range, top: p.job.top })));
+const calloutText = facts.calloutFee.value;
+---
+<section class="band band--paper vq" id="quote" aria-labelledby="vq-h" data-vq data-sel={start.id}>
+  <div class="wrap">
+    <h2 id="vq-h">Every line, tagged to what it's for</h2>
+    <p class="lead">Press a part under this sink and the example quote prices that job from my usual ranges</p>
+
+    <div class="vq-grid">
+      <div class="vq-left">
+        <div class="sink" data-sink>
+          <svg viewBox="0 0 400 360" role="img" aria-labelledby="sink-t">
+            <title id="sink-t">Line drawing of the pipes under a kitchen sink, with name tags on the faucet, the trap, a shut-off valve and the drain line</title>
+            <rect class="cab" x="40" y="74" width="320" height="276" rx="6" />
+            <rect class="counter" x="20" y="60" width="360" height="16" rx="3" />
+            <!-- shut-off valves and supply lines (drawn first, behind the basin) -->
+            <g class="part" data-part="shutoff">
+              <path class="hit" d="M110 320 L130 300 L150 320 L130 340 Z M270 320 L290 300 L310 320 L290 340 Z" />
+              <path class="pipe thin" d="M130 306 C130 220 180 170 190 76" />
+              <path class="pipe thin" d="M290 306 C290 220 230 170 210 76" />
+              <path class="pipe" d="M130 336 V350 M290 336 V350" />
+              <circle class="body" cx="130" cy="320" r="11" />
+              <circle class="body" cx="290" cy="320" r="11" />
+              <rect class="handle" x="146" y="315" width="20" height="10" rx="4" />
+              <rect class="handle" x="254" y="315" width="20" height="10" rx="4" />
+            </g>
+            <!-- basin -->
+            <path class="basin" d="M84 76 L100 150 Q102 158 110 158 H290 Q298 158 300 150 L316 76 Z" />
+            <!-- faucet above the counter -->
+            <g class="part" data-part="faucet">
+              <rect class="hit" x="170" y="0" width="90" height="62" />
+              <path class="pipe" d="M200 60 V34 Q200 16 218 16 H236 Q248 16 248 28 V40" />
+              <path class="pipe thin" d="M186 24 H214" />
+            </g>
+            <!-- tailpiece and trap -->
+            <g class="part" data-part="trap">
+              <rect class="hit" x="176" y="156" width="96" height="124" />
+              <path class="pipe" d="M200 158 V226 A26 26 0 0 0 252 226 V206" />
+              <rect class="nut" x="190" y="196" width="20" height="9" rx="2" />
+            </g>
+            <!-- trap arm into the wall -->
+            <g class="part" data-part="drain">
+              <rect class="hit" x="250" y="188" width="112" height="36" />
+              <path class="pipe" d="M252 206 H352" />
+              <rect class="nut" x="344" y="194" width="14" height="24" rx="2" />
+            </g>
+            <!-- tags stamped with the part's name, fixed to each part -->
+            {parts.map((t) => (
+              <g class="stamp" data-part={t.id}>
+                <path class="wire" d={`M${t.wx} ${t.wy} L${t.x + t.w / 2} ${t.y + 14}`} />
+                <rect x={t.x} y={t.y} width={t.w} height="28" rx="8" />
+                <circle cx={t.x + 10} cy={t.y + 14} r="3.2" class="hole" />
+                <text x={t.x + 7 + t.w / 2} y={t.y + 19.5} text-anchor="middle">{t.tag}</text>
+              </g>
+            ))}
+          </svg>
+        </div>
+        <p class="sink-cap small muted">Example: <Fact k="sampleJob" text="a kitchen sink in Norfolk" />. Line drawing, not to scale.</p>
+
+        <fieldset class="tags">
+          <legend class="vq-k">Which part?</legend>
+          {parts.map((p) => (
+            <label class="tg-c"><input type="radio" name="vq-part" value={p.id} checked={p.id === start.id} /><span><b class="tg-n">{p.tag}<span class="visually-hidden"> tag,</span></b><span class="tg-t">{p.words}</span></span></label>
+          ))}
+        </fieldset>
+      </div>
+
+      <article class="vq-q" aria-labelledby="vq-title">
+        <header class="vq-top">
+          <p class="vq-title" id="vq-title">Example quote</p>
+          <p class="vq-by">{facts.owner.value}<span>Va. Master Plumber <span class="num">{facts.license.value}</span></span></p>
+        </header>
+        <ul class="vl" role="list">
+          <li class="vl-job">
+            <span class="vtag" aria-hidden="true"></span>
+            <div class="vl-b"><p class="vl-k"><span class="vl-pt" data-vq-tag>{start.tag}</span><span class="visually-hidden"> tag</span></p><p class="vl-t" data-vq-job>{start.job.job}</p><p class="vl-note" data-vq-top>{start.job.top}</p></div>
+            <p class="vl-a"><Fact k="priceRanges"><span data-vq-range>{start.job.range}</span></Fact></p>
+          </li>
+          <li class="vt-target" id="tag-callout" tabindex="-1"><ValveStamp mark={markOf(pricingTags, "tag-callout")} /><div class="vl-b"><p class="vl-t">Call-out</p><p class="vl-note">I come to you and find the cause</p></div><p class="vl-a"><Fact k="calloutFee" /></p></li>
+          <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Call-out credit</p><p class="vl-note">The {calloutText} is <Fact k="calloutCredited" /></p></div><p class="vl-a"><span aria-hidden="true">&minus;</span><span class="visually-hidden">minus </span><Fact k="calloutFee" /></p></li>
+          <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Diagnostic fee</p></div><p class="vl-a"><Fact k="diagnosticFee" /></p></li>
+          <li class="vt-target" id="tag-after-hours" tabindex="-1"><ValveStamp mark={markOf(pricingTags, "tag-after-hours")} /><div class="vl-b"><p class="vl-t"><span aria-hidden="true">After-hours</span><span class="visually-hidden">After-hours: $0 on this quote</span></p><p class="vl-note"><Fact k="afterHoursFee" />, only <Fact k="afterHoursWhen" /></p></div><p class="vl-a" aria-hidden="true">$0</p></li>
+          <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Card payment fee</p><p class="vl-note">Card, check or cash all cost the same</p></div><p class="vl-a"><Fact k="cardFee" /></p></li>
+          <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Canceling or moving the visit</p><p class="vl-note"><Fact k="cancellation" /></p></div><p class="vl-a">$0</p></li>
+          <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Permits</p><p class="vl-note"><Fact k="permits" text="Only when the city requires one; I tell you first" /></p></div><p class="vl-a">At cost</p></li>
+        </ul>
+        <div class="vq-tot">
+          <p class="vq-tot-k">You pay if you say yes</p>
+          <p class="vq-tot-n"><Fact k="priceRanges"><span data-vq-range>{start.job.range}</span></Fact></p>
+          <p class="vq-tot-no">If you say no, <strong><Fact k="calloutFee" /></strong></p>
+          <p class="visually-hidden" aria-live="polite" data-vq-say></p>
+        </div>
+        <p class="vq-foot">If it isn't on this list, I don't charge it</p>
+        <p class="vq-pm small"><Fact k="pricingModel" /></p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="band band--raised rs" id="how-a-job-runs" aria-labelledby="rs-h" data-rs data-ans="">
+  <div class="wrap rs-grid">
+    <div>
+      <h2 id="rs-h">How a job runs</h2>
+      <p class="lead">Four steps, with a valve between the price and the work that stays shut until you say yes</p>
+    </div>
+    <FactBlock k="quoting">
+      <ol class="riser">
+        <li class="rs-s">
+          <div class="rs-tag"><span class="rs-n" aria-hidden="true">1</span><div><h3>I look and find the cause</h3><p>I find out what's actually wrong before I name a price.</p></div></div>
+        </li>
+        <li class="rs-s">
+          <div class="rs-tag"><span class="rs-n" aria-hidden="true">2</span><div><h3>You get a written price</h3><p>One price for the job, written down, with repair and replacement side by side when there's a choice.</p></div></div>
+        </li>
+        <li class="rs-s rs-s--yes">
+          <div class="rs-tag">
+            <span class="rs-n" aria-hidden="true">3</span>
+            <div>
+              <h3>You say yes, or no and owe only the call-out</h3>
+              <p class="rs-rule"><Fact k="startsOnYes" /></p>
+              <fieldset class="rs-ans">
+                <legend>Your answer</legend>
+                <div class="rs-row">
+                  <label class="rs-c"><input type="radio" name="rs-ans" value="yes" /><span>Yes, go ahead</span></label>
+                  <label class="rs-c"><input type="radio" name="rs-ans" value="no" /><span>No, thanks</span></label>
+                </div>
+              </fieldset>
+              <p class="rs-out" aria-live="polite" data-rs-out>The valve stays across the pipe: no work, no charge beyond the call-out.</p>
+            </div>
+          </div>
+          <svg class="valve" viewBox="-24 -24 48 48" aria-hidden="true" focusable="false">
+            <circle r="11" class="v-body" />
+            <g class="v-lever"><rect x="-22" y="-4.5" width="44" height="9" rx="4.5" /></g>
+            <circle r="3.5" class="v-pin" />
+          </svg>
+        </li>
+        <li class="rs-s rs-s--after">
+          <div class="rs-tag"><span class="rs-n" aria-hidden="true">4</span><div><h3>I fix it, test it, clean up and show you the old part</h3><p><Fact k="workPromises" text="Drop cloths down while I work, everything tested before I leave, and the part I took out is yours to see." /></p></div></div>
+        </li>
+      </ol>
+    </FactBlock>
+    <div class="rs-also">
+      <h3>On every job</h3>
+      <FactBlock k="quoting">
+        <ul class="ticks">
+          <li><strong>Repair first.</strong> I only recommend replacing something when a repair won't last.</li>
+          <li><strong>No surprises mid-job.</strong> If I find something new, I stop and show you before the price changes.</li>
+          <li><strong>Pay when it's done.</strong> <Fact k="payment" />. No cash-only jobs, no full payment up front.</li>
+        </ul>
+      </FactBlock>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ payload, calloutText }}>
+  window.__vq = { parts: JSON.parse(payload), callout: calloutText };
+</script>
+<script>
+  type P = { id: string; tag: string; job: string; range: string; top: string };
+  const { parts, callout } = (window as unknown as { __vq: { parts: P[]; callout: string } }).__vq;
+  const root = document.querySelector<HTMLElement>("[data-vq]");
+  if (root) {
+    const radios = [...root.querySelectorAll<HTMLInputElement>("input[name='vq-part']")];
+    const pick = (id: string) => {
+      const p = parts.find((x) => x.id === id)!;
+      root.dataset.sel = id;
+      root.querySelector("[data-vq-tag]")!.textContent = p.tag;
+      root.querySelector("[data-vq-job]")!.textContent = p.job;
+      root.querySelector("[data-vq-top]")!.textContent = p.top;
+      root.querySelectorAll("[data-vq-range]").forEach((el) => (el.textContent = p.range));
+      // What a screen reader hears after a pick: the job and what it costs, without the visible
+      // total's "Confirm P17" label and its question.
+      root.querySelector("[data-vq-say]")!.textContent = `${p.job}: you pay ${p.range} if you say yes`;
+    };
+    radios.forEach((r) => r.addEventListener("change", () => pick(r.value)));
+    // Pressing a part of the drawing picks it, like pressing its tag.
+    root.querySelector("[data-sink]")!.addEventListener("click", (e) => {
+      const g = (e.target as Element).closest<SVGGElement>("[data-part]");
+      if (!g) return;
+      const id = g.dataset.part!;
+      const r = radios.find((x) => x.value === id);
+      if (r) { r.checked = true; pick(id); }
+    });
+  }
+  const rs = document.querySelector<HTMLElement>("[data-rs]");
+  if (rs) {
+    const out = rs.querySelector<HTMLElement>("[data-rs-out]")!;
+    rs.querySelectorAll<HTMLInputElement>("input[name='rs-ans']").forEach((r) =>
+      r.addEventListener("change", () => {
+        rs.dataset.ans = r.value;
+        out.textContent = r.value === "yes"
+          ? "Yes: the valve turns in line with the pipe and the work starts. The call-out comes off the price."
+          : `No: the valve stays across the pipe. You pay the ${callout} call-out and nothing else.`;
+      }),
+    );
+  }
+</script>
+
+<style>
+  .vq-grid { display: grid; gap: var(--space-4); margin-top: var(--space-3); }
+  @media (min-width: 1000px) { .vq-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-items: start; } }
+  .vq-k { font: 700 var(--step--1)/1.3 var(--font-body); color: var(--ink-soft); margin-bottom: 0.5rem; }
+
+  /* The drawing: line art in the card's navy; the picked part and its tag turn sky blue. */
+  .sink { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--ring), var(--shadow-1); padding: 0.75rem; }
+  .sink svg { display: block; width: 100%; height: auto; }
+  .cab { fill: var(--paper); stroke: var(--line); stroke-width: 3; }
+  .counter { fill: var(--navy-700); }
+  .basin { fill: var(--white); stroke: var(--navy-700); stroke-width: 3; stroke-linejoin: round; }
+  .pipe { fill: none; stroke: var(--navy); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
+  .pipe.thin { stroke-width: 5; }
+  .body, .handle, .nut { fill: var(--navy); transition: fill 0.2s; }
+  .hit { fill: transparent; stroke: none; }
+  .part { cursor: pointer; }
+  .part:hover .pipe { stroke: var(--slate); }
+  .stamp rect { fill: var(--white); stroke: var(--slate); stroke-width: 2.5; }
+  .stamp .hole { fill: var(--navy); }
+  .stamp .wire { stroke: var(--slate); stroke-width: 2; fill: none; }
+  .stamp text { font: 800 16px var(--font-slab); fill: var(--navy-900); }
+  .stamp { cursor: pointer; }
+  /* Phones: the drawing shrinks to about 0.8 of its drawn size, so the name tags' text is set larger
+     to stay at least 14 px on screen from a 360 px wide phone up. "Shut-off", the longest, still
+     clears the punched hole and the tag's right end. */
+  @media (max-width: 479px) { .stamp text { font-size: 19px; transform: translateY(1px); } }
+  [data-sel="faucet"] .part[data-part="faucet"] .pipe, [data-sel="trap"] .part[data-part="trap"] .pipe,
+  [data-sel="shutoff"] .part[data-part="shutoff"] .pipe, [data-sel="drain"] .part[data-part="drain"] .pipe { stroke: var(--sky); }
+  [data-sel="faucet"] .part[data-part="faucet"] :is(.body, .handle, .nut), [data-sel="trap"] .part[data-part="trap"] :is(.body, .handle, .nut),
+  [data-sel="shutoff"] .part[data-part="shutoff"] :is(.body, .handle, .nut), [data-sel="drain"] .part[data-part="drain"] :is(.body, .handle, .nut) { fill: var(--slate); }
+  [data-sel="faucet"] .stamp[data-part="faucet"] rect, [data-sel="trap"] .stamp[data-part="trap"] rect,
+  [data-sel="shutoff"] .stamp[data-part="shutoff"] rect, [data-sel="drain"] .stamp[data-part="drain"] rect { fill: var(--navy); stroke: var(--navy); }
+  [data-sel="faucet"] .stamp[data-part="faucet"] :is(text, .hole), [data-sel="trap"] .stamp[data-part="trap"] :is(text, .hole),
+  [data-sel="shutoff"] .stamp[data-part="shutoff"] :is(text, .hole), [data-sel="drain"] .stamp[data-part="drain"] :is(text, .hole) { fill: var(--white); }
+  .sink-cap { margin: 0.6rem 0 var(--space-3); }
+
+  .tags { display: grid; gap: 0.55rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); margin: 0; }
+  .tg-c { position: relative; display: block; }
+  .tg-c input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .tg-c > span { display: flex; align-items: center; gap: 0.75rem; min-height: 3.5rem; padding: 0.45rem 0.9rem 0.45rem 0.6rem; border: 2px solid var(--slate); border-radius: 1.75rem 12px 12px 1.75rem; background: var(--white); }
+  /* The part's name tag, as stamped on the drawing: a punched hole, then the name. */
+  .tg-n, .vl-pt { display: inline-flex; align-items: center; gap: 0.4rem; flex: none; padding: 0.3rem 0.6rem 0.3rem 0.45rem; border: 2px solid var(--slate); border-radius: 8px; font: 800 1rem/1.1 var(--font-slab); color: var(--navy-900); white-space: nowrap; }
+  .tg-n::before, .vl-pt::before { content: ""; width: 0.45rem; height: 0.45rem; border-radius: 50%; background: var(--navy); }
+  .tg-t { font-weight: 700; line-height: 1.25; }
+  .tg-c input:checked + span { border-color: var(--navy); background: var(--sky-100); box-shadow: inset 0 0 0 1px var(--navy); }
+  .tg-c input:checked + span .tg-n { background: var(--navy); border-color: var(--navy); color: var(--white); }
+  .tg-c input:checked + span .tg-n::before { background: var(--white); }
+  .tg-c input:focus-visible + span { outline: 3px solid var(--navy); outline-offset: 2px; }
+  /* Phone: two tags a row, so the quote's job line sits close under the drawing. */
+  @media (max-width: 560px) {
+    .tags { grid-template-columns: 1fr 1fr; gap: 0.45rem; }
+    .tg-c > span { flex-direction: column; align-items: flex-start; gap: 0.3rem; padding: 0.5rem 0.6rem 0.55rem; border-radius: 1.2rem 10px 10px 10px; min-height: 100%; }
+    .sink-cap { margin-bottom: var(--space-2); }
+  }
+
+  /* The quote: every line hangs from a tag; the job line names the part's tag. */
+  .vq-q { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--ring), var(--shadow-2); padding: 1.1rem 1rem 1.25rem; }
+  @media (min-width: 700px) { .vq-q { padding: 1.5rem 1.75rem; } }
+  .vq-q p { margin: 0; max-width: none; }
+  .vq-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.25rem 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--navy); }
+  .vq-title { font: 700 var(--step-1)/1.2 var(--font-slab); color: var(--navy-900); }
+  .vq-by { font: 700 var(--step--1)/1.3 var(--font-slab); color: var(--navy-900); text-align: right; }
+  .vq-by > span { display: block; font: 600 var(--step--2)/1.3 var(--font-body); color: var(--ink-soft); }
+  .vl { list-style: none; margin: 0; padding: 0; }
+  .vl li { display: grid; grid-template-columns: 1.75rem minmax(0, 1fr) auto; column-gap: 0.75rem; align-items: start; padding: 0.6rem 0; border-bottom: 1px solid var(--line); }
+  /* The punched slot a tag hangs by: a dark bar, as on the booking page's tags, so it never reads as a radio. */
+  .vtag { position: relative; width: 0.45rem; height: 1.1rem; margin: 0.3rem auto 0; border-radius: 0.22rem; background: var(--slate-ink); }
+  /* A fee row the page header's tag names carries that tag's letter instead of a slot. */
+  .vl li > :global(.vt-stamp) { margin: 0.05rem 0 0; }
+  .vl-job { padding-block: 0.8rem !important; }
+  .vl-k { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.6rem; margin-bottom: 0.3rem !important; font: 700 var(--step--2)/1.3 var(--font-body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--slate-ink); }
+  .vl-pt { background: var(--navy); border-color: var(--navy); color: var(--white); letter-spacing: 0; text-transform: none; }
+  .vl-pt::before { background: var(--white); }
+  .vl-t { font-weight: 700; line-height: 1.35; }
+  .vl-job .vl-t { font: 700 var(--step-1)/1.25 var(--font-slab); color: var(--navy-900); }
+  .vl-note { font-size: var(--step--1); color: var(--ink-soft); }
+  .vl-a { font: 700 var(--step-1)/1.2 var(--font-slab); color: var(--navy-900); white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; }
+  .vq-tot { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0.2rem 1rem; padding-top: 0.9rem; margin-top: 0.1rem; border-top: 3px solid var(--navy); }
+  .vq-tot-k { font: 700 var(--step-0)/1.3 var(--font-slab); color: var(--navy-900); }
+  .vq-tot-n { font: 800 var(--step-2)/1.1 var(--font-slab); color: var(--navy); white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; }
+  .vq-tot-no { grid-column: 1 / -1; color: var(--ink-soft); text-align: right; }
+  .vq-tot-no strong { font-family: var(--font-slab); color: var(--navy-900); }
+  .vq-foot { margin-top: 1rem !important; padding: 0.6rem 0.9rem 0.6rem 2.2rem; position: relative; border: 2px solid var(--navy); border-radius: 1.4rem 12px 12px 1.4rem; font: 700 var(--step-0)/1.3 var(--font-slab); color: var(--navy-900); }
+  .vq-foot::before { content: ""; position: absolute; left: 0.9rem; top: 50%; width: 0.4rem; height: 1rem; margin-top: -0.5rem; border-radius: 0.2rem; background: var(--navy); }
+  .vq-pm { margin-top: 0.75rem !important; color: var(--ink-soft); }
+  @media (max-width: 560px) {
+    .vl li { grid-template-columns: 1.75rem minmax(0, 1fr); }
+    .vq-by { text-align: left; }
+    .vl-a { grid-column: 2; text-align: left; font-size: var(--step-0); }
+    .vq-tot { grid-template-columns: 1fr; }
+    .vq-tot-n, .vq-tot-no { text-align: left; }
+  }
+
+  /* How a job runs: one pipe with four tags hanging from it and a lever valve after step 3. */
+  .rs-grid { display: grid; gap: var(--space-3); }
+  @media (min-width: 1000px) { .rs-grid { grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr); column-gap: var(--space-5); } .rs-also { grid-column: 2; } }
+  .riser { --px: 1.25rem; list-style: none; margin: 0; padding: 0; position: relative; }
+  .rs-s { position: relative; padding: 0 0 1.75rem 3.5rem; }
+  /* The pipe: water (sky) down to the valve, empty below it until the answer is yes. */
+  .rs-s::before { content: ""; position: absolute; left: calc(var(--px) - 5px); top: 0; bottom: 0; width: 10px; background: var(--sky); }
+  .rs-s:first-child::before { top: 1.5rem; border-radius: 5px 5px 0 0; }
+  .rs-s--after::before { background: var(--line); transition: background-color 0.35s ease; bottom: auto; height: 1.6rem; border-radius: 0 0 5px 5px; }
+  [data-ans="yes"] .rs-s--after::before { background: var(--sky); }
+  .rs-s::after { content: ""; position: absolute; left: var(--px); top: 1.4rem; width: 2.25rem; height: 2px; background: var(--slate); }
+  .rs-tag { position: relative; display: flex; gap: 0.9rem; padding: 0.85rem 1.1rem 0.9rem 1rem; background: var(--white); border: 2px solid var(--slate); border-radius: 1.75rem 12px 12px 1.75rem; }
+  .rs-tag h3 { margin-bottom: 0.3rem; }
+  .rs-tag p { margin: 0 0 0.4rem; }
+  .rs-n { display: grid; place-content: center; flex: none; width: 2.6rem; height: 2.6rem; border-radius: 50%; border: 2px solid var(--slate); font: 800 1.375rem/1 var(--font-slab); color: var(--navy-900); }
+  .rs-s--yes .rs-tag { border-color: var(--navy); box-shadow: inset 0 0 0 1px var(--navy); }
+  .rs-s--yes .rs-n { background: var(--navy); border-color: var(--navy); color: var(--white); }
+  .rs-s--yes { padding-bottom: 4.25rem; }
+
+  [data-ans="no"] .rs-s--after .rs-tag { border-style: dashed; background: var(--paper); }
+  [data-ans="no"] .rs-s--after :is(h3, p) { color: var(--ink-soft); }
+  .rs-rule { display: inline-block; font: 700 var(--step-0)/1.3 var(--font-slab); color: var(--navy-900); padding: 0.25rem 0.7rem; border-radius: 6px; background: var(--sky-100); }
+  .rs-ans { margin: 0.6rem 0 0.4rem; }
+  .rs-ans legend { font-weight: 700; font-size: var(--step--1); color: var(--ink-soft); margin-bottom: 0.4rem; }
+  .rs-row { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+  .rs-c { position: relative; flex: 1 1 9rem; }
+  .rs-c input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .rs-c span { display: flex; align-items: center; justify-content: center; min-height: 3.25rem; padding: 0.5rem 1rem; border: 2px solid #74869e; border-radius: var(--radius); font-weight: 700; background: var(--white); }
+  .rs-c input:checked + span { background: var(--navy); border-color: var(--navy); color: var(--white); }
+  .rs-c input:focus-visible + span { outline: 3px solid var(--navy); outline-offset: 2px; }
+  .rs-out { min-height: 3.2em; font-weight: 600; }
+  /* The valve sits on the pipe, below step 3. Across the pipe is off; in line with it is on. */
+  .valve { position: absolute; left: calc(var(--px) - 1.75rem); bottom: 0.6rem; width: 3.5rem; height: 3.5rem; overflow: visible; }
+  .v-body { fill: var(--navy); }
+  .v-pin { fill: var(--sky-300); }
+  .v-lever rect { fill: var(--navy-900); }
+  .v-lever { transform: rotate(0deg); transition: transform 0.3s cubic-bezier(0.3, 0.7, 0.3, 1); }
+  [data-ans="yes"] .v-lever { transform: rotate(90deg); }
+  .rs-also { margin-top: var(--space-3); }
+</style>

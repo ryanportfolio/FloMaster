@@ -1,0 +1,169 @@
+---
+// Inner page header with stamped valve tags (/pricing and the service pages). The band is the
+// business card's navy wave tile, cut along the bottom by one wave of the same 96 px period, as on
+// WorkOrderHero. Lettered tags hang on wires from a pipe in the logo's sky blue, over the wave edge
+// into the page. Each tag names one thing further down the page, carries its value and links to
+// it; the same letter is stamped on that thing (ValveStamp.astro), and following the tag outlines
+// it (CSS :target). Each target carries tabindex="-1", and jump-focus.ts moves focus to it, so a
+// screen reader reads on from the target. Tags and values come from valve-tags.ts.
+// Each open fact's "Confirm P.." label hangs under its tag, outside the link (a focusable label
+// can't sit inside a link), in the text flow so it never covers a word.
+// `call` adds a "Who to call" tag with the phone number, two tags wide so the number stays on one
+// line. `cols` sets how many tags hang side by side from 700 px up; phones always take two.
+import Fact from "./Fact.astro";
+import Icon from "./Icon.astro";
+import { facts, isPublicBuild, type FactKey } from "../data/facts";
+import type { ValveTag } from "./valve-tags";
+interface Props { title: string; lead?: string; crumb?: { href: string; label: string }; actions?: boolean; tags: ValveTag[]; call?: boolean; cols?: number }
+const { title, lead, crumb, actions = false, tags, call = false, cols = 3 } = Astro.props;
+const open = (k: FactKey) => facts[k].status === "open" && !isPublicBuild;
+---
+<section class="vt-hero on-navy" data-page-header>
+  <div class="vt-bg" aria-hidden="true"></div>
+  <div class="wrap vt-grid">
+    <div class="vt-intro">
+      {crumb && <p class="vt-crumb"><a href={crumb.href}>{crumb.label}</a></p>}
+      <h1 class="vt-title">{title}</h1>
+      {lead && <p class="lead vt-lead">{lead}</p>}
+      {actions && (
+        <div class="vt-actions" data-hero-actions>
+          <a class="btn btn--ghost" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> Call {facts.phone.value}</a>
+          <a class="btn btn--primary" href="/book"><Icon name="calendar" /> Book a time</a>
+        </div>
+      )}
+    </div>
+    <nav class="vt-board" aria-label="On this page">
+      <ul class="vt-tags" style={`--cols:${cols}`}>
+        {tags.map((t) => (
+          <li>
+            <a class="vt-tag" href={`#${t.id}`}>
+              <span class="vt-n" aria-hidden="true">{t.mark}</span>
+              <span class="vt-l">{t.label}</span>
+              <span class="vt-v"><Fact k={t.k} plain text={t.value} /></span>
+            </a>
+            {open(t.k) && (
+              <span class="fact vt-confirm"><span class="fact-tag" tabindex="0">Confirm {facts[t.k].code}<span class="fact-q" role="tooltip">{facts[t.k].question}</span></span></span>
+            )}
+          </li>
+        ))}
+        {call && (
+          <li class="vt-li-call">
+            <a class="vt-tag vt-tag--call" href={`tel:${facts.phoneHref.value}`}>
+              <span class="vt-n" aria-hidden="true"><Icon name="phone" /></span>
+              <span class="vt-l">Who to call</span>
+              <span class="vt-v">{facts.phone.value}</span>
+            </a>
+          </li>
+        )}
+      </ul>
+    </nav>
+  </div>
+</section>
+
+<script>
+  import "./jump-focus";
+</script>
+
+<style>
+  /* --hang: how far the tags hang below the band's wave edge into the page. z-index 1 keeps them
+     above the next section (often position: relative itself). */
+  .vt-hero { --hang: 2.25rem; position: relative; z-index: 1; isolation: isolate; color: var(--white); padding-block: 1.75rem calc(1.75rem + 24px); }
+  @media (min-width: 1000px) { .vt-hero { --hang: 3rem; padding-block: 2.75rem calc(3rem + 24px); } }
+  /* The section after the header makes room for the tags hanging into it. */
+  :global(.vt-hero + .section) { padding-top: calc(var(--space-5) + 2.25rem); }
+  :global(.vt-hero + .band) { padding-top: calc(var(--band-space) + 2.25rem); }
+  @media (min-width: 1000px) {
+    :global(.vt-hero + .section) { padding-top: calc(var(--space-5) + 3rem); }
+    :global(.vt-hero + .band) { padding-top: calc(var(--band-space) + 3rem); }
+  }
+  .vt-bg {
+    position: absolute; inset: 0; z-index: -1;
+    background: var(--navy) var(--waves) 0 0 / 96px 48px;
+    --edge: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='24'%3E%3Cpath d='M0 14C12 3.33 36 3.33 48 14S84 24.67 96 14V0H0Z'/%3E%3C/svg%3E");
+    -webkit-mask: linear-gradient(#000 0 0) 0 0 / 100% calc(100% - 23px) no-repeat, var(--edge) 0 100% / 96px 24px repeat-x;
+    mask: linear-gradient(#000 0 0) 0 0 / 100% calc(100% - 23px) no-repeat, var(--edge) 0 100% / 96px 24px repeat-x;
+  }
+  .vt-grid { display: grid; gap: 1.5rem; }
+  .vt-board { position: relative; z-index: 2; min-width: 0; margin-bottom: calc(-1.75rem - 24px - var(--hang)); }
+  @media (min-width: 1000px) {
+    .vt-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 34rem); gap: 3rem; align-items: end; }
+    .vt-board { margin-bottom: calc(-3rem - 24px - var(--hang)); }
+  }
+
+  .vt-crumb { margin: 0 0 0.5rem; font-size: var(--step--1); }
+  /* At least 24 px tall, so the crumb clears the target-size minimum on its own. */
+  .vt-crumb a { display: inline-flex; align-items: center; min-height: 1.75rem; color: var(--sky-300); }
+  .vt-title { color: var(--white); font-size: var(--step-4); max-width: 22ch; margin-bottom: 0.5rem; }
+  .vt-lead { color: var(--sky-100); max-width: 52ch; margin-bottom: 0; }
+  .vt-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }
+  .vt-actions .btn--ghost { color: var(--white); }
+  .vt-actions .btn--primary { color: var(--navy-950); }
+
+  /* One pipe per row of tags: each tag draws its stretch of pipe and the wire it hangs from; the
+     list clips the stretches at its sides, so the pipe reads as one run across the row. */
+  .vt-tags { list-style: none; margin: 0; padding: 0 6px; display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: 0.9rem 12px; overflow-x: clip; }
+  .vt-tags li { position: relative; padding-top: 1.35rem; display: grid; grid-template-rows: 1fr auto; }
+  .vt-tags li::after { content: ""; position: absolute; top: 0; left: -6px; right: -6px; height: 6px; border-radius: 3px; background: var(--sky); }
+  .vt-tags li::before { content: ""; position: absolute; top: 4px; left: 50%; width: 2px; height: calc(1.35rem + 0.55rem - 4px); margin-left: -1px; background: var(--sky-300); }
+  .vt-li-call { grid-column: span 2; }
+
+  .vt-tag {
+    position: relative; display: grid; justify-items: center; align-content: start; gap: 0.15rem; text-align: center;
+    padding: 1.2rem 0.75rem 0.85rem; min-height: 7.5rem; border-radius: 12px 12px 14px 14px;
+    background: var(--sky-100); border: 2px solid var(--slate); color: var(--navy-900); text-decoration: none;
+    box-shadow: var(--shadow-1);
+  }
+  /* The punched hole the wire goes through. */
+  .vt-tag::before { content: ""; position: absolute; top: 0.4rem; left: 50%; width: 0.6rem; height: 0.6rem; margin-left: -0.3rem; border-radius: 50%; background: var(--navy); box-shadow: inset 0 0 0 2px var(--slate); }
+  .vt-n { font: 800 2rem/1 var(--font-slab); color: var(--navy); margin-top: 0.2rem; }
+  .vt-n :global(svg) { width: 1.6rem; height: 1.6rem; }
+  .vt-l { font: 600 var(--step--1)/1.25 var(--font-body); color: var(--ink-soft); text-wrap: balance; }
+  /* The gap above the value keeps its dashed "confirm" outline (tags on) clear of the label. */
+  .vt-v { margin-top: 0.3rem; font: 700 1.125rem/1.25 var(--font-slab); letter-spacing: 0.01em; text-wrap: balance; }
+  .vt-v :global(.fact) { display: inline-block; }
+  .vt-tag:hover { background: var(--white); }
+  .vt-tag:hover .vt-l { text-decoration: underline; }
+  .vt-tag:focus-visible { outline: 3px solid var(--white); outline-offset: 3px; }
+  .vt-tag--call { background: var(--white); }
+  .vt-tag--call .vt-v { white-space: nowrap; }
+  /* The "Confirm P.." label hangs under its tag (shown only with tags on). */
+  .vt-tags .vt-confirm { justify-self: center; }
+  .vt-tags .vt-confirm :global(.fact-tag) { margin: 0.4rem 0 0; }
+
+  /* Phones: two tags to a row. The letter moves to the tag's top corner, beside the hole, so the
+     label and value get the tag's full width; "Who to call" takes a whole row. */
+  @media (max-width: 699px) {
+    .vt-tags { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7rem 10px; }
+    .vt-tags li { padding-top: 1rem; }
+    .vt-tags li::before { height: calc(1rem + 0.5rem - 4px); }
+    .vt-tag { justify-items: start; text-align: left; gap: 0.1rem; min-height: 0; padding: 1.75rem 0.65rem 0.6rem; }
+    .vt-tag::before { top: 0.3rem; }
+    .vt-n { position: absolute; top: 0.3rem; left: 0.6rem; margin: 0; font-size: 1.375rem; }
+    .vt-v { font-size: 1.0625rem; margin-top: 0.3rem; }
+    .vt-tags .vt-confirm { justify-self: start; }
+    .vt-tag--call { grid-template-columns: auto auto; justify-content: center; align-items: center; column-gap: 0.75rem; padding: 1.1rem 0.75rem 0.6rem; }
+    .vt-tag--call .vt-n { position: static; grid-row: 1 / 3; }
+    .vt-tag--call .vt-v { margin-top: 0; }
+  }
+  /* The narrowest phones: a little less padding and a slightly smaller label, so the longest job
+     names on the service pages ("Repair (element, thermostat, valve)") stay within three lines. */
+  @media (max-width: 359px) {
+    .vt-tags { padding-inline: 4px; column-gap: 8px; }
+    .vt-tags li::after { left: -4px; right: -4px; }
+    .vt-tag { padding-inline: 0.5rem; }
+    .vt-n { left: 0.45rem; }
+    .vt-l { font-size: 0.9375rem; }
+  }
+  /* Phones: a slightly smaller title and lead, so the header stays within the first screen. */
+  @media (max-width: 699px) {
+    .vt-title { font-size: clamp(2rem, 1.5rem + 2.5vw, 2.25rem); line-height: 1.12; }
+    .vt-lead { font-size: var(--step-0); line-height: 1.45; }
+    .vt-actions { margin-top: 1rem; gap: 0.6rem; }
+  }
+
+  /* The thing a tag was followed to: outlined in the tag's colours (its stamp inks in, in
+     ValveStamp.astro). Table rows outline inside the table and tint their cells. */
+  :global(.vt-target:target) { outline: 3px solid var(--slate); outline-offset: 4px; border-radius: 6px; }
+  :global(tr.vt-target:target) { outline-offset: -3px; }
+  :global(tr.vt-target:target > *) { background: var(--sky-100); }
+</style>

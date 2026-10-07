@@ -22,3 +22,9 @@ build/
 Thumbs.db
 .DS_Store
 debug.log
+
+# Astro generated types
+.astro/
+
+# Playwright MCP session logs
+.playwright-mcp/

@@ -1,0 +1,4 @@
+# Private review deploy: keep every page out of search engines.
+# Replace before a public launch.
+User-agent: *
+Disallow: /

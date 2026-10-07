@@ -1,0 +1,81 @@
+---
+// About page header: the business card's navy wave band with a wave-shaped bottom edge. On the
+// left, the heading, the lead and the Virginia Master Plumber license number set at hull scale,
+// the way a hull number identifies a ship; the whole block links to the state lookup that proves
+// it. On the right, the portrait with the two-sided business card. Desktop: the card overlaps the
+// portrait's lower left corner. Phone: the portrait sits beside the turn-over button and the card
+// runs full width under both, so the card never covers the portrait.
+import Photo from "./Photo.astro";
+import FlipCard from "./FlipCard.astro";
+import portrait from "../assets/photos/portrait.jpg";
+import { facts } from "../data/facts";
+import { dpor } from "../data/faq";
+interface Props { title: string; lead: string }
+const { title, lead } = Astro.props;
+---
+<section class="ah navy on-navy" data-page-header>
+  <div class="wrap ah-grid">
+    <div class="ah-text">
+      <h1 class="ah-title">{title}</h1>
+      <p class="lead ah-lead">{lead}</p>
+      <a class="hl" href={dpor} rel="noopener">
+        <span class="hl-k">Virginia Master Plumber license</span>
+        <span class="hl-n num">{facts.license.value}</span>
+        <span class="hl-check">Check it on the DPOR license lookup</span>
+      </a>
+    </div>
+    <div class="ah-art">
+      <Photo src={portrait} fact="portrait" alt="Antonio Spence in his navy FloMasters work shirt" widths={[240, 480, 768]} sizes="(min-width: 960px) 400px, 8rem" class="ah-pic" shot="portrait" priority />
+      <FlipCard class="ah-card" tone="on-navy" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .ah { position: relative; padding-block: 1.75rem calc(1.25rem + 24px); }
+  @media (min-width: 960px) { .ah { padding-block: 3.25rem calc(3rem + 24px); } }
+  /* Wave-shaped bottom edge: the paper below the band, cut to one wave period per 96px. */
+  .ah::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 24px; background: var(--paper); pointer-events: none;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='24'%3E%3Cpath d='M0 14C12 3.33 36 3.33 48 14S84 24.67 96 14V24H0Z'/%3E%3C/svg%3E") 0 0 / 96px 24px repeat-x;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='24'%3E%3Cpath d='M0 14C12 3.33 36 3.33 48 14S84 24.67 96 14V24H0Z'/%3E%3C/svg%3E") 0 0 / 96px 24px repeat-x;
+  }
+  .ah-grid { display: grid; gap: 1.25rem; align-items: center; }
+  @media (min-width: 960px) { .ah-grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: var(--space-5); } }
+  .ah-title { max-width: 18ch; font-size: var(--step-4); margin-bottom: 1rem; }
+  .ah .ah-lead { color: var(--sky-100); max-width: 52ch; margin-bottom: 0; }
+  @media (max-width: 699px) {
+    .ah-title { font-size: clamp(2rem, 1.5rem + 2.5vw, 2.25rem); line-height: 1.12; margin-bottom: 0.5rem; }
+    .ah .ah-lead { font-size: var(--step-0); line-height: 1.45; }
+  }
+
+  /* License number at hull scale; ten digits fit on one line down to 320 px. */
+  .hl { display: inline-grid; justify-items: start; margin-top: 1rem; color: var(--white); text-decoration: none; max-width: 100%; }
+  @media (min-width: 960px) { .hl { margin-top: var(--space-3); } }
+  .hl-k { font: 700 var(--step--1)/1.3 var(--font-body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--sky-300); }
+  .hl-n { font: 800 clamp(2.9rem, 0.6rem + 9.6vw, 6.75rem)/0.9 var(--font-slab); letter-spacing: -0.045em; margin: 0.25rem 0 0.4rem -0.03em; white-space: nowrap; }
+  .hl-check { display: inline-flex; align-items: center; min-height: 24px; font-weight: 600; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; color: var(--sky-100); }
+  .hl:hover .hl-check { text-decoration-thickness: 2px; }
+  .hl:focus-visible { outline-offset: 6px; }
+
+  /* Phone and tablet: portrait beside the button and its state line, card full width below. */
+  .ah-art { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); grid-template-areas: "pic row" "card card"; gap: 0.75rem 1rem; align-items: center; min-width: 0; }
+  .ah-art :global(.ah-pic) { grid-area: pic; aspect-ratio: 4 / 5; width: 100%; border-radius: var(--radius); box-shadow: var(--shadow-2); }
+  /* Review mode only: on the small portrait the photo tag sits at the foot, clear of his face. */
+  @media (max-width: 959px) { .ah-art :global(.ah-pic .photo-tag) { top: auto; bottom: 0.35rem; left: 0.35rem; max-width: calc(100% - 0.7rem); } }
+  .ah-art :global(.ah-card) { display: contents; }
+  .ah-art :global(.flip-stage) { grid-area: card; width: min(100%, 19rem); }
+  .ah-art :global(.flip-row) { grid-area: row; margin: 0; flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+  @media (min-width: 600px) and (max-width: 959px) {
+    .ah-art { grid-template-columns: 11rem minmax(0, 22rem); grid-template-areas: "pic card" "pic row"; align-items: start; justify-content: start; }
+    .ah-art :global(.flip-row) { flex-direction: row; align-items: center; }
+  }
+  /* Desktop: square portrait on the right, the card over its lower left corner. */
+  @media (min-width: 960px) {
+    .ah-art { display: block; position: relative; }
+    .ah-art :global(.ah-pic) { aspect-ratio: 1; width: 25rem; margin: 0 0 6rem auto; border-radius: var(--radius-lg); }
+    .ah-art :global(.ah-card) { display: flex; position: absolute; z-index: 3; left: 0; bottom: -0.5rem; width: 21rem; }
+    .ah-art :global(.flip-stage) { width: 100%; }
+    .ah-art :global(.flip-row) { flex-direction: row; align-items: center; margin-top: 1rem; }
+  }
+</style>

@@ -1,0 +1,148 @@
+---
+// The hull chart: Hampton Roads drawn from Census shapes, navy water with the card's waves, the 7
+// cities lit on paper. The still chart is plain inline SVG (no script needed to see it). When a ZIP
+// is checked, zipchart/chart.ts glides the view to it and marks it. Hidden from screen readers:
+// the written answer beside it says everything the chart shows.
+import Fact from "./Fact.astro";
+import { CITIES, SEAMS_D, NEIGHBORS_D, STATE_LINE_D, CROSSINGS, WATER, NUDGE, VERTICAL, REST } from "./zipchart/shapes";
+import { transformOf } from "./zipchart/camera";
+// Bundled on its own as one classic script (Vite's worker bundling, used only to get a
+// self-contained file and its URL); the loader below adds it after the page has loaded.
+import bootUrl from "./zipchart/boot.ts?worker&url";
+
+const [rx, ry, rw] = REST;
+const pct = (x: number, y: number) => [(((x - rx) / rw + 0.5) * 100).toFixed(2) + "%", (((y - ry) / (rw * 0.827) + 0.5) * 100).toFixed(2) + "%"];
+const nudge = (id: string) => NUDGE[id] ?? [0, 0, "middle"];
+// Shield plates: width from the route's characters (11 px bold digits about 6.2 px, "I" 3.2, "-" 4).
+const shieldW = (s: string) => Math.round([...s].reduce((n, c) => n + (c === "I" ? 3.2 : c === "-" ? 4 : 6.2), 0) + 8);
+type L = { id: string; cls: string; text: string; x: number; y: number; zoom?: boolean; city?: string; shield?: number };
+const labels: L[] = [
+  ...WATER.map((w) => ({ id: `water:${w.slug}`, cls: "zc-w", text: w.name, x: w.x, y: w.y, zoom: w.zoomOnly })),
+  ...CROSSINGS.map((c) => ({ id: `shield:${c.id}`, cls: "zc-s", text: c.route, x: c.shield[0], y: c.shield[1], shield: shieldW(c.route) })),
+  ...CITIES.map((c) => ({ id: `city:${c.slug}`, cls: "zc-c", text: c.name, x: c.label[0], y: c.label[1], city: c.name })),
+];
+---
+<div class="zc-wrap">
+  <div class="zc" data-zipchart aria-hidden="true" data-state="rest" data-cam={REST.join(",")} data-mark="none">
+    <div class="zc-water"></div>
+    <svg class="zc-land" viewBox="0 0 1000 827" preserveAspectRatio="xMidYMid slice" focusable="false">
+      <g data-cam-g transform={transformOf(REST)}>
+        <path class="zc-nb" d={NEIGHBORS_D} />
+        <path class="zc-st" d={STATE_LINE_D} />
+        {CITIES.map((c) => <path class="zc-city" data-c={c.name} d={c.d} />)}
+        <path class="zc-seam" d={SEAMS_D} />
+        {CROSSINGS.map((x) => <polyline class="zc-x" points={x.pts.map((p) => p.join(",")).join(" ")} />)}
+      </g>
+    </svg>
+    <div class="zc-join"></div>
+    <svg class="zc-over" width="100%" height="100%" focusable="false">
+      {labels.map((l) => {
+        const [x, y] = pct(l.x, l.y);
+        const [dx, dy, anchor] = nudge(l.id);
+        const w = l.shield ?? 0;
+        const sx = anchor === "end" ? dx - w : anchor === "start" ? dx : dx - w / 2;
+        return (
+          <svg data-lbl={l.id} data-a={`${l.x},${l.y}`} data-c={l.city} data-zoom={l.zoom ? "" : undefined} x={x} y={y} style={l.zoom ? "opacity:0;visibility:hidden" : undefined}>
+            <g class={l.cls}>
+              {l.shield ? (
+                <><rect x={sx} y={dy - 8} width={w} height="16" rx="3" /><text x={sx + w / 2} y={dy || undefined} dy=".35em" text-anchor="middle">{l.text}</text></>
+              ) : (
+                <text x={dx || undefined} y={dy || undefined} dy=".35em" text-anchor={anchor} transform={VERTICAL.includes(l.id) ? `rotate(-90 ${dx} ${dy})` : undefined}>{l.text}</text>
+              )}
+            </g>
+          </svg>
+        );
+      })}
+      <defs>
+        <mask id="zc-draw" maskUnits="userSpaceOnUse" x="-40" y="-40" width="80" height="80">
+          <path data-draw pathLength="1" d="M0 -18A18 18 0 1 1 0 18A18 18 0 1 1 0 -18" />
+        </mask>
+      </defs>
+      <g data-mark-g mask="url(#zc-draw)">
+        <path class="zc-rc" pathLength="100" d="M0 -18A18 18 0 1 1 0 18A18 18 0 1 1 0 -18" />
+        <path class="zc-rk" pathLength="100" d="M0 -18A18 18 0 1 1 0 18A18 18 0 1 1 0 -18" />
+        <circle class="zc-dot" r="4" />
+      </g>
+    </svg>
+    <div class="zc-tag" data-tag hidden></div>
+    <div class="zc-tag" data-ghost hidden></div>
+    <p class="zc-credit">Map: US Census Bureau</p>
+  </div>
+  <span class="zc-fact"><Fact k="zipList" text="" /></span>
+</div>
+
+<script is:inline define:vars={{ src: bootUrl }}>
+  // The chart's code loads a second after the page's load event, so its download never competes
+  // with the first paint (as an early module request it delayed the largest paint by 150 ms in the
+  // Lighthouse phone run). The still chart needs no script; an answer given before the code
+  // arrives is picked up when it starts. A module script, because the dev server serves the code
+  // as an ES module with imports; the built bundle runs the same way.
+  const go = () => setTimeout(() => { const s = document.createElement("script"); s.type = "module"; s.src = src; document.head.append(s); }, 1000);
+  if (document.readyState === "complete") go(); else addEventListener("load", go, { once: true });
+</script>
+
+<style is:global>
+  /* Global (every selector starts with .zc) so the markup carries no scoping attributes. */
+  .zc-wrap { position: relative; }
+  .zc {
+    position: relative; overflow: hidden; aspect-ratio: 1000 / 827; contain: layout paint;
+    background: var(--navy); user-select: none; container-type: inline-size;
+  }
+  /* A navy edge on the left, top and right: invisible on water, it keeps the box framed when the
+     view is zoomed in and paper land reaches the edge next to the paper page. */
+  .zc::after { content: ""; position: absolute; inset: 0; border: 2px solid var(--navy); border-bottom: 0; pointer-events: none; }
+  /* The bottom 24 px fade into the board's own waves (phase set from the page by chart.ts), so the
+     chart's land and water meet the navy board below without a seam. */
+  .zc-join {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 24px; pointer-events: none;
+    background: var(--navy) var(--waves) var(--zc-jx, 0px) 100% / 96px 48px;
+    -webkit-mask-image: linear-gradient(transparent, #000); mask-image: linear-gradient(transparent, #000);
+  }
+  .zc-water {
+    position: absolute; left: -96px; top: -48px; right: -96px; bottom: -48px;
+    background: var(--navy) var(--waves) 0 0 / 96px 48px; will-change: transform;
+  }
+  .zc-land, .zc-over { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: hidden; }
+  .zc-over { will-change: transform; pointer-events: none; }
+  .zc-nb { fill: var(--navy-700); stroke: var(--slate); stroke-width: 1px; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+  .zc-st { fill: none; stroke: var(--slate); stroke-width: 1px; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; }
+  .zc-city { fill: var(--paper); stroke: var(--line); stroke-width: 1px; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+  /* Borders between the 7 cities: slate on paper (4:1), 1 px, so a neighbouring city's name does not read as the ringed one's. */
+  .zc-seam { fill: none; stroke: var(--slate); stroke-width: 1px; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+  .zc-x { fill: none; stroke: var(--sky-300); stroke-width: 2px; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Label wrappers are zero-size; their text spills out from the anchor. */
+  .zc-over svg { overflow: visible; }
+  .zc-over text { paint-order: stroke; stroke-linejoin: round; }
+  .zc-c text { font: 700 12px var(--font-slab); fill: var(--ink); stroke: var(--paper); stroke-width: 3px; }
+  .zc-w text { font: italic 400 12px var(--font-body); fill: var(--sky-300); stroke: var(--navy); stroke-width: 3px; }
+  .zc-s rect { fill: var(--sky-300); }
+  .zc-s text { font: 700 11px var(--font-body); fill: var(--navy-950); }
+  /* City names size to the chart, not the window: 14 px once the chart is 520 px wide. */
+  @container (min-width: 520px) { .zc-c text { font-size: 14px; } }
+
+  .zc [data-mark-g] { opacity: 0; }
+  .zc-rc, .zc-rk { fill: none; }
+  .zc-rc { stroke: var(--navy-950); stroke-width: 7px; }
+  .zc-rk { stroke: var(--sky); stroke-width: 3px; }
+  .zc .dash :is(.zc-rc, .zc-rk) { stroke-dasharray: 6.25 6.25; }
+  .zc-dot { fill: var(--sky); stroke: var(--navy-950); stroke-width: 2px; display: none; }
+  .zc .is-dot .zc-dot { display: inline; }
+  .zc .is-dot :is(.zc-rc, .zc-rk) { display: none; }
+  .zc [data-draw] { fill: none; stroke: #fff; stroke-width: 12px; stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .zc :is(.is-dot, .drawn) { mask: none; }
+
+  .zc-tag {
+    position: absolute; left: 0; top: 0; opacity: 0; max-width: min(240px, calc(100% - 16px));
+    padding: 6px 10px; background: var(--navy-950); color: var(--paper);
+    font: 700 15px/1.25 var(--font-slab); border-left: 3px solid var(--sky-300);
+  }
+  .zc-tag.dash { border-left-style: dashed; }
+  .zc-tag.wide { max-width: calc(100% - 16px); }
+  .zc-tag b, .zc-tag span { display: block; }
+  .zc-tag b { font-weight: 800; }
+  .zc-credit { position: absolute; right: 8px; bottom: 8px; margin: 0; padding: 1px 4px; border-radius: 2px; font: 11px/1.2 var(--font-body); color: var(--sky-300); background: rgb(12 27 48 / 0.8); }
+  .zc-fact { position: absolute; left: 8px; top: 8px; z-index: 2; }
+  /* Tags on: when a mark would sit under the Fact tag, it moves to the bottom-left corner. */
+  .fact-low .zc-fact { top: auto; bottom: 8px; }
+</style>

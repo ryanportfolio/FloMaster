@@ -1,0 +1,33 @@
+---
+// Mobile only: Call and Book, nothing else. On pages whose first screen has its
+// own Call and Book buttons (marked [data-hero-actions]), the bar waits until
+// those scroll away; on every other page it shows from load.
+import Icon from "./Icon.astro";
+import { facts } from "../data/facts";
+---
+<div class="sticky-bar" data-sticky>
+  <a class="btn btn--signal" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> Call</a>
+  <a class="btn btn--primary" href="/book"><Icon name="calendar" /> Book</a>
+</div>
+
+<script>
+  const bar = document.querySelector<HTMLElement>("[data-sticky]");
+  const hero = document.querySelector("[data-hero-actions]");
+  if (bar && hero && "IntersectionObserver" in window) {
+    bar.classList.add("is-waiting");
+    new IntersectionObserver(([e]) => bar.classList.toggle("is-waiting", e.isIntersecting)).observe(hero);
+  }
+</script>
+
+<style>
+  .sticky-bar {
+    position: fixed; inset: auto 0 0 0; z-index: 50;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;
+    padding: 0.6rem 0.75rem calc(0.6rem + env(safe-area-inset-bottom));
+    background: rgb(12 27 48 / 0.97); box-shadow: 0 -6px 24px rgb(0 0 0 / 0.2);
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+  }
+  .sticky-bar .btn { min-height: 3rem; }
+  .sticky-bar.is-waiting { transform: translateY(110%); visibility: hidden; transition: transform 0.2s ease, visibility 0s 0.2s; }
+  @media (min-width: 900px) { .sticky-bar { display: none; } }
+</style>

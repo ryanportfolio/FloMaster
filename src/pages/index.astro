@@ -1,0 +1,386 @@
+---
+import Base from "../layouts/Base.astro";
+import Photo from "../components/Photo.astro";
+import Fact from "../components/Fact.astro";
+import FactBlock from "../components/FactBlock.astro";
+import Icon from "../components/Icon.astro";
+import CardBack from "../components/CardBack.astro";
+import RatingLine from "../components/RatingLine.astro";
+import ReviewCard from "../components/ReviewCard.astro";
+import ZipCheck from "../components/ZipCheck.astro";
+import RepairStory from "../components/RepairStory.astro";
+import SectionHead from "../components/SectionHead.astro";
+import ProofBar from "../components/ProofBar.astro";
+import XrayHero from "../components/XrayHero.astro";
+import { Image } from "astro:assets";
+import portrait from "../assets/photos/portrait.jpg";
+import ValveStates from "../components/ValveStates.astro";
+import { facts, photoFacts, isPublicBuild } from "../data/facts";
+import { services } from "../data/services";
+import { reviews, shortDate } from "../data/reviews";
+import { cities } from "../data/area";
+const newest = reviews[0];
+---
+<Base title="home" description="Antonio Spence, Virginia master plumber, fixes plumbing and drains across Chesapeake, Hampton, Newport News, Norfolk, Portsmouth, Suffolk and Virginia Beach. Every price and fee listed. Call or book online.">
+
+  <!--
+    Section rhythm (surface / layout). No two neighbours share both.
+    hero navy / photo · proof bar raised / license + five-column list · newest review paper / quote + panel ·
+    repair story raised / wide photo slider + job ticket · services navy / feature grid ·
+    meet paper / layered photo · emergency navy / valve panel + steps ·
+    area paper / list + panel · reviews tint / card row · closing paper / navy card
+  -->
+
+  <!-- First screen: call, book, emergency, rating, license (license is in the header). -->
+  <section class="hero navy on-navy">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <h1>Plumbing and drains across Hampton Roads, fixed by a master plumber</h1>
+        <p class="owner">
+          <Image src={portrait} alt="" width={96} height={96} class="owner-pic" loading="eager" format="webp" />
+          <span>When you call, you get me: <strong>{facts.owner.value}</strong>. No call center, no sales team.{!isPublicBuild && <span class="photo-tag owner-tag">Replace with a real photo · {photoFacts.portrait.code}</span>}</span>
+        </p>
+        <RatingLine class="hero-rating" />
+        <div class="fork" data-hero-actions>
+          <a class="btn btn--signal fork-btn" href={`tel:${facts.phoneHref.value}`}>
+            <Icon name="phone" />
+            <span><span class="fork-k">Water leaking now?</span> Call <Fact k="emergency247" plain text="24/7" /></span>
+          </a>
+          <a class="btn btn--primary fork-btn" href="/book">
+            <Icon name="calendar" />
+            <span><span class="fork-k">Planned repair or install?</span> Book a time</span>
+          </a>
+        </div>
+        <p class="commercial-link"><a href="/commercial">Business or rental property? Commercial service <Icon name="arrow" class="i-arrow" /></a></p>
+      </div>
+    </div>
+    <!-- The X-ray: after the copy in the page order, so the fork comes first for keyboard and screen readers. -->
+    <div class="hero-photo">
+      <XrayHero />
+    </div>
+    <CardBack class="hero-card" />
+  </section>
+
+  <!-- Proof bar. The business card from the hero hangs over its top edge. -->
+  <ProofBar class="home-proof" />
+
+  <!-- Newest review, then how I price -->
+  <section class="band band--lg band--paper">
+    <div class="wrap proof">
+      <div class="quote">
+        <span class="quote-mark" aria-hidden="true">“</span>
+        <p class="quote-k muted">Newest review · {shortDate(newest.date)} · <span class="sample-label">Sample review</span></p>
+        <blockquote>
+          <p>“{newest.text}”</p>
+        </blockquote>
+        <p class="quote-who"><strong>{newest.name}</strong>, {newest.city}</p>
+        <a href="/reviews">Read all <Fact k="reviewCount" plain /> reviews</a>
+      </div>
+      <div class="price-promise panel panel--lift">
+        <h2>How I price</h2>
+        <FactBlock k="quoting"><ol class="steps" role="list">
+          <li><strong>You see the price before I start.</strong> A written, flat price for the job. No hourly meter.</li>
+          <li><strong>Every fee is on the website.</strong> Call-out <Fact k="calloutFee" />, <Fact k="calloutCredited" />. Card fee: <Fact k="cardFee" />.</li>
+          <li><strong>Repair first.</strong> If a repair will do, I'll say so before quoting a replacement.</li>
+        </ol></FactBlock>
+        <a class="btn btn--navy" href="/pricing">See prices and fees</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- The repair story: one sample job, from the leak to the dry test, next to how I price. -->
+  <section class="band band--lg band--raised" aria-labelledby="story-h">
+    <div class="wrap">
+      <SectionHead title="From drip to dry" id="story-h" split>
+        <p class="lead">Drag across the photo, or tap a step, to follow one job from the leak to the dry test</p>
+      </SectionHead>
+      <RepairStory />
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section class="band band--navy navy on-navy" aria-labelledby="svc-h">
+    <div class="wrap">
+      <SectionHead title="What I fix" id="svc-h" split>
+        <p class="lead">Every job shows its typical price, so you know the range before you call</p>
+      </SectionHead>
+      <ul class="svc-grid">
+        {services.map((s, i) => (
+          <li class:list={["svc", { "svc--feature": i === 0 }]}>
+            <a href={`/residential/${s.slug}`} class="svc-link">
+              <Photo src={s.photo} alt="" fact="jobs" widths={i === 0 ? [480, 768, 1080] : [480, 768]} sizes={i === 0 ? "(min-width: 1000px) 460px, (min-width: 640px) 90vw, 100vw" : "(min-width: 1000px) 340px, (min-width: 640px) 45vw, 100vw"} class="svc-photo" />
+              <span class="svc-body">
+                <span class="svc-title">{s.title}</span>
+                <span class="svc-short">{s.short}</span>
+                <span class="svc-price">From <strong class="num"><Fact k="priceRanges" plain text={s.prices[0].range.split(" to ")[0]} /></strong></span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <div class="svc-more">
+        <p class="svc-more-title">Something else?</p>
+        <p class="svc-more-text">Gas lines, sump pumps, outdoor spigots, water pressure. If it carries water or waste, call and ask.</p>
+        <a class="btn btn--ghost" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> {facts.phone.value}</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Meet Antonio -->
+  <section class="band band--lg band--paper">
+    <div class="wrap meet">
+      <div class="meet-art">
+        <Photo src={portrait} fact="portrait" alt="Antonio Spence, owner of FloMasters, in his navy work shirt" widths={[480, 768, 1024]} sizes="(min-width: 900px) 440px, 100vw" class="meet-photo" shot="portrait outside, morning light" />
+      </div>
+      <div>
+        <h2>One plumber, the same one every time</h2>
+        <p class="lead">I'm Antonio Spence. I've been a plumber for <Fact k="yearsInTrade" />, and I started FloMasters in {facts.established.value} to do every job the way I'd want it done in my own house</p>
+        <FactBlock k="workPromises"><ul class="ticks">
+          <li>The person who answers the phone is the person who shows up.</li>
+          <li>I explain what I find and show you the old part.</li>
+          <li>Drop cloths down, mess cleaned up, water tested before I leave.</li>
+          <li>Virginia Master Plumber, license <span class="num">#{facts.license.value}</span>.</li>
+        </ul></FactBlock>
+        <a href="/about">More about me <Icon name="arrow" class="i-arrow" /></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Emergency -->
+  <section class="band band--lg band--navy navy on-navy emerg" aria-labelledby="em-h">
+    <div class="wrap">
+      <SectionHead title="Water where it shouldn't be?" id="em-h" split>
+        <p class="lead">Three steps in this order, starting with the one that stops the water</p>
+      </SectionHead>
+      <ol class="emerg-steps" role="list">
+        <li class="emerg-first"><ValveStates tone="navy" level={3} step="1" /></li>
+        <li class="emerg-step"><p><strong>Turn off the water heater</strong> if the leak is near it</p></li>
+        <li class="emerg-step emerg-call">
+          <p><strong class="emerg-k">Call me</strong> <Fact k="afterHoursAnswer" />, <Fact k="emergencyArrival" /></p>
+          <a class="btn btn--signal emerg-btn" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> Call {facts.phone.value}</a>
+          <p class="small muted emerg-fee">After-hours visits cost <Fact k="afterHoursFee" /> (<Fact k="afterHoursWhen" />). I'll tell you before I drive out.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Service area -->
+  <section class="band band--paper">
+    <div class="wrap area">
+      <div>
+        <h2>Where I work</h2>
+        <p class="lead">All 7 cities of Hampton Roads</p>
+        <ul class="cities">{cities.map((c) => <li><Icon name="pin" />{c}</li>)}</ul>
+      </div>
+      <div class="panel panel--lift zip-panel"><ZipCheck id="zip-home" /></div>
+    </div>
+  </section>
+
+  <!-- Reviews -->
+  <section class="band band--tint" aria-labelledby="rv-h">
+    <div class="wrap">
+      <SectionHead title="What customers say" id="rv-h" split>
+        <RatingLine />
+      </SectionHead>
+      <div class="grid grid--3">
+        {reviews.slice(1, 4).map((r) => <ReviewCard review={r} showReply={false} />)}
+      </div>
+      <p class="more"><a href="/reviews">Read every review <Icon name="arrow" class="i-arrow" /></a></p>
+    </div>
+  </section>
+
+  <!-- Final call to action: a navy card lifted off the paper, like the business card. -->
+  <section class="band band--lg band--paper closing">
+    <div class="wrap">
+      <div class="closing-card navy on-navy">
+        <div>
+          <h2>Need a plumber?</h2>
+          <p class="lead">Call, book online, or leave your number and I'll call you back <Fact k="callback" /></p>
+        </div>
+        <div class="closing-actions">
+          <a class="btn btn--primary" href="/book"><Icon name="calendar" /> Book a time</a>
+          <a class="btn btn--ghost" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> Call {facts.phone.value}</a>
+          <a class="btn btn--ghost" href="/book#callback"><Icon name="text" /> Ask for a callback</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* Hero */
+  .hero { position: relative; }
+  .hero-photo { position: relative; }
+  /* Phone: the small bottom padding lets the top of the X-ray photo and its lens peek at the fold. */
+  .hero-grid { position: relative; padding-block: 1.25rem; }
+  .hero h1 { font-size: clamp(2rem, 1.1rem + 3.9vw, 3.75rem); line-height: 1.1; margin-bottom: 1rem; max-width: 18ch; }
+  .owner { display: flex; align-items: center; gap: 0.85rem; margin: 0 0 0.75rem; font-size: var(--step-0); line-height: 1.4; }
+  /* Review mode: the small portrait's tag follows the line beside it instead of covering the face. */
+  :global(.tags-on) .owner .owner-tag { position: static; display: table; margin-top: 0.35rem; max-width: none; }
+  .owner :global(.owner-pic) { width: 3.25rem; height: 3.25rem; border-radius: 50%; object-fit: cover; flex: none; border: 2px solid var(--sky); }
+  .hero :global(.hero-rating) { color: var(--sky-100); margin-bottom: 1.25rem; }
+  .fork { display: grid; gap: 0.7rem; max-width: 34rem; }
+  .fork-btn { justify-content: flex-start; text-align: left; min-height: 3.75rem; font-size: 1.25rem; padding: 0.55rem 1.1rem; }
+  .fork-k { display: block; font-weight: 600; font-size: 1rem; opacity: 0.92; }
+  .commercial-link { margin: 1rem 0 0; }
+  .commercial-link a { color: var(--sky-300); font-weight: 600; padding: 0.4rem 0; display: inline-block; }
+  :global(.i-arrow) { width: 1.05em; height: 1.05em; vertical-align: -0.15em; }
+
+  /*
+    The business card straddles the seam between the hero and the proof bar,
+    clear of Antonio in the photo. --card-hang is how far it hangs below the hero;
+    the proof bar reserves that room.
+  */
+  .hero, :global(.home-proof) { --card-w: min(100vw - 2.5rem, 19.5rem); --card-hang: 4.75rem; }
+  :global(.home-proof) { --proof-inset-top: var(--card-hang); }
+
+  /* Mobile: copy first, then the X-ray photo, then the card below the photo. */
+  .hero { display: flex; flex-direction: column; }
+  .hero :global(.hero-card) { position: relative; z-index: 3; width: var(--card-w); margin: 1.25rem auto calc(-1 * var(--card-hang)); transform: rotate(-2deg); }
+
+  @media (min-width: 900px) {
+    .hero, :global(.home-proof) { --card-w: 20rem; --card-hang: 6rem; }
+    /* Desktop: the license block sits beside the card; the list starts below it. */
+    :global(.home-proof) { --proof-inset-top: 0px; --proof-inset-left: calc(var(--card-w) + 2.5rem); --proof-lead-min: calc(var(--card-hang) - 0.5rem); }
+    .hero { display: block; min-height: min(46rem, 88vh); }
+    /* The X-ray photo fills the right of the hero, behind the copy (its shade darkens it there). */
+    .hero-photo { position: absolute; inset: 0 0 0 30%; }
+    /* Bottom padding keeps the copy clear of the part of the card inside the hero. Presses outside
+       the copy pass through to the photo, so the lens moves wherever the photo shows. */
+    .hero-grid { z-index: 2; pointer-events: none; }
+    .hero-copy { pointer-events: auto; }
+    .hero-grid { display: grid; align-items: center; padding-block: 3.5rem calc(var(--card-w) / 1.75 - var(--card-hang) + var(--card-drop, 0px) + 2rem); min-height: inherit; }
+    .hero-copy { align-self: center; max-width: 40rem; }
+    .hero h1 { max-width: 20ch; }
+    .hero :global(.hero-card) { position: absolute; margin: 0; width: var(--card-w); left: max(1.25rem, (100% - var(--wrap)) / 2 + 0.5rem); bottom: calc(-1 * var(--card-hang)); transform: rotate(-2.5deg); }
+  }
+  /* 900 to 1199 px: a narrower copy column leaves room on the photo for the lens beside it. */
+  @media (min-width: 900px) and (max-width: 1199px) {
+    .hero-copy, .fork { max-width: 30rem; }
+  }
+  @media (min-width: 900px) and (max-width: 1099px) {
+    .hero h1 { font-size: 2.75rem; }
+  }
+  @media (min-width: 1100px) and (max-width: 1199px) {
+    .hero h1 { font-size: 3rem; }
+  }
+  @media (min-width: 1200px) {
+    /*
+      At scrollY 0 the card's top sits about 45.125rem (722px at a 16px font) below the sticky
+      header (license band, copy, paddings; constant from 1200px up, and it grows with the browser's
+      font size, so the offsets are in rem). On screens too short to show the whole card (bottom
+      about 58.7rem below the header) but tall enough to show part of it, it drops just past the
+      fold, so the fold never cuts through its text. --card-drop is that extra hang: the hero keeps
+      its height and the proof bar reserves the extra room through --card-hang.
+    */
+    .hero, :global(.home-proof) {
+      --card-w: 22rem;
+      --card-drop: min(max(0px, 100vh - var(--sticky-h) - 44.875rem), max(0px, (var(--sticky-h) + 58.6875rem - 100vh) * 1000));
+      --card-hang: calc(6.75rem + var(--card-drop));
+    }
+  }
+
+  /* Newest review and how I price */
+  .proof { display: grid; gap: var(--space-4); }
+  @media (min-width: 900px) { .proof { grid-template-columns: 1.2fr 1fr; align-items: center; gap: var(--space-5); } }
+  .quote { position: relative; }
+  /* A large quote mark set behind the opening lines of the review. */
+  .quote-mark { position: absolute; top: -0.12em; left: -0.12em; font: 700 clamp(9rem, 6rem + 9vw, 15rem)/1 var(--font-slab); color: var(--sky); opacity: 0.22; pointer-events: none; user-select: none; }
+  .quote > :not(.quote-mark) { position: relative; }
+  .quote blockquote { margin: 0.75rem 0 1.25rem; }
+  .quote blockquote p { font-family: var(--font-slab); font-size: clamp(1.625rem, 1.2rem + 1.7vw, 2.5rem); line-height: 1.3; color: var(--navy-900); max-width: 26ch; font-weight: 500; margin: 0; }
+  .quote-k { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0; font-size: var(--step--1); padding-top: 1.75rem; }
+  .quote-who { margin-bottom: 0.5rem; }
+  .price-promise { padding: var(--space-4) var(--space-3); box-shadow: inset 0 5px 0 var(--sky), var(--ring), var(--shadow-2); }
+  @media (min-width: 900px) { .price-promise { padding-inline: var(--space-4); } }
+  .price-promise h2 { font-size: var(--step-2); }
+  .steps { list-style: none; padding: 0; margin: 0 0 1.75rem; counter-reset: step; }
+  .steps li { counter-increment: step; position: relative; padding-left: 3rem; margin-bottom: 1rem; }
+  .steps li::before { content: counter(step); position: absolute; left: 0; top: -0.1rem; width: 2.1rem; height: 2.1rem; border-radius: 50%; background: var(--sky-100); color: var(--navy); font: 700 1.125rem/2.1rem var(--font-slab); text-align: center; }
+
+  /* Services on the navy band */
+  .svc-grid { list-style: none; padding: 0; margin: 0; display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 640px) {
+    .svc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .svc--feature { grid-column: 1 / -1; }
+  }
+  @media (min-width: 1000px) {
+    .svc-grid { grid-template-columns: 1.35fr 1fr 1fr; }
+    .svc--feature { grid-column: 1; grid-row: 1 / span 2; }
+  }
+  .svc-link { display: flex; flex-direction: column; height: 100%; text-decoration: none; color: var(--ink); border-radius: var(--radius-lg); overflow: hidden; background: var(--surface-raised); box-shadow: var(--shadow-2); transition: box-shadow 0.15s; }
+  .navy .svc-link { color: var(--ink); }
+  .svc-link:hover { box-shadow: 0 0 0 3px var(--sky), var(--shadow-2); }
+  .svc-link:hover .svc-title { text-decoration: underline; }
+  .svc-link :global(.svc-photo) { aspect-ratio: 3 / 2; }
+  .svc-body { display: flex; flex-direction: column; gap: 0.3rem; padding: 1.1rem 1.25rem 1.3rem; flex: 1; }
+  .svc-title { font-family: var(--font-slab); font-weight: 700; font-size: 1.375rem; color: var(--navy-900); margin: 0; }
+  .svc-short { color: var(--ink-soft); font-size: 1.0625rem; }
+  .svc-price { margin-top: auto; padding-top: 0.5rem; font-size: 1.0625rem; }
+  .svc-price strong { font-family: var(--font-slab); font-size: 1.375rem; color: var(--navy); }
+  @media (min-width: 640px) {
+    .svc--feature .svc-link :global(.svc-photo) { aspect-ratio: 16 / 9; }
+    .svc--feature .svc-body { padding: 1.4rem 1.6rem 1.6rem; }
+    .svc--feature .svc-title { font-size: var(--step-2); }
+    .svc--feature .svc-short { font-size: var(--step-0); }
+    .svc--feature .svc-price strong { font-size: 1.75rem; }
+  }
+  @media (min-width: 1000px) {
+    .svc--feature .svc-link :global(.svc-photo) { aspect-ratio: auto; flex: 1; min-height: 16rem; }
+    .svc--feature .svc-body { flex: none; }
+  }
+  .svc-more { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.5rem; margin-top: 1.25rem; padding: 1.25rem 1.5rem; border: 1px solid rgb(169 210 234 / 0.45); border-radius: var(--radius-lg); }
+  .svc-more p { margin: 0; }
+  .svc-more-title { font-family: var(--font-slab); font-weight: 700; font-size: 1.375rem; }
+  .svc-more-text { color: var(--sky-100); flex: 1 1 22rem; }
+
+  /* Meet: the portrait sits on an offset slab of the card's navy waves. */
+  .meet { display: grid; gap: var(--space-5); align-items: center; }
+  @media (min-width: 900px) { .meet { grid-template-columns: 440px 1fr; gap: var(--space-6); } }
+  .meet-art { position: relative; margin: 0 1rem 1rem 0; }
+  .meet-art::before { content: ""; position: absolute; inset: 1.5rem -1rem -1rem 1.5rem; border-radius: var(--radius-lg); background: var(--navy) var(--waves); background-size: 72px 36px; }
+  @media (min-width: 900px) {
+    .meet-art { margin: 0 1.75rem 1.75rem 0; }
+    .meet-art::before { inset: 2.5rem -1.75rem -1.75rem 2.5rem; }
+  }
+  .meet :global(.meet-photo) { position: relative; border-radius: var(--radius-lg); aspect-ratio: 1; box-shadow: var(--shadow-2); }
+
+  /* Emergency */
+  /* Emergency: the valve panel is step 1 and the centrepiece; steps 2 and 3 and the call button sit beside it. */
+  .emerg-steps { list-style: none; padding: 0; margin: 0; counter-reset: em; display: grid; gap: var(--space-3); }
+  .emerg-steps > li { counter-increment: em; }
+  .emerg-step { position: relative; padding-left: 3.4rem; font-size: var(--step-1); line-height: 1.45; }
+  .emerg-step::before { content: counter(em); position: absolute; left: 0; top: -0.05rem; width: 2.5rem; height: 2.5rem; border-radius: 50%; display: grid; place-content: center; border: 2px solid var(--sky); color: var(--sky-300); font: 700 1.25rem/1 var(--font-slab); }
+  .emerg-step p { margin: 0; }
+  .emerg-k { display: block; }
+  .emerg-btn { margin-top: 1.1rem; font-size: 1.1875rem; min-height: 3.5rem; white-space: nowrap; }
+  /* Phone: the call button spans the full width, out from under the step number, so the number never wraps. */
+  @media (max-width: 599px) { .emerg-btn { width: calc(100% + 3.4rem); margin-left: -3.4rem; } }
+  .emerg-fee { margin: 1rem 0 0; line-height: 1.5; }
+  @media (min-width: 900px) {
+    .emerg-steps { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); grid-template-rows: 1fr auto auto 1fr; column-gap: var(--space-5); row-gap: var(--space-4); align-items: start; }
+    /* The panel spans every row; steps 2 and 3 sit in the middle rows, centred beside it. */
+    .emerg-first { grid-row: 1 / -1; }
+    .emerg-first + .emerg-step { grid-row: 2; }
+    .emerg-call { grid-row: 3; padding-top: var(--space-4); border-top: 1px solid rgb(169 210 234 / 0.3); }
+    .emerg-call::before { top: calc(var(--space-4) - 0.05rem); }
+  }
+
+  /* Area */
+  .area { display: grid; gap: var(--space-4); align-items: start; }
+  @media (min-width: 900px) { .area { grid-template-columns: 1fr 1fr; align-items: center; gap: var(--space-5); } }
+  .cities { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1.5rem; }
+  .cities li { display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 0; border-top: 1px solid var(--line); font-family: var(--font-slab); font-weight: 600; font-size: 1.25rem; color: var(--navy-900); }
+  .cities :global(svg) { width: 1.2rem; height: 1.2rem; color: var(--slate); flex: none; }
+  .zip-panel { padding: var(--space-4) var(--space-3); }
+
+  .more { margin-top: 1.5rem; }
+
+  /* Closing */
+  .closing-card { display: grid; gap: var(--space-3); align-items: center; border-radius: calc(var(--radius-lg) + 6px); padding: var(--space-4) var(--space-3); background-size: 72px 36px; box-shadow: 0 1px 0 rgb(255 255 255 / 0.08) inset, var(--shadow-3); }
+  @media (min-width: 900px) { .closing-card { grid-template-columns: 1fr auto; padding: var(--space-5); gap: var(--space-4); } }
+  .closing-card h2 { margin-bottom: 0.4rem; }
+  .closing-card .lead { margin: 0; color: var(--sky-100); }
+  .closing-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  @media (min-width: 900px) { .closing-actions { flex-direction: column; align-items: stretch; } }
+</style>

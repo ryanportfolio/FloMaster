@@ -1,0 +1,138 @@
+---
+// "What it costs" as stamped valve tags. A valve tag is a stamped number fixed to the exact
+// valve it identifies; here each charge is a tag fixed to the point in the visit where it
+// applies (arrival, the look, the written price, your window, payment, a change of plan), and
+// the licence number is the tag fixed to the person doing the work. The tags fill in from the
+// customer's answers, which the booking page sends as a "fm:book" event.
+import Fact from "../Fact.astro";
+import { facts } from "../../data/facts";
+---
+<section class="vt on-navy" aria-labelledby="vt-h" data-vt>
+  <h2 id="vt-h" class="sum-h">What it costs</h2>
+  <p class="vt-intro">Each charge, tagged to the point in the visit where it applies</p>
+
+  <div class="tag tag--lic">
+    <p class="tag-k">Virginia Master Plumber</p>
+    <p class="tag-n num">{facts.license.value}</p>
+    <p class="tag-note">{facts.owner.value}. <Fact k="workPromises" text="I'm the one who comes and does the work." /></p>
+  </div>
+
+  <ol class="line">
+    <li class="stop">
+      <p class="when" data-vt-arrive>When I arrive</p>
+      <div class="tag">
+        <p class="tag-k">Call-out</p>
+        <p class="tag-n num"><Fact k="calloutFee" /></p>
+        <p class="tag-note"><Fact k="calloutCredited" /></p>
+      </div>
+    </li>
+    <li class="stop">
+      <p class="when">While I find the cause</p>
+      <div class="tag">
+        <p class="tag-k">Diagnostic</p>
+        <p class="tag-n"><Fact k="diagnosticFee" /></p>
+      </div>
+    </li>
+    <li class="stop">
+      <p class="when">Before I start</p>
+      <div class="tag tag--job">
+        <p class="tag-k"><span data-price-job>Your job</span> <span class="tagwrap"><Fact k="priceRanges" text="" /></span></p>
+        <div data-price-rows><p class="tag-note">Pick a problem in question 1 and its typical prices show here.</p></div>
+        <p class="tag-note"><Fact k="pricingModel" /></p>
+      </div>
+    </li>
+    <li class="stop">
+      <p class="when" data-vt-win>Your arrival window</p>
+      <div class="tag" data-vt-ah>
+        <p class="tag-k">After-hours</p>
+        <div data-ah="none">
+          <p class="tag-n num"><Fact k="afterHoursFee" /></p>
+          <p class="tag-note"><Fact k="afterHoursWhen" /></p>
+        </div>
+        <div data-ah="weekend" hidden>
+          <p class="tag-n num"><Fact k="afterHoursFee" /></p>
+          <p class="tag-note">Your window is on a Saturday. It applies <Fact k="afterHoursWhen" />.</p>
+        </div>
+        <div data-ah="weekday" hidden>
+          <p class="tag-n tag-n--no">Doesn't apply</p>
+          <p class="tag-note">Your window is on a weekday, inside my hours. It applies <Fact k="afterHoursWhen" />.</p>
+        </div>
+      </div>
+    </li>
+    <li class="stop">
+      <p class="when">When the job's done</p>
+      <div class="tag">
+        <p class="tag-k">Card fee</p>
+        <p class="tag-n"><Fact k="cardFee" /></p>
+        <p class="tag-note"><Fact k="payment" /></p>
+      </div>
+    </li>
+    <li class="stop">
+      <p class="when">If your plans change</p>
+      <div class="tag">
+        <p class="tag-k">Cancel or move</p>
+        <p class="tag-n">Free</p>
+        <p class="tag-note"><Fact k="cancellation" /></p>
+      </div>
+    </li>
+  </ol>
+  <p class="vt-more small"><a href="/pricing">All prices and fees</a></p>
+</section>
+
+<script>
+  type Row = { job: string; range: string };
+  type State = { job: { title: string; rows: Row[] | null } | null; priceOpen: boolean; win: { label: string; weekend: boolean } | null; city: string | null };
+  const root = document.querySelector<HTMLElement>("[data-vt]")!;
+  const q = <T extends HTMLElement = HTMLElement>(s: string) => root.querySelector<T>(s)!;
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+  const render = (s: State) => {
+    q("[data-vt-arrive]").textContent = s.city ? `When I arrive in ${s.city}` : "When I arrive";
+    q("[data-price-job]").textContent = s.job?.title || (s.job ? "Something else" : "Your job");
+    const rows = s.job?.rows;
+    q("[data-price-rows]").innerHTML = rows
+      ? `<dl class="vt-rows">${rows.map((r) => `<div><dt>${esc(r.job)}</dt><dd class="num">${s.priceOpen ? `<span class="fact" data-open>${esc(r.range)}</span>` : esc(r.range)}</dd></div>`).join("")}</dl>`
+      : s.job
+        ? `<p class="tag-note">No typical price for this one. I'll write you a flat price on site before I start.</p>`
+        : `<p class="tag-note">Pick a problem in question 1 and its typical prices show here.</p>`;
+    q("[data-vt-win]").textContent = s.win ? s.win.label : "Your arrival window";
+    const ah = !s.win ? "none" : s.win.weekend ? "weekend" : "weekday";
+    root.querySelectorAll<HTMLElement>("[data-ah]").forEach((el) => (el.hidden = el.dataset.ah !== ah));
+  };
+  document.addEventListener("fm:book", (e) => render((e as CustomEvent<State>).detail));
+  const early = (window as unknown as { __fmBook?: State }).__fmBook;
+  if (early) render(early);
+</script>
+
+<style>
+  .vt { background: var(--navy) var(--waves); background-size: 72px 36px; color: var(--white); border-radius: var(--radius-lg); padding: 1.5rem 1.4rem 1.25rem; }
+  .sum-h { color: var(--white); font-size: var(--step-2); margin-bottom: 0.25rem; }
+  .vt-intro { color: var(--sky-100); font-size: var(--step--1); margin: 0 0 1.1rem; }
+  .vt a { color: var(--white); }
+
+  /* A tag: stamped key word, stamped number, a note. The dot is where it is fixed. */
+  .tag { position: relative; background: var(--white); color: var(--ink); border-radius: 4px 12px 12px 4px; padding: 0.7rem 0.95rem 0.75rem 1.9rem; }
+  .tag::before { content: ""; position: absolute; left: 0.6rem; top: 1rem; width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--navy); box-shadow: 0 0 0 2px var(--sky); }
+  .tag p { margin: 0; }
+  .vt .tag :focus-visible { outline-color: var(--navy); }
+  .tag-k { font: 800 0.875rem/1.2 var(--font-body); letter-spacing: 0.14em; text-transform: uppercase; color: var(--slate-ink); }
+  .tag-n { font-family: var(--font-slab); font-weight: 800; font-size: 1.75rem; line-height: 1.3; letter-spacing: 0.02em; color: var(--navy-900); margin-top: 0.1rem !important; }
+  .tag-n--no { font-family: var(--font-body); font-size: 1.1875rem; font-weight: 700; color: var(--ok); }
+  .vt :global(.tag-note) { font-size: var(--step--1); line-height: 1.4; color: var(--ink-soft); margin-top: 0.3rem !important; }
+  .tag--lic { margin-bottom: 1.25rem; }
+  .tag--lic .tag-n { font-size: 2rem; letter-spacing: 0.08em; }
+  .tagwrap { font: 400 0.875rem/1 var(--font-body); letter-spacing: 0; text-transform: none; }
+
+  /* The visit is the line; each tag hangs from its point on it. */
+  .line { list-style: none; margin: 0; padding: 0 0 0 1.1rem; position: relative; }
+  .line::before { content: ""; position: absolute; left: 0.3rem; top: 0.6rem; bottom: 1.5rem; width: 3px; border-radius: 2px; background: var(--sky); }
+  .stop { position: relative; padding: 0 0 1rem 0.9rem; }
+  .stop::before { content: ""; position: absolute; left: -1.08rem; top: 0.45rem; width: 0.85rem; height: 0.85rem; border-radius: 50%; background: var(--navy); border: 3px solid var(--sky); }
+  .when { font-weight: 700; color: var(--sky-100); margin: 0 0 0.45rem; font-size: 1.0625rem; line-height: 1.35; }
+
+  .tag--job :global(.vt-rows) { margin: 0.35rem 0 0; }
+  .tag--job :global(.vt-rows div) { display: grid; gap: 0.05rem; padding: 0.4rem 0; border-top: 1px dashed var(--line); }
+  .tag--job :global(.vt-rows dt) { font-size: var(--step--1); color: var(--ink); }
+  .tag--job :global(.vt-rows dd) { margin: 0; font-family: var(--font-slab); font-weight: 800; font-size: 1.375rem; color: var(--navy-900); }
+  [data-ah][hidden] { display: none; }
+  .vt-more { margin: 0.25rem 0 0; }
+</style>

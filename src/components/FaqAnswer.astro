@@ -1,0 +1,29 @@
+---
+// The answer to one FAQ question (ids in faq.ts). Same words in every FAQ direction; every
+// business fact comes through Fact or FactBlock with its tag.
+import Fact from "./Fact.astro";
+import FactBlock from "./FactBlock.astro";
+import { facts } from "../data/facts";
+import { cities } from "../data/area";
+import { dpor } from "../data/faq";
+interface Props { id: string; cityList?: boolean }
+const { id, cityList = false } = Astro.props;
+const cityText = cities.slice(0, -1).join(", ") + " and " + cities[cities.length - 1];
+---
+{id === "q-callout" && <p>There's a call-out fee of <Fact k="calloutFee" />, <Fact k="calloutCredited" />. Every other fee is on the <a href="/pricing">price page</a>; if it isn't listed, I don't charge it.</p>}
+{id === "q-hourly" && <p><Fact k="pricingModel" /></p>}
+{id === "q-card" && <p><Fact k="cardFee" />. <Fact k="payment" />.</p>}
+{id === "q-change" && <FactBlock k="quoting"><p>Not without asking you. If I find something new, I stop, show you, and give you the price before going further.</p></FactBlock>}
+
+{id === "q-callback" && <p>I call you back <Fact k="callback" />. Outside those hours, I call <Fact k="callbackAfterHours" />. My hours are <Fact k="hours" />.</p>}
+{id === "q-windows" && <p>You pick a <Fact k="windows" text="two-hour window" /> when you book. I text to confirm, again the evening before, and when I'm on my way with how long I'll be.</p>}
+{id === "q-late" && <p>Emergencies sometimes push my day back. If that happens I text you as soon as I know, with a new time or the option to rebook.</p>}
+{id === "q-cancel" && <p><Fact k="cancellation" />. Reply to any of my texts or call.</p>}
+
+{id === "q-night" && <p><Fact k="emergency247" />. <Fact k="afterHoursAnswer" />, and I'm <Fact k="emergencyArrival" /> {cityList ? <>anywhere in {cityText}</> : "in the 7 cities"}.</p>}
+{id === "q-afterhours" && <p>After-hours visits cost <Fact k="afterHoursFee" />: that's <Fact k="afterHoursWhen" />. The <a href="/pricing">price page</a> lists it with every other fee.</p>}
+{id === "q-wait" && <p>Turn off your main water shut-off. The <a href="/emergency">emergency page</a> shows where to find it.</p>}
+
+{id === "q-fail" && <p><Fact k="laborWarranty" />: I come back and fix it at no charge. Parts carry the <Fact k="partsWarranty" text="manufacturer's warranty, and I handle the claim" />. <a href="/pricing#guarantee">Full guarantee</a></p>}
+{id === "q-exclusions" && <p>It doesn't cover <Fact k="warrantyExclusions" />.</p>}
+{id === "q-licensed" && <p>Yes. Virginia Master Plumber, license <span class="num">#{facts.license.value}</span>; check it on the <a href={dpor} rel="noopener">Virginia DPOR license lookup</a>. <Fact k="insurance" />.</p>}

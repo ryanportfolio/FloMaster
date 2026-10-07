@@ -1,0 +1,44 @@
+---
+// The text thread inside the phone preview: one bubble per update, each under the
+// line saying when it is sent. Driven by player.ts.
+import TextBody from "./TextBody.astro";
+import { steps } from "./steps";
+interface Props { label?: string }
+const { label = "Sample texts" } = Astro.props;
+---
+<div class="th" data-thread tabindex="0" role="region" aria-label={label}>
+  <div class="th-inner">
+    {steps.map((s, i) => (
+      <div class="th-msg" data-msg={i} hidden={i !== 0}>
+        <p class="th-when"><span class="num">{s.n}</span> · {s.label} · {s.when}</p>
+        <p class="th-bubble"><TextBody id={s.id} /></p>
+      </div>
+    ))}
+    <div class="th-typing" data-typing hidden aria-hidden="true"><span></span><span></span><span></span></div>
+  </div>
+</div>
+<p class="visually-hidden" data-live aria-live="polite"></p>
+
+<style>
+  .th { position: relative; overflow-y: auto; overscroll-behavior: contain; background: #f2f4f7; scrollbar-width: thin; }
+  .th:focus-visible { outline-offset: -3px; }
+  .th-inner { display: flex; flex-direction: column; justify-content: flex-start; gap: 0.25rem; min-height: 100%; padding: 0.4rem 0.7rem 1rem; }
+  .th-msg { display: grid; gap: 0.35rem; margin-top: 0.75rem; }
+  .th-msg[hidden] { display: none; }
+  .th-when { margin: 0; font-size: var(--step--1); line-height: 1.3; color: var(--ink-soft); text-align: center; }
+  .th-bubble {
+    margin: 0; max-width: 94%; padding: 0.6rem 0.8rem; background: var(--white);
+    border-radius: 1.1rem 1.1rem 1.1rem 0.3rem; box-shadow: 0 1px 2px rgb(6 14 26 / 0.12);
+    font-size: 1.0625rem; line-height: 1.45; color: var(--ink); overflow-wrap: anywhere;
+  }
+  .th-typing { display: inline-flex; gap: 0.3rem; align-self: flex-start; margin-top: 0.75rem; padding: 0.8rem 0.95rem; background: var(--white); border-radius: 1.1rem 1.1rem 1.1rem 0.3rem; box-shadow: 0 1px 2px rgb(6 14 26 / 0.12); }
+  .th-typing[hidden] { display: none; }
+  .th-typing span { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--slate); animation: th-dot 0.9s ease-in-out infinite; }
+  .th-typing span:nth-child(2) { animation-delay: 0.15s; }
+  .th-typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes th-dot { 0%, 60%, 100% { opacity: 0.35; transform: none; } 30% { opacity: 1; transform: translateY(-3px); } }
+  .th-msg:global(.arrive) .th-bubble { animation: th-in 260ms cubic-bezier(0.2, 0.8, 0.3, 1) both; }
+  .th-msg:global(.arrive) .th-when { animation: th-fade 200ms ease-out both; }
+  @keyframes th-in { from { opacity: 0; transform: translateY(10px) scale(0.98); transform-origin: 0 100%; } }
+  @keyframes th-fade { from { opacity: 0; } }
+</style>

@@ -1,0 +1,28 @@
+---
+import Base from "../layouts/Base.astro";
+import WorkOrderHero from "../components/WorkOrderHero.astro";
+import WorkOrderSlip from "../components/WorkOrderSlip.astro";
+import FaqKey from "../components/FaqKey.astro";
+import FaqTerms from "../components/FaqTerms.astro";
+import CallToAction from "../components/CallToAction.astro";
+import { groups } from "../data/faq";
+const figLabel: Record<string, string> = { fees: "Call-out fee", booking: "Callback", emergencies: "Emergency arrival", guarantee: "Labor warranty" };
+---
+<Base title="Questions" description="Answers about FloMasters fees, arrival times, the guarantee, payment and emergencies.">
+  <WorkOrderHero title="Questions people ask" lead="Fees, arrival times, the guarantee and payment; if your question isn't here, call or text me">
+    <WorkOrderSlip title="The figures" sub="from terms 1 to 4" id="wo-faq">
+      <ol class="wo-rows">
+        {groups.map((g) => (
+          <li><a class="wo-row-link" href={`#${g.id}`}><span class="wo-fno"><span aria-hidden="true">{g.n}</span><span class="visually-hidden">Term {g.n}:</span></span><span class="wo-row-l">{figLabel[g.id]}</span><span class="fig-v num"><FaqKey g={g} part="num" plain /></span></a></li>
+        ))}
+      </ol>
+    </WorkOrderSlip>
+  </WorkOrderHero>
+  <FaqTerms />
+  <CallToAction />
+</Base>
+
+<style>
+  .fig-v { font: 800 clamp(1.5rem, 1.3rem + 1vw, 2.125rem)/1 var(--font-slab); letter-spacing: -0.02em; white-space: nowrap; color: var(--navy-900); }
+  .fig-v :global(.kn-unit) { font-size: max(0.875rem, 0.55em); font-weight: 700; letter-spacing: 0; }
+</style>

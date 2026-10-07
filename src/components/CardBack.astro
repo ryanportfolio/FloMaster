@@ -1,0 +1,44 @@
+---
+// The back of Antonio's business card, as a page element: name, trade,
+// license and phone, on the card's navy wave pattern with its valve mark.
+import { facts } from "../data/facts";
+interface Props { class?: string }
+const { class: cls } = Astro.props;
+---
+<div class:list={["bcard", cls]}>
+  <svg class="bcard-valve" viewBox="0 0 64 64" aria-hidden="true">
+    <g fill="currentColor">
+      <rect x="2" y="30" width="10" height="22" rx="2" />
+      <rect x="52" y="30" width="10" height="22" rx="2" />
+      <path d="M12 35h8c1-6 6-10 12-10s11 4 12 10h8v12h-8c-1 6-6 10-12 10s-11-4-12-10h-8z" />
+      <rect x="28" y="12" width="8" height="14" />
+      <rect x="16" y="6" width="32" height="7" rx="3.5" />
+    </g>
+    <path d="M32 36c2 3 4 5.4 4 7.6a4 4 0 0 1-8 0c0-2.2 2-4.6 4-7.6z" fill="var(--navy)" />
+  </svg>
+  <p class="bcard-name">{facts.owner.value}</p>
+  <p class="bcard-line">Master Plumber</p>
+  <p class="bcard-line">License # <span class="num">{facts.license.value}</span></p>
+  <a class="bcard-phone num" href={`tel:${facts.phoneHref.value}`}>{facts.phone.value.replace(/[()]/g, "").replace(" ", "-")}<span class="visually-hidden">, call Antonio</span></a>
+</div>
+
+<style>
+  .bcard {
+    position: relative; width: min(100%, 22rem); aspect-ratio: 1.75;
+    /* The card's text scales with the card's own width (cqi units below). */
+    container-type: inline-size;
+    padding: 1.4rem 1.5rem; border-radius: 16px; color: var(--white);
+    background: var(--navy) var(--waves); background-size: 72px 36px;
+    /* The site's --shadow-1 and --shadow-2 are scaled down from this shadow. */
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.08) inset, var(--shadow-3);
+    display: flex; flex-direction: column; justify-content: center;
+    font-family: var(--font-slab);
+  }
+  .bcard p { margin: 0; max-width: none; }
+  .bcard-name { font-size: 7.3cqi; font-weight: 700; line-height: 1.2; }
+  .bcard-line { font-size: max(1rem, 5.2cqi); line-height: 1.45; }
+  /* A call link: at least 44px tall to tap. */
+  .bcard-phone { display: inline-flex; align-items: center; min-height: 44px; margin-top: 0.1rem; font-size: 6.4cqi; line-height: 1.2; font-weight: 700; color: var(--white); text-decoration: none; letter-spacing: 0.01em; align-self: flex-start; }
+  .bcard-phone:hover { text-decoration: underline; text-decoration-color: var(--sky); }
+  .bcard-valve { position: absolute; right: 1.1rem; bottom: 1.1rem; width: 3.4rem; height: 3.4rem; color: rgb(255 255 255 / 0.92); }
+</style>

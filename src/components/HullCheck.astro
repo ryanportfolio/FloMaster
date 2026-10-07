@@ -1,0 +1,196 @@
+---
+// The ZIP check on the service-area page, in hull numbers. A hull number is painted large so it can
+// be read from across the water: the ZIP you type is set at that scale, the written answer appears
+// at once under it, and the chart beside it (ZipChart) glides to the ZIP and marks it. Below, every
+// ZIP code from src/data/area.ts is painted on a navy board: the shared "23" small, the three digits
+// that tell them apart large. Edge ZIPs ("call me to check") get a dashed outline.
+import Fact from "./Fact.astro";
+import ZipChart from "./ZipChart.astro";
+import { byCity } from "../data/zipLookup";
+import { sometimes } from "../data/area";
+import { facts } from "../data/facts";
+const tel = `tel:${facts.phoneHref.value}`;
+const prefix = "23";
+const allShare = byCity.every((c) => c.zips.every((z) => z.zip.startsWith(prefix)));
+const toCheck = sometimes.length;
+---
+<section class="band band--paper hc" data-hull>
+  <div class="wrap hc-grid">
+    <form class="hc-check" data-zipform novalidate method="post" action="/service-area">
+      <h2>Check your ZIP code</h2>
+      <label for="hc-zip">Your ZIP code <span class="tagwrap"><Fact k="zipList" text="" /></span></label>
+      <div class="hc-row">
+        <input class="hc-in num" id="hc-zip" name="zip" type="text" inputmode="numeric" autocomplete="postal-code" aria-describedby="hc-result hc-eg" />
+        <button class="btn btn--navy hc-go" type="submit">Check</button>
+      </div>
+      <p class="hc-eg" id="hc-eg">Five digits, for example 23510.</p>
+      <div class="hc-out" data-answer data-out="blank">
+        <p class="hc-city" aria-hidden="true" data-out-city></p>
+        <p class="hc-result" id="hc-result" role="status" data-result></p>
+        <ul class="hc-key" aria-hidden="true">
+          <li><svg viewBox="-12 -12 24 24"><circle class="k-c" r="8" /><circle class="k-k" r="8" /></svg>I cover it</li>
+          <li><svg viewBox="-12 -12 24 24"><circle class="k-c k-d" r="8" pathLength="100" /><circle class="k-k k-d" r="8" pathLength="100" /></svg>Call me to check</li>
+          <li><svg viewBox="-12 -12 24 24"><circle class="k-dot" r="4" /></svg>Outside my area</li>
+        </ul>
+      </div>
+      <template data-ans-yes><strong>Yes, I cover {"{city}"}.</strong> <a href="/book">Book a time</a> or call <a href={tel} class="nowrap">{facts.phone.value}</a>.</template>
+      <template data-ans-maybe><strong>Call me to check.</strong> Parts of {"{city}"} are a longer drive, so it depends on the job: <a href={tel} class="nowrap">{facts.phone.value}</a>.</template>
+      <template data-ans-no><strong>That's outside my area.</strong> I work in the 7 cities of Hampton Roads. If you're close to the edge, call and ask: <a href={tel} class="nowrap">{facts.phone.value}</a>.</template>
+      <template data-ans-bad>Enter a 5-digit ZIP code, for example 23510.</template>
+    </form>
+    <div class="hc-chart"><ZipChart /></div>
+  </div>
+</section>
+
+<section class="band navy on-navy hw" data-hull-wall>
+  <div class="wrap">
+    <h2>ZIP codes I cover, and {toCheck} to check <Fact k="zipList" text="" /></h2>
+    <p class="lead">{allShare ? `They all start with ${prefix}, so the last three digits are set large.` : "The last three digits are set large."} The {toCheck} with a dashed outline are at the edge of my area: call me to check. <Fact k="zipList" text="Near the edge of one of these? Call and ask." /></p>
+    <div class="rows">
+      {byCity.map((c) => (
+        <section class="row" id={`hc-${c.slug}`} data-city={c.city}>
+          <h3>{c.city} <span class="row-n">{c.maybe ? `${c.sure} ZIP codes, ${c.maybe} to check` : `${c.sure} ZIP codes`}</span></h3>
+          <ul class="nums">
+            {c.zips.map((z) => (
+              <li class:list={["n", { "n--maybe": z.maybe }]} data-zip={z.zip}><span class="visually-hidden">{z.zip}{z.maybe ? ", call to check" : ""}</span><b class="n-pre" aria-hidden="true">{z.zip.slice(0, 2)}</b><b class="n-big" aria-hidden="true">{z.zip.slice(2)}</b></li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  type Answer = { kind: "bad" } | { kind: "no"; zip: string } | { kind: "yes" | "maybe"; zip: string; city: string };
+  document.querySelectorAll<HTMLElement>("[data-hull]").forEach((root) => {
+    const form = root.querySelector<HTMLFormElement>("[data-zipform]")!;
+    const input = form.querySelector<HTMLInputElement>("input[name=zip]")!;
+    const out = root.querySelector<HTMLElement>("[data-result]")!;
+    const box = root.querySelector<HTMLElement>("[data-answer]")!;
+    const cityLine = root.querySelector<HTMLElement>("[data-out-city]")!;
+    const chart = root.querySelector<HTMLElement>("[data-zipchart]");
+    const wall = document.querySelector<HTMLElement>("[data-hull-wall]");
+    const tiles = wall ? [...wall.querySelectorAll<HTMLElement>("li[data-zip]")] : [];
+    const rows = wall ? [...wall.querySelectorAll<HTMLElement>("[data-city]")] : [];
+    // The lookup of src/data/zipLookup.ts, read from the board (rendered from src/data/area.ts), so the
+    // ZIP list is not shipped twice: 5 digits else "bad"; not on the board "no"; dashed tile "maybe".
+    const lookup = (raw: string): Answer => {
+      const zip = raw.trim();
+      if (!/^\d{5}$/.test(zip)) return { kind: "bad" };
+      const li = tiles.find((t) => t.dataset.zip === zip);
+      if (!li) return { kind: "no", zip };
+      return { kind: li.classList.contains("n--maybe") ? "maybe" : "yes", zip, city: li.closest<HTMLElement>("[data-city]")!.dataset.city! };
+    };
+    const tpl = (a: Answer) =>
+      form.querySelector<HTMLTemplateElement>(`[data-ans-${a.kind}]`)!.innerHTML
+        .replaceAll("{city}", "city" in a ? a.city : "")
+        .replaceAll("{zip}", "zip" in a ? a.zip : "");
+    let shown = "";
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const a = lookup(input.value);
+      if (a.kind === "bad") input.setAttribute("aria-invalid", "true");
+      else input.removeAttribute("aria-invalid");
+      // The written answer first, in the live region. The same answer again is cleared and
+      // refilled a frame later, so a screen reader reads it again.
+      const html = tpl(a);
+      if (html === shown) {
+        out.textContent = "";
+        // Refill only if no newer answer was written in between.
+        requestAnimationFrame(() => { if (shown === html) out.innerHTML = html; });
+      } else out.innerHTML = html;
+      shown = html;
+      out.dataset.kind = a.kind;
+      box.dataset.out = a.kind;
+      cityLine.textContent = a.kind === "yes" || a.kind === "maybe" ? a.city : a.kind === "no" ? "Outside my area" : "";
+      tiles.forEach((z) => z.toggleAttribute("data-on", "zip" in a && z.dataset.zip === a.zip));
+      rows.forEach((r) => r.toggleAttribute("data-on", "city" in a && r.dataset.city === a.city));
+      // Then the chart, in the same task; its glide starts after this paint.
+      const detail = { kind: a.kind, zip: "zip" in a ? a.zip : "", city: "city" in a ? a.city : "" };
+      if (chart) (chart as HTMLElement & { zcLast?: typeof detail }).zcLast = detail;
+      chart?.dispatchEvent(new CustomEvent("zc:answer", { detail }));
+    });
+    // Digits only, five at most, so a pasted "23510-1234" or "VA 23510" still checks.
+    input.addEventListener("input", () => {
+      input.value = input.value.replace(/\D/g, "").slice(0, 5);
+    });
+  });
+</script>
+
+<style is:global>
+  /* Global (every selector starts with .hc or .hw) so the ZIP tiles carry no scoping attributes. */
+  /* The ZIP band ends where the chart ends, so the chart's water runs into the board below. */
+  .hc { padding-bottom: 0; }
+  .hc-grid { display: grid; }
+  .hc-check h2 { font-size: var(--step-2); }
+  .hc label { display: block; font-weight: 700; margin-bottom: 0.4rem; }
+  .hc .tagwrap { font-weight: 400; }
+  .hc-row { display: flex; flex-wrap: wrap; align-items: stretch; gap: 0.75rem; }
+  /* The ZIP at hull scale: big, heavy and spaced, in a box sized to five digits. */
+  .hc .hc-in {
+    width: calc(5ch + 1.6em); max-width: 100%; min-height: 0; padding: 0.1em 0.3em;
+    font: 800 clamp(3rem, 2rem + 4.5vw, 5.75rem)/1.05 var(--font-slab) !important; letter-spacing: 0.06em;
+    color: var(--navy-900); border-width: 3px !important; border-color: var(--navy) !important;
+  }
+  .hc .hc-go { min-width: 8rem; font-size: 1.25rem; }
+  .hc-eg { margin: 0.5rem 0 0; font-size: var(--step--1); color: var(--ink-soft); }
+
+  /* The answer: the city at hull scale, the written answer under it. Its height is reserved for
+     the longest answer, so nothing below or beside it moves. */
+  /* Below 960 px the chart follows the answer closely, so it stays above a phone's bottom bar. */
+  .hc-out { margin: 1.25rem 0 1.25rem; min-height: 13rem; padding: 1.25rem 0 0 1.5rem; border-left: 6px solid var(--navy); }
+  @media (max-width: 383px) { .hc-out { min-height: 17rem; } }
+  .hc-out p { margin: 0; }
+  .hc-out p.hc-result { margin-top: 0.85rem; }
+  .hc-city { font: 800 clamp(2.5rem, 1.6rem + 3.6vw, 4.75rem)/0.95 var(--font-slab); letter-spacing: -0.02em; color: var(--navy-900); text-wrap: balance; }
+  .hc-city:empty { display: none; }
+  .hc-out[data-out="maybe"] { border-left-style: dashed; }
+  .hc-out[data-out="no"] .hc-city { color: var(--ink-soft); }
+  .hc-out[data-out="bad"] { border-left-color: var(--line); }
+  /* Before any answer the reserved space carries the chart's key, with no rule beside it. */
+  .hc-out[data-out="blank"] { border-left-color: transparent; }
+  .hc-key { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; font-size: var(--step--1); color: var(--ink-soft); }
+  .hc-key li { display: flex; align-items: center; gap: 0.6rem; }
+  .hc-key svg { width: 1.75rem; height: 1.75rem; flex: none; }
+  .hc-key :is(.k-c, .k-k) { fill: none; }
+  .hc-key .k-c { stroke: var(--navy-950); stroke-width: 5px; }
+  .hc-key .k-k { stroke: var(--sky); stroke-width: 2px; }
+  .hc-key .k-d { stroke-dasharray: 6.25 6.25; }
+  .hc-key .k-dot { fill: var(--sky); stroke: var(--navy-950); stroke-width: 2px; }
+  .hc-out:not([data-out="blank"]) .hc-key { display: none; }
+  .hc-result { font-size: var(--step-0); max-width: 36rem; }
+  .hc-result[data-kind="yes"] strong { color: var(--ok); }
+  .hc-result[data-kind="bad"] { color: #b42318; font-weight: 600; }
+
+  /* Phone and tablet: form, answer, then the chart, which meets the board below. */
+  .hc-chart { max-width: 640px; }
+  @media (max-width: 599px) { .hc-chart { margin-inline: calc(50% - 50vw); max-width: none; } }
+  /* Desktop: form and answer on the left, the chart on the right, standing on the board. */
+  @media (min-width: 960px) {
+    .hc-grid { grid-template-columns: auto minmax(0, 1fr); column-gap: var(--space-5); align-items: end; }
+    .hc-check { padding-bottom: var(--band-space); }
+    .hc-out { contain: inline-size; min-height: 18rem; margin-bottom: 0; }
+    .hc-chart { max-width: none; }
+  }
+
+  /* ---------- The painted board ---------- */
+  .hw .lead { max-width: 52ch; }
+  .hw .rows { margin-top: var(--space-4); border-top: 2px solid rgb(169 210 234 / 0.45); }
+  .hw .row { display: grid; gap: 0.5rem 1.5rem; padding: 1.1rem 0 1.25rem; border-bottom: 2px solid rgb(169 210 234 / 0.45); scroll-margin-top: calc(var(--sticky-h) + 1rem); }
+  @media (min-width: 800px) { .hw .row { grid-template-columns: 13rem 1fr; align-items: start; } }
+  .hw .row h3 { margin: 0; font-size: var(--step-1); }
+  .hw .row-n { display: block; margin-top: 0.2rem; font: 600 var(--step--1)/1.3 var(--font-body); color: var(--sky-300); }
+  .hw .row[data-on] h3 { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 0.2em; text-decoration-color: var(--sky); }
+  /* Fixed tracks: every tile the same width, packed from the left, numbers on one baseline. */
+  .hw .nums { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, 6.4rem); gap: 0.5rem 0.75rem; justify-content: start; align-items: baseline; }
+  .hw .n { position: relative; display: flex; align-items: flex-start; gap: 0.15rem; padding: 0.2rem 0.25rem 0.3rem; border-radius: 6px; color: var(--white); }
+  .hw .n-pre { font: 700 1rem/1 var(--font-slab); color: var(--sky-300); padding-top: 0.25rem; }
+  /* Sized so 23 plus three digits fit the 6.4rem track at every width. */
+  .hw .n-big { font: 800 clamp(2.25rem, 1.7rem + 2vw, 3rem)/1 var(--font-slab); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  /* Edge ZIPs: a dashed outline outside the tile, so the box and the number do not move. */
+  .hw .n--maybe { outline: 2px dashed var(--sky-300); outline-offset: 3px; }
+  .hw .n--maybe .n-big { color: var(--sky-100); }
+  .hw .n[data-on] { background: var(--sky); outline-color: var(--navy-950); }
+  .hw .n[data-on] :is(.n-pre, .n-big) { color: var(--navy-950); }
+</style>

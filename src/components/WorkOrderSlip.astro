@@ -1,0 +1,65 @@
+---
+// One work order slip, hung over the page header's wave edge (WorkOrderHero). The printed head
+// carries the slip's title and, where a work order prints its number, Antonio's Virginia Master
+// Plumber license with its caption (shown at every width, so the number never reads as a quote
+// number). Filled-in values are set in the slab face in navy; printed labels in the body face.
+// The sheet behind is the second copy: the foot says who keeps which.
+// Shared field styles for slots: .wo-f (a <dl> of label and value rows), .wo-f--two (two columns
+// from 480 px), .wo-row-link (a whole row that is a link).
+import { facts } from "../data/facts";
+interface Props { title: string; id: string; sub?: string; class?: string }
+const { title, id, sub, class: cls } = Astro.props;
+---
+<div class:list={["stack", cls]}>
+  <section class="slip" aria-labelledby={`${id}-t`}>
+    <div class="top">
+      <h2 class="title" id={`${id}-t`}>{title}{sub && <span class="sub">{sub}</span>}</h2>
+      <p class="no"><span class="no-k">Va. Master Plumber license</span> <span class="no-v num">No. {facts.license.value}</span></p>
+    </div>
+    <slot />
+    <p class="copy"><span>Your copy</span><span>I keep the matching copy</span></p>
+  </section>
+</div>
+
+<style>
+  .stack { position: relative; padding: 0 8px 8px 0; }
+  /* The second copy, under the first and offset down and right. */
+  .stack::before { content: ""; position: absolute; inset: 8px 0 0 8px; border-radius: var(--radius-lg); background: var(--sky-100); box-shadow: var(--shadow-1); }
+  @media (min-width: 700px) { .stack { padding: 0 10px 10px 0; } .stack::before { inset: 10px 0 0 10px; } }
+  .slip { position: relative; background: var(--white); color: var(--ink); border-radius: var(--radius-lg); box-shadow: var(--shadow-3); padding: 0.8rem 1rem 0.6rem; }
+  @media (min-width: 700px) { .slip { padding: 1.2rem 1.5rem 0.9rem; } }
+  .slip :global(p) { max-width: none; }
+  /* The slip is white inside a navy band: links and focus rings go back to navy. */
+  .slip :global(a:not(.btn)) { color: var(--navy); }
+  .slip :global(:focus-visible) { outline-color: var(--navy); }
+  .top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.15rem 1rem; padding-bottom: 0.45rem; border-bottom: 2px solid var(--navy); }
+  .title { margin: 0; font: 700 var(--step-1)/1.2 var(--font-slab); color: var(--navy-900); }
+  .sub { display: block; font: 600 var(--step--1)/1.3 var(--font-body); color: var(--ink-soft); }
+  .no { margin: 0; text-align: right; line-height: 1.25; }
+  .no-k { display: block; font: 600 var(--step--2)/1.3 var(--font-body); color: var(--ink-soft); }
+  .no-v { font: 700 var(--step--1)/1.3 var(--font-slab); color: var(--navy-900); white-space: nowrap; }
+  /* Phones: the license caption sits on one line beside its number, under the title. */
+  @media (max-width: 479px) {
+    .no { text-align: left; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.5rem; }
+    .no-k { display: inline; }
+  }
+  .copy { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 1rem; margin: 0.5rem 0 0; padding-top: 0.4rem; border-top: 1px dashed #74869e; font-size: var(--step--2); color: var(--ink-soft); }
+  @media (min-width: 700px) { .copy { font-size: var(--step--1); margin-top: 0.75rem; padding-top: 0.5rem; } }
+  .copy span:first-child { font-weight: 700; color: var(--navy-900); }
+
+  /* Field rows any slip can use: printed label, filled-in value. */
+  .slip :global(.wo-f) { margin: 0; }
+  .slip :global(.wo-f > div) { display: grid; grid-template-columns: minmax(0, 10rem) minmax(0, 1fr); gap: 0.1rem 1rem; align-items: baseline; padding: 0.45rem 0; border-bottom: 1px solid var(--line); }
+  .slip :global(.wo-f > div:last-child) { border-bottom: 0; }
+  .slip :global(.wo-f dt) { font-size: var(--step--1); line-height: 1.35; color: var(--ink-soft); font-weight: 600; }
+  .slip :global(.wo-f dd) { margin: 0; font: 700 1.0625rem/1.35 var(--font-slab); color: var(--navy-900); overflow-wrap: anywhere; }
+  @media (max-width: 479px) { .slip :global(.wo-f > div) { grid-template-columns: 1fr; padding: 0.35rem 0; } }
+  /* A whole row that is a link (contents, figures): at least 44 px tall. */
+  .slip :global(.wo-rows) { list-style: none; margin: 0; padding: 0; }
+  .slip :global(.wo-rows li + li) { border-top: 1px solid var(--line); }
+  .slip :global(.wo-row-link) { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.7rem; min-height: 2.75rem; padding: 0.25rem 0; color: var(--navy-900); text-decoration: none; }
+  .slip :global(.wo-row-link:hover .wo-row-l) { text-decoration: underline; }
+  .slip :global(.wo-row-l) { font-weight: 600; line-height: 1.3; }
+  .slip :global(.wo-row-d) { display: block; font-weight: 400; font-size: var(--step--1); color: var(--ink-soft); }
+  .slip :global(.wo-fno) { display: inline-grid; place-content: center; width: 1.5rem; height: 1.5rem; border-radius: 4px; background: var(--navy); color: var(--white); font: 700 0.9375rem/1 var(--font-slab); flex: none; }
+</style>

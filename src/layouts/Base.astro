@@ -1,0 +1,78 @@
+---
+import "@fontsource-variable/roboto-slab/wght.css";
+import slabUrl from "@fontsource-variable/roboto-slab/files/roboto-slab-latin-wght-normal.woff2?url";
+import "../styles/global.css";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import StickyBar from "../components/StickyBar.astro";
+import { facts, isPublicBuild } from "../data/facts";
+import revealJs from "../scripts/reveal.js?raw";
+
+interface Props { title: string; description: string }
+const { title, description } = Astro.props;
+const fullTitle = title === "home" ? `${facts.name.value} | Master plumber in Hampton Roads` : `${title} | ${facts.shortName.value}`;
+---
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    {!isPublicBuild && <meta name="robots" content="noindex, nofollow" />}
+    <meta name="theme-color" content="#0c1b30" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href={slabUrl} as="font" type="font/woff2" crossorigin />
+    {/* Load reveal (src/scripts/reveal.js): with scripting on, main waits at a trace of opacity
+        until the reveal script after it has set each part's start. */}
+    <script is:inline>document.documentElement.classList.add("fm-rv");</script>
+    {!isPublicBuild && (
+      <script is:inline>
+        (() => {
+          // A ?tags= link sets the switch once; later reads only follow the stored value, so two tabs
+          // opened with different links never write back and forth.
+          const apply = (fromUrl) => {
+            try {
+              const p = fromUrl ? new URLSearchParams(location.search).get("tags") : null;
+              const on = p === "on" ? true : p === "off" ? false : localStorage.getItem("fm-tags") === "on";
+              if (p) localStorage.setItem("fm-tags", on ? "on" : "off");
+              document.documentElement.classList.toggle("tags-on", on);
+            } catch (e) {}
+          };
+          apply(true);
+          // A prerendered page ran this before the reviewer may have flipped the switch; read it again
+          // when the page is shown, and when another tab changes it.
+          document.addEventListener("prerenderingchange", () => apply(false));
+          addEventListener("storage", (e) => { if (e.key === "fm-tags") apply(false); });
+        })();
+      </script>
+    )}
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    {/* Before the first paint, so the first frame already shows where each part starts. */}
+    <script is:inline set:html={revealJs}></script>
+    <Footer />
+    <StickyBar />
+    <script>document.querySelectorAll("[data-needs-js]").forEach((b) => b.removeAttribute("disabled"));</script>
+    {/* Prerender likely next pages, so following a link shows the next page at once (its load
+        reveal waits for the page to be shown). Not the home page (its
+        repair story starts work at load), /book* and /emergency (they read sessionStorage at load). */}
+    <script type="speculationrules" is:inline set:html={JSON.stringify({
+      prerender: [{
+        source: "document",
+        where: { and: [
+          { href_matches: "/*" },
+          { not: { href_matches: ["/", "/\\?*", "/#*", "/book*", "/book*\\?*", "/book*#*", "/emergency*", "/emergency*\\?*", "/emergency*#*"] } },
+          { not: { selector_matches: "[download]" } },
+        ] },
+        eagerness: "moderate",
+      }],
+    })}></script>
+  </body>
+</html>

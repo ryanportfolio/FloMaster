@@ -1,0 +1,79 @@
+---
+import Base from "../layouts/Base.astro";
+import ValveTagHero from "../components/ValveTagHero.astro";
+import ValveStamp from "../components/ValveStamp.astro";
+import ValveTagQuote from "../components/ValveTagQuote.astro";
+import Fact from "../components/Fact.astro";
+import CallToAction from "../components/CallToAction.astro";
+import { services } from "../data/services";
+import { facts } from "../data/facts";
+import { pricingTags, markOf, lowestPrice } from "../components/valve-tags";
+// The row the "Typical prices from" header tag lands on: the lowest price in services.ts.
+const isLowest = (slug: string, i: number) => slug === lowestPrice.slug && i === lowestPrice.i;
+---
+<Base title="Prices, fees and guarantee" description="Every fee FloMasters charges, typical prices for common plumbing jobs, how quotes work, and the written guarantee.">
+  <ValveTagHero title="Prices, fees and guarantee" lead="Everything I charge is on this page, so if it isn't listed, I don't charge it" tags={pricingTags} call cols={3} />
+
+  <ValveTagQuote />
+
+  <section class="section section--alt" id="typical-prices">
+    <div class="wrap">
+      <h2>Typical prices</h2>
+      <p class="lead">Ranges for the jobs I do most; your written price depends on what I find</p>
+      <div class="price-grid">
+        {services.map((s) => (
+          <section class="pg">
+            <h3><a href={`/residential/${s.slug}`}>{s.title}</a></h3>
+            <table>
+              <caption class="visually-hidden">{s.title}</caption>
+              <tbody>{s.prices.map((p, i) => {
+                const low = isLowest(s.slug, i);
+                return <tr class={low ? "vt-target" : undefined} id={low ? "tag-typical" : undefined} tabindex={low ? "-1" : undefined} aria-labelledby={low ? "tag-typical-job tag-typical-range" : undefined}><th scope="row" id={low ? "tag-typical-job" : undefined}>{low && <ValveStamp mark={markOf(pricingTags, "tag-typical")} />}{p.job}</th><td class="num" id={low ? "tag-typical-range" : undefined}><Fact k="priceRanges" text={p.range} /></td></tr>;
+              })}</tbody>
+            </table>
+            <p class="small muted">Top of the range: {s.topOfRange}</p>
+          </section>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="guarantee">
+    <div class="wrap guarantee">
+      <div class="g-seal" aria-hidden="true">
+        <span>Written</span><strong>Guarantee</strong><span>FloMasters</span>
+      </div>
+      <div>
+        <h2>My guarantee</h2>
+        <ul class="ticks">
+          <li class="vt-target" id="tag-guarantee" tabindex="-1"><ValveStamp mark={markOf(pricingTags, "tag-guarantee")} /><strong><Fact k="laborWarranty" />.</strong> If my work fails, I come back and fix it at no charge.</li>
+          <li><strong>Parts:</strong> <Fact k="partsWarranty" />.</li>
+          <li><strong>Not covered:</strong> <Fact k="warrantyExclusions" />.</li>
+          <li><strong>To claim it:</strong> call or text <span class="nowrap">{facts.phone.value}</span>. The date and job are on your invoice; you don't need to keep anything else.</li>
+        </ul>
+        <p class="small muted">The full terms are printed on every invoice.</p>
+      </div>
+    </div>
+  </section>
+  <CallToAction />
+</Base>
+
+<style>
+  .price-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); margin-top: var(--space-3); }
+  .pg { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1.25rem 1.4rem; }
+  .pg h3 a { color: inherit; text-decoration: none; }
+  .pg h3 a:hover { text-decoration: underline; }
+  .pg table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; }
+  /* A little room at the row ends, so a header tag's outline (drawn inside the row) clears the text. */
+  .pg th, .pg td { text-align: left; padding: 0.5rem 0.4rem; border-bottom: 1px solid var(--line); font-size: 1.0625rem; vertical-align: top; }
+  .pg th { font-weight: 500; padding-right: 0.75rem; }
+  .pg td { text-align: right; font-family: var(--font-slab); font-weight: 700; color: var(--navy); white-space: nowrap; }
+  /* The guarantee line a header tag names wears that tag's letter in place of its tick. */
+  .guarantee .ticks li.vt-target::before { display: none; }
+  .guarantee .ticks li.vt-target > :global(.vt-stamp) { position: absolute; left: -0.3rem; top: 0.15em; margin: 0; }
+  .guarantee { display: grid; gap: var(--space-4); align-items: center; }
+  @media (min-width: 800px) { .guarantee { grid-template-columns: 14rem 1fr; } }
+  .g-seal { width: 13rem; aspect-ratio: 1; border-radius: 50%; display: grid; place-content: center; text-align: center; gap: 0.2rem; color: var(--white); background: var(--navy) var(--waves); background-size: 60px 30px; box-shadow: 0 0 0 6px var(--paper), 0 0 0 9px var(--sky); font-family: var(--font-slab); }
+  .g-seal span { font-size: 0.875rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--sky-300); }
+  .g-seal strong { font-size: 1.625rem; }
+</style>

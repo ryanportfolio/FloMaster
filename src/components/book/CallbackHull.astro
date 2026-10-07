@@ -1,0 +1,33 @@
+---
+// "Rather talk first?" with the phone set at hull-number scale: the area code 757, which the
+// region goes by, painted largest, and the full number under it as the call link. The callback
+// form beside it is the site's standard one (CallbackForm.astro).
+import CallbackForm from "../CallbackForm.astro";
+import { facts } from "../../data/facts";
+---
+<section class="cbh" id="callback">
+  <div class="wrap cbh-grid">
+    <div>
+      <h2>Rather talk first?</h2>
+      <p class="lead">Leave your number and I'll call you back about bigger jobs, prices, or a time that suits you better</p>
+      <a class="hull" href={`tel:${facts.phoneHref.value}`}>
+        <span class="hull-a" aria-hidden="true">757</span>
+        <span class="hull-b num">{facts.phone.value}</span>
+      </a>
+      <p class="hull-cap">My phone. Call it now, or leave your number and I'll ring you.</p>
+    </div>
+    <CallbackForm id="cb-book" />
+  </div>
+</section>
+
+<style>
+  .cbh { padding-block: var(--band-space); border-top: 1px solid var(--line); }
+  .cbh-grid { display: grid; gap: var(--space-4); }
+  @media (min-width: 900px) { .cbh-grid { grid-template-columns: 1fr 1fr; align-items: center; } }
+  .hull { display: inline-grid; justify-items: start; margin-top: 0.5rem; color: var(--navy-900); text-decoration: none; line-height: 1; }
+  .hull-a { font-family: var(--font-slab); font-weight: 800; font-size: clamp(6.5rem, 3.5rem + 11vw, 12rem); letter-spacing: -0.05em; line-height: 0.8; color: var(--navy); }
+  .hull-b { font-family: var(--font-slab); font-weight: 800; font-size: clamp(2rem, 1.4rem + 2.6vw, 3.25rem); letter-spacing: -0.01em; margin-top: 0.6rem; white-space: nowrap; }
+  .hull:hover .hull-b { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 0.15em; }
+  .hull:focus-visible { outline-offset: 6px; }
+  .hull-cap { margin: 0.85rem 0 0; color: var(--ink-soft); font-size: var(--step-0); }
+</style>

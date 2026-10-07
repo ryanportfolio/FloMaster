@@ -1,0 +1,17 @@
+---
+import Base from "../layouts/Base.astro";
+import PageHero from "../components/PageHero.astro";
+---
+<Base title="Page not found" description="That page doesn't exist.">
+  <PageHero title="That page has gone down the drain" lead="The link may be old; here's where to go instead" actions />
+  <section class="section">
+    <div class="wrap">
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/emergency">Emergency help</a></li>
+        <li><a href="/pricing">Prices and fees</a></li>
+        <li><a href="/residential">Home services</a></li>
+      </ul>
+    </div>
+  </section>
+</Base>

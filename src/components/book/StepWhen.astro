@@ -1,0 +1,195 @@
+---
+// Booking question 2 in hull numbers: a strip of days, then that day's two-hour windows, with
+// the dates and hours set large in fixed columns so every number lands in the same place. The
+// navy arrival board beside them is this question's answer tag: at rest it shows the chosen
+// day's hours and the move rule, then the window picked and when it is still free to move.
+// Without JavaScript every day's windows stay visible and the form still works.
+import Fact from "../Fact.astro";
+import StepMark from "./StepMark.astro";
+import { nextDays, monthSpan, weekendIsAfterHours } from "./schedule";
+const days = nextDays(6);
+const first = days[0];
+---
+<fieldset class="step hw" id="f-when" data-step="when" aria-describedby="err-when" data-when>
+  <legend><StepMark n={2} /> <span class="lg-t">When suits you?<span class="visually-hidden" data-state></span> <span class="tagwrap"><Fact k="windows" text="" /></span></span></legend>
+  <p class="hint">Pick a day, then a two-hour arrival window. I'll text when I'm on my way.</p>
+
+  <div class="hw-grid">
+    <div class="hw-pick">
+      <p class="cap" id="hw-days">{monthSpan(days)}</p>
+      <div class="strip" role="radiogroup" aria-labelledby="hw-days">
+        {days.map((d, i) => (
+          <label class="day">
+            <input type="radio" name="when-day" value={d.iso} checked={i === 0} data-dow={d.dow} data-date-num={d.date} data-day-label={d.label} data-hours={d.hoursLabel} />
+            <span class="face" aria-hidden="true"><span class="dow">{d.dow}</span><span class="dnum">{d.date}</span></span>
+            <span class="visually-hidden">{d.label}</span>
+          </label>
+        ))}
+      </div>
+
+      {days.map((d) => (
+        <div class="wins" data-day-panel={d.iso} role="radiogroup" aria-label={`Arrival windows, ${d.label}`}>
+          {d.windows.map((w) => (
+            <label class="win">
+              <input type="radio" name="window" value={`${d.label}, ${w.label}`} data-date={d.iso} data-start={w.start} data-end={w.end} data-day-label={d.label} data-win-label={w.label} data-move-by={w.moveBy} data-weekend={String(d.weekend && weekendIsAfterHours)} />
+              <span class="wface">
+                <span class="hn">{w.from}</span><span class="mer">{w.fromMer}</span>
+                <span class="to-w">to</span>
+                <span class="hn">{w.to}</span><span class="mer">{w.toMer}</span>
+              </span>
+            </label>
+          ))}
+          {d.weekend && weekendIsAfterHours && (
+            <p class="wk"><Fact k="afterHoursWhen">Saturday counts as after-hours</Fact>: <strong><Fact k="afterHoursFee" /></strong> on a Saturday visit.</p>
+          )}
+        </div>
+      ))}
+    </div>
+
+    <div class="board navy on-navy">
+      <p class="b-k">Arrival</p>
+      <p class="b-day" aria-hidden="true"><span class="b-dow" data-sel-dow>{first.dow}</span><span class="b-date" data-sel-date>{first.date}</span></p>
+      <div class="b-win" aria-live="polite" aria-atomic="true">
+        <p class="visually-hidden" data-sel-day>{first.label}</p>
+        <div data-out-none>
+          <p class="b-none">Pick a window</p>
+          <p class="b-note">Open <Fact k="hours"><span data-sel-hours>{first.hoursLabel}</span></Fact></p>
+          <p class="b-note"><Fact k="cancellation" /></p>
+        </div>
+        <div data-out-some hidden>
+          <p class="b-time" data-out-win></p>
+          <p class="b-move"><Fact k="cancellation">Free to move until <span class="nowrap" data-out-move></span></Fact></p>
+          <p class="b-wk" data-out-weekend hidden>After-hours fee <Fact k="afterHoursFee" /></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="hours small">Nothing here suits? <a href="#callback">Ask me to call you</a>. Every window sits inside my working hours: <Fact k="hours" /></p>
+  <span class="error" id="err-when"></span>
+</fieldset>
+
+<script>
+  import { nextDays, monthSpan, weekendIsAfterHours } from "./schedule";
+  // A strip of days, then the windows for the chosen day; the board repeats the pick.
+  const root = document.querySelector<HTMLElement>(".hw[data-when]")!;
+
+  // The page is built ahead of time, so opened on a later day its dates would have passed.
+  // Then the strip and the windows are rebuilt from today, with the built ones as templates.
+  const fresh = nextDays(6);
+  const strip = root.querySelector<HTMLElement>(".strip")!;
+  const builtDays = [...strip.querySelectorAll<HTMLInputElement>("input[name=when-day]")];
+  if (builtDays[0].value !== fresh[0].iso) {
+    const built = [...root.querySelectorAll<HTMLElement>("[data-day-panel]")];
+    const dayT = builtDays[0].closest("label")!;
+    const winT = built[0].querySelector("label.win")!;
+    const wkT = root.querySelector(".wins .wk");
+    root.querySelector("#hw-days")!.textContent = monthSpan(fresh);
+    strip.replaceChildren(...fresh.map((d, i) => {
+      const l = dayT.cloneNode(true) as HTMLElement;
+      const inp = l.querySelector("input")!;
+      inp.value = d.iso;
+      inp.checked = i === 0;
+      Object.assign(inp.dataset, { dow: d.dow, dateNum: String(d.date), dayLabel: d.label, hours: d.hoursLabel });
+      l.querySelector(".dow")!.textContent = d.dow;
+      l.querySelector(".dnum")!.textContent = String(d.date);
+      l.querySelector(".visually-hidden")!.textContent = d.label;
+      return l;
+    }));
+    const fill = fresh.map((d) => {
+      const p = built[0].cloneNode(false) as HTMLElement;
+      p.dataset.dayPanel = d.iso;
+      p.setAttribute("aria-label", `Arrival windows, ${d.label}`);
+      for (const w of d.windows) {
+        const l = winT.cloneNode(true) as HTMLElement;
+        const inp = l.querySelector("input")!;
+        inp.checked = false;
+        inp.value = `${d.label}, ${w.label}`;
+        Object.assign(inp.dataset, { date: d.iso, start: String(w.start), end: String(w.end), dayLabel: d.label, winLabel: w.label, moveBy: w.moveBy, weekend: String(d.weekend && weekendIsAfterHours) });
+        const [hn, mer] = [l.querySelectorAll(".hn"), l.querySelectorAll(".mer")];
+        [hn[0].textContent, mer[0].textContent, hn[1].textContent, mer[1].textContent] = [w.from, w.fromMer, w.to, w.toMer];
+        p.append(l);
+      }
+      if (d.weekend && wkT) p.append(wkT.cloneNode(true));
+      return p;
+    });
+    built.slice(1).forEach((p) => p.remove());
+    built[0].replaceWith(...fill);
+  }
+  const panels = [...root.querySelectorAll<HTMLElement>("[data-day-panel]")];
+  const set = (sel: string, text: string) => root.querySelectorAll<HTMLElement>(sel).forEach((el) => (el.textContent = text));
+  const render = () => {
+    const day = root.querySelector<HTMLInputElement>("input[name=when-day]:checked");
+    panels.forEach((p) => (p.hidden = p.dataset.dayPanel !== day?.value));
+    if (day) { set("[data-sel-dow]", day.dataset.dow!); set("[data-sel-date]", day.dataset.dateNum!); set("[data-sel-day]", day.dataset.dayLabel!); set("[data-sel-hours]", day.dataset.hours!); }
+    const win = root.querySelector<HTMLInputElement>("input[name=window]:checked");
+    root.querySelectorAll<HTMLElement>("[data-out-some]").forEach((el) => (el.hidden = !win));
+    root.querySelectorAll<HTMLElement>("[data-out-none]").forEach((el) => (el.hidden = !!win));
+    root.querySelectorAll<HTMLElement>("[data-out-weekend]").forEach((el) => (el.hidden = win?.dataset.weekend !== "true"));
+    set("[data-out-win]", win ? win.dataset.winLabel!.replace(/ ([ap])\.m\./g, " $1.m.") : "");
+    set("[data-out-move]", win?.dataset.moveBy ?? "");
+  };
+  root.addEventListener("change", (e) => {
+    const t = e.target as HTMLInputElement;
+    if (t.name === "when-day") {
+      // A window picked on another day no longer applies.
+      const win = root.querySelector<HTMLInputElement>("input[name=window]:checked");
+      if (win && win.dataset.date !== t.value) { win.checked = false; win.dispatchEvent(new Event("change", { bubbles: true })); }
+    }
+    render();
+  });
+  // A preselected or restored window: show its day.
+  const picked = root.querySelector<HTMLInputElement>("input[name=window]:checked");
+  if (picked) { const d = root.querySelector<HTMLInputElement>(`input[name=when-day][value="${picked.dataset.date}"]`); if (d) d.checked = true; }
+  render();
+</script>
+
+<style>
+  /* Panels for the days not chosen. */
+  [data-day-panel][hidden] { display: none; }
+  .hw-grid { display: grid; gap: 1.25rem; margin-bottom: 1rem; }
+  @media (min-width: 760px) { .hw-grid { grid-template-columns: minmax(0, 1fr) 15rem; align-items: stretch; } }
+  .cap { margin: 0 0 0.4rem; font-size: var(--step--2); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate-ink); }
+
+  /* Day strip: the date number is the big painted mark, the weekday sits above it. */
+  .strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: clamp(0.25rem, 1vw, 0.5rem); margin-bottom: 1rem; }
+  .day, .win { position: relative; }
+  .day input, .win input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+  .face { display: grid; justify-items: center; padding: 0.45rem 0 0.35rem; border: 2px solid #74869e; border-radius: var(--radius); background: var(--white); line-height: 1; }
+  .dow { font-size: var(--step--2); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-soft); }
+  .dnum { font-family: var(--font-slab); font-weight: 800; font-size: clamp(1.5rem, 0.9rem + 2.6vw, 2.5rem); letter-spacing: -0.04em; color: var(--navy-900); font-variant-numeric: tabular-nums; margin-top: 0.2rem; }
+  .day:hover .face, .win:hover .wface { border-color: var(--navy); }
+  .day input:checked + .face { background: var(--navy); border-color: var(--navy); }
+  .day input:checked + .face .dow { color: var(--sky-300); }
+  .day input:checked + .face .dnum { color: var(--white); }
+  .day input:focus-visible + .face, .win input:focus-visible + .wface { outline: 3px solid var(--navy); outline-offset: 2px; }
+
+  /* Windows: start and end hours in fixed columns, each with its own a.m. or p.m., so every
+     number and every a.m./p.m. lands in the same place from row to row. */
+  .wins { display: grid; gap: 0.4rem; }
+  .wface {
+    display: grid; grid-template-columns: 2.4rem 2.5rem 1.6rem 2.4rem 2.5rem; align-items: baseline; column-gap: 0.3rem;
+    padding: 0.35rem 0.9rem; border: 2px solid #74869e; border-radius: var(--radius); background: var(--white);
+  }
+  @media (min-width: 760px) { .wface { grid-template-columns: 3.1rem 2.6rem 1.9rem 3.1rem 2.6rem; } }
+  .hn { font-family: var(--font-slab); font-weight: 800; font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.375rem); line-height: 1.1; letter-spacing: -0.03em; color: var(--navy-900); text-align: right; font-variant-numeric: tabular-nums; }
+  .mer { font-size: var(--step--1); font-weight: 600; color: var(--ink-soft); white-space: nowrap; }
+  .to-w { font-size: var(--step--1); color: var(--ink-soft); text-align: center; }
+  .win input:checked + .wface { border-color: var(--navy); background: var(--sky-100); box-shadow: inset 0 0 0 1px var(--navy); }
+  .wk { margin: 0.4rem 0 0; font-size: var(--step--1); color: var(--ink); }
+
+  /* Board: the chosen day and window, set large on navy in one fixed place. */
+  .board { border-radius: var(--radius-lg); padding: 1.1rem 1.25rem 1.25rem; background-size: 72px 36px; }
+  .board p { margin: 0; }
+  .b-k { font-size: var(--step--2); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sky-300); }
+  .b-day { display: flex; align-items: baseline; gap: 0.5rem; line-height: 1; margin: 0.35rem 0 0.6rem !important; }
+  .b-dow { font: 800 var(--step-1)/1 var(--font-slab); letter-spacing: 0.08em; text-transform: uppercase; color: var(--sky-300); }
+  .b-date { font: 800 clamp(4rem, 3rem + 4vw, 5.5rem)/0.9 var(--font-slab); letter-spacing: -0.05em; color: var(--white); font-variant-numeric: tabular-nums; }
+  .b-win { min-height: 6.5rem; }
+  .b-none { color: var(--white); font: 700 var(--step-1)/1.2 var(--font-slab); }
+  .b-note { margin-top: 0.4rem !important; font-size: var(--step--1); color: var(--sky-100); }
+  .b-time { font: 800 var(--step-2)/1.15 var(--font-slab); color: var(--white); letter-spacing: -0.01em; }
+  .b-move { margin-top: 0.5rem !important; font-size: var(--step--1); color: var(--sky-100); }
+  .b-wk { margin-top: 0.5rem !important; font-size: var(--step--1); color: var(--white); font-weight: 600; }
+  .hours { color: var(--ink-soft); margin: 0 0 0.5rem; }
+</style>

@@ -1,0 +1,75 @@
+---
+import Base from "../../layouts/Base.astro";
+import ValveTagHero from "../../components/ValveTagHero.astro";
+import ValveStamp from "../../components/ValveStamp.astro";
+import Photo from "../../components/Photo.astro";
+import Fact from "../../components/Fact.astro";
+import ReviewCard from "../../components/ReviewCard.astro";
+import CallToAction from "../../components/CallToAction.astro";
+import Icon from "../../components/Icon.astro";
+import { services, type Service } from "../../data/services";
+import { reviews } from "../../data/reviews";
+import { serviceTags, markOf } from "../../components/valve-tags";
+
+export function getStaticPaths() {
+  return services.map((s) => ({ params: { slug: s.slug }, props: { s } }));
+}
+const { s } = Astro.props as { s: Service };
+const tags = serviceTags(s);
+const related = reviews.find((r) => r.service.toLowerCase().split(" ")[0] === s.bookLabel.toLowerCase().split(" ")[0]) ?? reviews[0];
+---
+<Base title={`${s.title} in Hampton Roads`} description={`${s.title} from a Virginia master plumber in the 7 cities. ${s.prices.map((p) => `${p.job}: ${p.range}`).join(". ")}.`}>
+  <ValveTagHero title={s.title} lead={s.short} crumb={{ href: "/residential", label: "Home services" }} actions tags={tags} cols={2} />
+
+  <section class="section">
+    <div class="wrap body">
+      <div class="main">
+        <Photo src={s.photo} alt={s.photoAlt} fact="jobs" priority widths={[480, 768, 1080, 1536]} sizes="(min-width: 1180px) 680px, 100vw" class="lead-photo" shot={s.shot} />
+        <p class="intro">{s.intro}</p>
+        <h2>What's covered</h2>
+        <ul class="ticks">{s.covers.map((c) => <li>{c}</li>)}</ul>
+        <h2>Repair or replace?</h2>
+        <p>{s.options}</p>
+        <h2>What a customer said</h2>
+        <ReviewCard review={related} />
+      </div>
+      <aside class="side">
+        <div class="price-card">
+          <h2 class="pc-h">Typical prices</h2>
+          <table>
+            <caption class="visually-hidden">Typical prices for {s.title.toLowerCase()}</caption>
+            <tbody>{s.prices.map((p, i) => <tr class="vt-target" id={`tag-price-${i}`} tabindex="-1" aria-labelledby={`tag-price-${i}-job tag-price-${i}-range`}><th scope="row" id={`tag-price-${i}-job`}><ValveStamp mark={markOf(tags, `tag-price-${i}`)} />{p.job}</th><td class="num" id={`tag-price-${i}-range`}><Fact k="priceRanges" text={p.range} /></td></tr>)}</tbody>
+          </table>
+          <p class="small"><strong>What puts a job at the top of the range:</strong> {s.topOfRange}</p>
+          <p class="small"><strong>Time on site:</strong> <Fact k="priceRanges" text={s.timeOnSite} /></p>
+          <p class="small muted vt-target" id="tag-callout" tabindex="-1"><ValveStamp mark={markOf(tags, "tag-callout")} />Call-out <Fact k="calloutFee" />, <Fact k="calloutCredited" />. You get a written, flat price before I start. <a href="/pricing">All fees</a></p>
+          <a class="btn btn--navy btn--block" href={`/book?job=${s.slug}`}><Icon name="calendar" /> Book {s.bookLabel.toLowerCase()}</a>
+          <a class="btn btn--ghost btn--block call" href="/emergency"><Icon name="phone" /> It's an emergency</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+  <CallToAction />
+</Base>
+
+<style>
+  .body { display: grid; gap: var(--space-4); }
+  /* 25rem leaves each job name room beside its letter and price: two lines at most. */
+  @media (min-width: 1000px) { .body { grid-template-columns: minmax(0, 1fr) 25rem; align-items: start; } }
+  .main :global(.lead-photo) { border-radius: var(--radius-lg); aspect-ratio: 3 / 2; margin-bottom: var(--space-3); }
+  .main h2 { font-size: var(--step-2); margin-top: var(--space-4); }
+  .side { position: sticky; top: calc(var(--sticky-h) + 1rem); }
+  .price-card { background: var(--white); border: 1px solid var(--line); border-top: 5px solid var(--sky); border-radius: var(--radius-lg); padding: 1.5rem; }
+  .pc-h { font-size: var(--step-1); }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+  /* A little room at the row ends, so a header tag's outline (drawn inside the row) clears the text. */
+  th, td { text-align: left; padding: 0.6rem 0.4rem; border-bottom: 1px solid var(--line); font-size: 1.0625rem; vertical-align: top; }
+  th { font-weight: 500; padding-right: 0.75rem; }
+  /* Beside the page (desktop), the job name hangs beside its letter: a second line starts under the
+     name, not under the stamp (2.3rem = the stamp's 1.75rem width plus its 0.55rem gap,
+     ValveStamp.astro). Phones keep the plain wrap, which leaves the narrowest screens more room. */
+  @media (min-width: 1000px) { th { padding-left: calc(0.4rem + 2.3rem); text-indent: -2.3rem; } }
+  td { text-align: right; font-family: var(--font-slab); font-weight: 700; color: var(--navy); white-space: nowrap; }
+  .price-card .btn { margin-top: 0.6rem; }
+  .call { color: var(--navy); }
+</style>
