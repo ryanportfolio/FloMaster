@@ -196,6 +196,13 @@ const choicesFor = (it: Item) =>
       // The two keys can arrive as separate events, so the unsaved mark for a record this tab
       // already holds is followed on its own: set when the other tab has it unsaved, cleared once
       // the other tab has saved that same version.
+      // An unsaved answer taken over from another tab is saved from here too, after a pause that
+      // normally lets the tab it came from save it first (a second save of it changes nothing).
+      const adopt = (id: string) => {
+        pending.add(id);
+        clearTimeout(timers[id]);
+        timers[id] = window.setTimeout(() => send(id), 3000);
+      };
       addEventListener("storage", (e) => {
         if (e.key !== LS_ANS && e.key !== LS_PEND) return;
         const keptPend = new Set(readLocal<string[]>(LS_PEND, []));
@@ -205,13 +212,13 @@ const choicesFor = (it: Item) =>
           const mine = state[id];
           if (!el || !isRec(r)) continue;
           if (mine && r.updatedAt === mine.updatedAt && keptPend.has(id) !== pending.has(id)) {
-            if (keptPend.has(id)) pending.add(id);
+            if (keptPend.has(id)) adopt(id);
             else pending.delete(id);
             changed = true;
           }
           if (mine && r.updatedAt <= mine.updatedAt) continue;
           state[id] = r;
-          if (keptPend.has(id)) pending.add(id);
+          if (keptPend.has(id)) adopt(id);
           else pending.delete(id);
           toForm(el, r);
           changed = true;

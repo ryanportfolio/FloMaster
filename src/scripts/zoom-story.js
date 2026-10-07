@@ -370,9 +370,22 @@ import { createSide } from "./zoom-story-side.js";
 
   // Input. During playback the first gesture is absorbed and a second one ends the story;
   // otherwise normal scrolling, and a downward movement that reaches the section top starts it.
+  // A wheel over a box that scrolls by itself and can still move that way (the header's menu on a
+  // short or zoomed window) belongs to that box: the story neither starts, ends nor absorbs on it,
+  // and Lenis (allowNestedScroll) leaves it to the browser.
+  const scrollsInside = (target, dy) => {
+    for (let el = target instanceof Element ? target : null; el && el !== document.body && el !== root; el = el.parentElement) {
+      if (el.scrollHeight <= el.clientHeight + 1) continue;
+      const oy = getComputedStyle(el).overflowY;
+      if (oy !== "auto" && oy !== "scroll") continue;
+      if (dy > 0 ? el.scrollTop + el.clientHeight < el.scrollHeight - 1 : dy < 0 && el.scrollTop > 0) return true;
+    }
+    return false;
+  };
   const onVirtualScroll = ({ deltaY, event }) => {
     if (LOG) (window.__zsIn ||= []).push([Math.round(performance.now()), event.type, Math.round(deltaY), mode, event.isTrusted]);
     if (event.ctrlKey) return true; // page zoom
+    if (event.type === "wheel" && scrollsInside(event.target, deltaY)) return true;
     if (mode === "playing") {
       if (event.type !== "wheel") return touchEnds; // touch: handled by the listeners below
       const now = performance.now();
@@ -401,6 +414,8 @@ import { createSide } from "./zoom-story-side.js";
   }, { passive: true, capture: true });
   addEventListener("touchmove", (e) => {
     if (mode !== "playing") return;
+    // a finger on a box that scrolls by itself (the open header menu) moves that box
+    if (scrollsInside(e.target, touchY0 - (e.touches[0]?.clientY ?? touchY0))) return;
     // a second swipe: end, and let this finger scroll the page
     if (touchEnds) { if (Math.abs((e.touches[0]?.clientY ?? touchY0) - touchY0) >= TOUCH_MIN) finish("swipe"); return; }
     if (e.cancelable) e.preventDefault();
@@ -461,7 +476,7 @@ import { createSide } from "./zoom-story-side.js";
   const enable = () => {
     root.classList.add("zs-on");
     measure();
-    if (!lenis) lenis = new Lenis({ autoRaf: false, smoothWheel: true, syncTouch: false, virtualScroll: onVirtualScroll });
+    if (!lenis) lenis = new Lenis({ autoRaf: false, smoothWheel: true, syncTouch: false, allowNestedScroll: true, virtualScroll: onVirtualScroll });
     // a reload or history move that lands on or below the section shows the end state
     if (scrollY >= pinY() - 2) finish("landed");
     if (!raf) raf = requestAnimationFrame(tick);

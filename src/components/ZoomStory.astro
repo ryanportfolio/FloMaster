@@ -22,6 +22,8 @@ const Z = "/zoom/";
 const zIndex = (l: (typeof zoomLayers)[number]) => l.level * 10 + zoomLayers.filter((x) => x.level === l.level).indexOf(l);
 const beatOf = (key: string) => zoomRows.find((r) => r.key === key)!.beat;
 const RING = "M170 22 C 140 4, 50 2, 20 26 C -6 48, 18 92, 96 94 C 176 96, 204 62, 184 32 C 172 14, 146 8, 118 9";
+// The P28 tag (prototype, tags on): on the stage, and on the first still when the section is at rest
+const photoTag = `Illustrations · ${photoFacts.beforeAfter.code}: AI stand-ins now, for one real job before launch`;
 ---
 <script is:inline>
   // Before the section is parsed: switch to the playable layout at once (no reflow from the still
@@ -88,7 +90,7 @@ const RING = "M170 22 C 140 4, 50 2, 20 26 C -6 48, 18 92, 96 94 C 176 96, 204 6
         {zoomLayers.map((l) => <img alt={l.alt} data-key={l.key} data-level={l.level} data-whole={l.whole ? "1" : undefined} data-patch-of={l.patchOf} data-box={l.box?.join(",")} data-base={`${Z}${l.key}`} decoding="async" style={`z-index:${zIndex(l)}`}>)}
       </div>
       <p class="zs-credit">Map &copy; OpenStreetMap contributors</p>
-      {!isPublicBuild && <span class="photo-tag">Illustrations · {photoFacts.beforeAfter.code}: AI stand-ins now, for one real job before launch</span>}
+      {!isPublicBuild && <span class="photo-tag">{photoTag}</span>}
     </div>
   </div>
   <div class="zs-stills">
@@ -103,6 +105,7 @@ const RING = "M170 22 C 140 4, 50 2, 20 26 C -6 48, 18 92, 96 94 C 176 96, 204 6
             {s.patch && <img class="zs-patch" src={`${Z}${s.patch}-d2000.webp`} alt="" style={s.style} loading="lazy" decoding="async">}
           </div></div>
           <figcaption>{i === 0 && <><span class="sample-label">Sample job</span> </>}{caption}</figcaption>
+          {i === 0 && !isPublicBuild && <span class="photo-tag">{photoTag}</span>}
         </figure>
       );
     })}
@@ -192,7 +195,7 @@ const RING = "M170 22 C 140 4, 50 2, 20 26 C -6 48, 18 92, 96 94 C 176 96, 204 6
   @media (min-width: 900px) { html:not(.zs-on) [data-side="a"] { min-height: 38rem; } }
   .zs-stills .sample-label { vertical-align: 0.2em; }
   .zs-stills { display: grid; gap: 2.5rem; max-width: 60rem; margin: 0 auto; padding: var(--band-space) 1.25rem; }
-  .zs-still { margin: 0; }
+  .zs-still { position: relative; margin: 0; }
   .zs-still-img { aspect-ratio: 3 / 2; overflow: hidden; border-radius: 18px; background: var(--paper); }
   .zs-still-frame { position: relative; width: 100%; height: 100%; transform: scale(1.6); }
   .zs-still-frame--whole { transform: none; }
