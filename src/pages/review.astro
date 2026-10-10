@@ -64,15 +64,54 @@ if (drift.length) throw new Error(`/review rows and api/_items.js differ: ${drif
   const pending = new Set<string>();
   const timers: Record<string, number> = {};
   let failed = false;
+  let loadFailed = false;
   let retryTimer = 0;
 
   const fit = (t: HTMLTextAreaElement) => { t.style.height = "auto"; t.style.height = `${t.scrollHeight + 2}px`; };
-  const show = (id: string) => { const t = boxes.get(id); if (t && document.activeElement !== t) { t.value = state[id].value; fit(t); } };
-  const writeLocal = () => { try { localStorage.setItem(LS, JSON.stringify({ state, pending: [...pending] })); } catch {} };
-  const status = () => {
-    statusEl.textContent = pending.size ? (failed ? `${pending.size} not saved yet: trying again` : "Saving…") : Object.keys(state).length ? "All answers saved" : "";
+  // Puts the record in its box; a box being typed in keeps its cursor where it was.
+  const show = (id: string) => {
+    const t = boxes.get(id);
+    if (!t || t.value === state[id].value) return;
+    const focused = document.activeElement === t, a = t.selectionStart, b = t.selectionEnd;
+    t.value = state[id].value;
+    fit(t);
+    if (focused) t.setSelectionRange(Math.min(a, t.value.length), Math.min(b, t.value.length));
   };
-  const retrySoon = () => { clearTimeout(retryTimer); retryTimer = window.setTimeout(flushAll, 15000); };
+  // An edit is always later than the answer it replaces, even when the computer that saved that
+  // answer has a clock running ahead of this one.
+  const stamp = (id: string) => Math.max(Date.now(), (state[id]?.updatedAt ?? 0) + 1);
+  const readLocal = () => {
+    try {
+      const k = JSON.parse(localStorage.getItem(LS) || "{}");
+      return { st: (k.state ?? {}) as Record<string, unknown>, pend: new Set<string>(k.pending ?? []) };
+    } catch {
+      return { st: {} as Record<string, unknown>, pend: new Set<string>() };
+    }
+  };
+  // Another tab of this page writes the same key, so merge per item: the newer record wins, with
+  // its own unsaved mark.
+  const writeLocal = () => {
+    try {
+      const { st, pend } = readLocal();
+      const out: Record<string, Rec> = {};
+      const outPend = new Set<string>();
+      for (const [id, r] of Object.entries(st)) if (isRec(r)) { out[id] = r; if (pend.has(id)) outPend.add(id); }
+      for (const [id, r] of Object.entries(state)) {
+        const k = out[id];
+        if (!k || r.updatedAt > k.updatedAt) { out[id] = r; if (pending.has(id)) outPend.add(id); else outPend.delete(id); }
+        else if (r.updatedAt === k.updatedAt && !pending.has(id)) outPend.delete(id);
+      }
+      localStorage.setItem(LS, JSON.stringify({ state: out, pending: [...outPend] }));
+    } catch {}
+  };
+  const status = () => {
+    const parts: string[] = [];
+    if (loadFailed) parts.push("Couldn't load the saved answers: trying again");
+    if (pending.size) parts.push(failed ? `${pending.size} not saved yet: trying again` : "Saving…");
+    else if (!loadFailed && Object.keys(state).length) parts.push("All answers saved");
+    statusEl.textContent = parts.join(" · ");
+  };
+  const retrySoon = () => { clearTimeout(retryTimer); retryTimer = window.setTimeout(() => (loadFailed ? load() : flushAll()), 15000); };
 
   async function send(id: string) {
     clearTimeout(timers[id]);
@@ -108,10 +147,11 @@ if (drift.length) throw new Error(`/review rows and api/_items.js differ: ${drif
       }
       for (const id of Object.keys(state)) { const s = server[id]; if (!isRec(s) || s.updatedAt < state[id].updatedAt) pending.add(id); }
       failed = false;
+      loadFailed = false;
       writeLocal();
       flushAll();
     } catch {
-      failed = true;
+      loadFailed = true;
       retrySoon();
     }
     status();
@@ -120,7 +160,7 @@ if (drift.length) throw new Error(`/review rows and api/_items.js differ: ${drif
   for (const [id, t] of boxes) {
     t.addEventListener("input", () => {
       fit(t);
-      state[id] = { value: t.value, updatedAt: Date.now() };
+      state[id] = { value: t.value, updatedAt: stamp(id) };
       pending.add(id);
       writeLocal();
       status();
@@ -129,6 +169,22 @@ if (drift.length) throw new Error(`/review rows and api/_items.js differ: ${drif
     });
     t.addEventListener("blur", () => { if (timers[id]) send(id); });
   }
+  // Answers typed in another tab show here too; one it has not saved yet is saved from here after
+  // a pause that normally lets that tab save it first (a second save of it changes nothing).
+  addEventListener("storage", (e) => {
+    if (e.key !== LS) return;
+    const { st, pend } = readLocal();
+    for (const [id, r] of Object.entries(st)) {
+      const mine = state[id];
+      if (!boxes.has(id) || !isRec(r) || (mine && r.updatedAt < mine.updatedAt)) continue;
+      if (mine && r.updatedAt === mine.updatedAt) { if (!pend.has(id)) pending.delete(id); continue; }
+      state[id] = r;
+      show(id);
+      if (pend.has(id)) { pending.add(id); clearTimeout(timers[id]); timers[id] = window.setTimeout(() => send(id), 3000); }
+      else pending.delete(id);
+    }
+    status();
+  });
   addEventListener("online", load);
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") load(); else flushAll(); });
 
