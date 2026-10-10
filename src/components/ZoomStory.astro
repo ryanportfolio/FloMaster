@@ -1,7 +1,7 @@
 ---
 // The zoom story: one sample job in Norfolk, played as one camera move from the Hampton Roads
 // chart down to a failed copper joint inside a wall, the repair, and the pull-back to the closed,
-// dry house (29.5 s). Beside the stage (below it on a phone) a carbon-copy work order fills in as
+// dry house (22.3 s). Beside the stage (below it on a phone) a carbon-copy work order fills in as
 // the camera finds the job. Ported from the approved scroll-zoom specimen (v3).
 //
 // Playback (src/scripts/zoom-story.js): scrolling down into the section starts it; the page holds
@@ -74,7 +74,6 @@ const photoTag = `Illustrations · ${photoFacts.beforeAfter.code}: AI stand-ins 
             <p class="sa-notes-k">Notes</p>
             {zoomNotes.map((n) => <p class="sa-line"><span data-beat={n.beat} data-sr data-tier="0.3">{n.text}</span></p>)}
           </div>
-          <p class="sa-copy"><span>Your copy</span><span>I keep the matching copy</span></p>
         </div>
       </div>
     </div>
@@ -247,8 +246,6 @@ const photoTag = `Illustrations · ${photoFacts.beforeAfter.code}: AI stand-ins 
   .sa-notes { position: relative; padding: .8rem 0 .2rem; }
   .sa-notes-k { margin: 0 0 .3rem; font: 600 var(--step--1)/1.35 var(--font-body); color: var(--ink-soft); }
   .sa-line { margin: 0 0 .4rem; font: 500 var(--step-0)/1.35 var(--font-slab); color: var(--navy-900); }
-  .sa-copy { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 1rem; margin: .7rem 0 0; padding-top: .5rem; border-top: 1px dashed #74869e; font-size: var(--step--2); color: var(--ink-soft); }
-  .sa-copy span:first-child { font-weight: 700; color: var(--navy-900); }
   /* stamps and the snapshot land with a thump; hidden until their beat */
   .sa-post, .sa-stamp, .sa-snap { position: absolute; opacity: 0; pointer-events: none; }
   .sa-post { left: 1.2rem; top: 1.6rem; width: min(62%, 17rem); transform: rotate(-8deg); --r: -8deg; }
@@ -290,7 +287,6 @@ const photoTag = `Illustrations · ${photoFacts.beforeAfter.code}: AI stand-ins 
     .sa-row { grid-template-columns: 4.6rem minmax(0, 1fr); padding: .4rem 0; min-height: 0; }
     .sa-row dd { font-size: var(--step-0); }
     .sa-notes { padding-top: .5rem; }
-    .sa-copy { display: none; }
     .sa-stamp { font-size: 1.02rem; bottom: -.35rem; }
   }
 
@@ -320,7 +316,6 @@ const photoTag = `Illustrations · ${photoFacts.beforeAfter.code}: AI stand-ins 
     .sa-notes-k { display: none; }
     .sa-line { margin-bottom: .15rem; }
     .sa-stamp { font-size: .8rem; border-width: 2.5px; }
-    .sa-copy { display: none; }
     .sa-stamp { bottom: -.3rem; right: -.1rem; }
 
     /* The site's phone has a sticky top area above the pin and the Call and Book bar below it

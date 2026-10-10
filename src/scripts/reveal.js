@@ -28,14 +28,13 @@
   // Durations and gaps in ms. The source runs 1000 ms glyphs, a 55 ms/em front and 160 ms rows on one
   // headline; here every part of the first screen has to be in within about a second, so all are shorter.
   const T = { glyph: 650, rowGap: 70, sweep: 180, V: 55, lead: 80, step: 40, actions: 40, button: 40, media: 40, mediaStep: 60, content: 110, sub: 600, ink: 650, mask: 700, batch: 70, batchMax: 350 };
-  const reveal = (window.fmReveal = { log: [], t0: 0, replay, finish });
+  const reveal = (window.fmReveal = { log: [], t0: 0, finish });
   // Resolves once the first screen is at rest (or the reveal is cut short), for scripts that start motion of their own.
   let settle;
   reveal.settled = new Promise((r) => (settle = r));
   let stopped = false; // finish() ran: nothing more starts
   let holds = new Map(); // element -> paused animation keeping it at TRACE until its turn
   let anims = [];
-  let restores = [];
   let io = null;
 
   const off = (el) => !!el.closest("[data-reveal='off'], [data-sticky]");
@@ -158,7 +157,6 @@
       end = Math.max(end, delay + T.glyph);
     });
     const mine = anims.slice(-chars.length * 2);
-    restores.push(() => undo());
     Promise.all(mine.map((a) => a.finished)).then(() => { if (h.contains(visual)) undo(); }, () => {});
     note(h, 1, at, end - at);
     reveal.split = "glyphs";
@@ -311,19 +309,6 @@
     anims.forEach((a) => { try { a.finish(); } catch (e) { a.cancel(); } });
     io?.disconnect();
     settle();
-  }
-  // Prototype review bar: play the reveal again from the top of the page.
-  function replay() {
-    stopped = false;
-    io?.disconnect();
-    for (const el of [...holds.keys()]) release(el);
-    anims.forEach((a) => a.cancel());
-    anims = [];
-    restores.forEach((f) => f());
-    restores = [];
-    scrollTo({ top: 0, behavior: "instant" });
-    prepare();
-    start(false);
   }
   document.addEventListener("focusin", (e) => {
     for (const el of holds.keys()) if (el.contains(e.target)) { release(el); io?.unobserve(el); }

@@ -25,20 +25,22 @@ const { class: cls } = Astro.props;
 <style>
   .bcard {
     position: relative; width: min(100%, 22rem); aspect-ratio: 1.75;
-    /* The card's text scales with the card's own width (cqi units below). */
+    /* The card's text scales with the card's own width (cqi units below), never below body size,
+       with the name and phone kept larger than the lines between them. */
     container-type: inline-size;
     padding: 1.4rem 1.5rem; border-radius: 16px; color: var(--white);
     background: var(--navy) var(--waves); background-size: 72px 36px;
-    /* The site's --shadow-1 and --shadow-2 are scaled down from this shadow. */
-    box-shadow: 0 1px 0 rgb(255 255 255 / 0.08) inset, var(--shadow-3);
+    /* The site's --shadow-1 and --shadow-2 are scaled down from this shadow. The dark 1 px edge hides
+       the light fringe a tilted card's anti-aliased edge picks up from the paper behind it. */
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.08) inset, 0 0 0 1px var(--navy-950), var(--shadow-3);
     display: flex; flex-direction: column; justify-content: center;
     font-family: var(--font-slab);
   }
   .bcard p { margin: 0; max-width: none; }
-  .bcard-name { font-size: 7.3cqi; font-weight: 700; line-height: 1.2; }
+  .bcard-name { font-size: max(1.2rem, 7.3cqi); font-weight: 700; line-height: 1.2; }
   .bcard-line { font-size: max(1rem, 5.2cqi); line-height: 1.45; }
   /* A call link: at least 44px tall to tap. */
-  .bcard-phone { display: inline-flex; align-items: center; min-height: 44px; margin-top: 0.1rem; font-size: 6.4cqi; line-height: 1.2; font-weight: 700; color: var(--white); text-decoration: none; letter-spacing: 0.01em; align-self: flex-start; }
+  .bcard-phone { display: inline-flex; align-items: center; min-height: 44px; margin-top: 0.1rem; font-size: max(1.1rem, 6.4cqi); line-height: 1.2; font-weight: 700; color: var(--white); text-decoration: none; letter-spacing: 0.01em; align-self: flex-start; }
   .bcard-phone:hover { text-decoration: underline; text-decoration-color: var(--sky); }
   .bcard-valve { position: absolute; right: 1.1rem; bottom: 1.1rem; width: 3.4rem; height: 3.4rem; color: rgb(255 255 255 / 0.92); }
 </style>

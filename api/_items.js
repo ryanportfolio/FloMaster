@@ -20,7 +20,7 @@ const facts = [
   // Photos
   "sampleJob",
 ].map((k) => `f.${k}`);
-const photos = ["portrait", "hero", "jobs", "beforeAfter"].map((k) => `ph.${k}`);
+const photos = ["portrait", "hero", "van", "jobs", "beforeAfter"].map((k) => `ph.${k}`);
 const prices = ["drains", "water-heaters", "leaks-and-pipes", "fixtures", "sewer-lines"].map((k) => `price.${k}`);
 const zips = ["chesapeake", "hampton", "newport-news", "norfolk", "portsmouth", "suffolk", "virginia-beach"].map((k) => `zip.${k}`);
 const questions = Array.from({ length: 6 }, (_, i) => `q.${i + 1}`);

@@ -1,7 +1,6 @@
 ---
 // Prototype only: a slim review bar at the top of the sticky header (Header.astro). Shows or
-// hides every "confirm this" tag, links to the full list, and plays the page's load reveal
-// again (src/scripts/reveal.js).
+// hides every "confirm this" tag and links to the full list.
 ---
 <div class="review-bar">
   <div class="wrap rb-inner">
@@ -11,9 +10,6 @@
       <span><span class="rb-long">Items to confirm:</span><span class="rb-short" aria-hidden="true">To confirm:</span></span> <span data-tag-state>Off</span>
     </button>
     <a href="/review"><span class="rb-long">See the full list</span><span class="rb-short" aria-hidden="true">Full list</span></a>
-    <button type="button" data-replay>
-      <span><span class="rb-long">Replay page reveal</span><span class="rb-short" aria-hidden="true">Replay</span></span>
-    </button>
   </div>
 </div>
 
@@ -38,9 +34,6 @@
     history.replaceState(null, "", url);
     sync();
   });
-
-  // Replay: scrolls to the top and plays this page's load reveal again.
-  document.querySelector("[data-replay]")!.addEventListener("click", () => (window as unknown as { fmReveal?: { replay(): void } }).fmReveal?.replay());
 
   // Sticky offsets (scroll padding, sticky side panels, the menu's height) follow the real height
   // of the sticky header, which this bar makes taller and which wraps differently by width.

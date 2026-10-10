@@ -1,7 +1,7 @@
 // Load reveal checks (src/scripts/reveal.js, global.css "Load reveal") in headed Chrome, phone and
 // desktop: tier order as it shows on screen, the first screen at rest by the planned end, no layout
 // shift, presented frames at 4x CPU on phone, no script, reduced motion (the same reveal plays),
-// taps on Call during the reveal, the replay button, the X-ray find, the sticky bar and the admin
+// taps on Call during the reveal, the X-ray find, the sticky bar and the admin
 // page left out. Run after `astro build`.
 // CHECK_BASE=http://localhost:<port> runs the checks against another served build.
 import fs from "node:fs";
@@ -220,30 +220,6 @@ try {
     await page.tap(".site-header a.phone");
     const clicks = await page.evaluate(() => window.__clicks || []);
     check("phone /pricing: a tap on the header Call in the first frames reaches it", clicks.some((c) => c.href?.startsWith("tel:")), clicks.map((c) => `${c.href} at ${Math.round(c.t)} ms`).join(", "));
-    await ctx.close();
-  }
-
-  // 6. Replay button (prototype review bar): plays again from the top and ends at rest
-  {
-    const ctx = await browser.newContext(desktop);
-    await ctx.addInitScript(probe);
-    const page = await ctx.newPage();
-    await page.goto(base + "/pricing", { waitUntil: "load" });
-    await page.waitForTimeout(1500);
-    await page.mouse.wheel(0, 900);
-    await page.waitForTimeout(400);
-    const t0 = await page.evaluate(() => window.fmReveal.t0);
-    const btn = await page.$("[data-replay]");
-    if (btn) {
-      await btn.click();
-      await page.waitForFunction((t) => window.fmReveal.t0 > t, t0, { timeout: 3000 }).catch(() => {});
-      const s = await page.evaluate(() => ({ again: window.fmReveal.t0, y: scrollY, n: window.fmReveal.log.length, end: Math.max(0, ...window.fmReveal.log.filter((l) => l.tier <= 5).map((l) => l.end)) }));
-      await page.waitForTimeout(s.end + 200);
-      const atEnd = await restState(page);
-      await page.waitForTimeout(1000);
-      const changed = (await restState(page)).filter((x, i, a) => x !== atEnd[i]).length;
-      check("desktop /pricing: Replay page reveal plays again from the top and ends at rest", s.again > t0 && s.y === 0 && s.n > 2 && changed === 0, `scroll ${s.y}, ${s.n} parts, ${changed} changed after`);
-    } else check("desktop /pricing: Replay page reveal button present", false);
     await ctx.close();
   }
 

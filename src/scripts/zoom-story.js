@@ -424,12 +424,11 @@ import { createSide } from "./zoom-story-side.js";
   }, { passive: false, capture: true });
   const SCROLL_KEYS = ["ArrowDown", "ArrowUp", "PageDown", "PageUp", " "];
   const NAV_KEYS = ["End", "Home", "PageDown", "PageUp", " ", "ArrowDown", "ArrowUp", "Tab"];
-  // the same for a link to a place on this page, and the review bar's Replay, which scrolls to the top;
-  // either one also ends a playing story first, or in its first moments the jump reads as the entering
-  // scroll settling and the page is pulled back onto the story
+  // the same for a link to a place on this page; it also ends a playing story first, or in its first
+  // moments the jump reads as the entering scroll settling and the page is pulled back onto the story
   addEventListener("click", (e) => {
     const a = e.target.closest?.("a[href]");
-    if (!((a?.hash && a.pathname === location.pathname) || e.target.closest?.("[data-replay]"))) return;
+    if (!(a?.hash && a.pathname === location.pathname)) return;
     lenis?.reset();
     if (mode === "playing") finish("link");
   }, { capture: true });

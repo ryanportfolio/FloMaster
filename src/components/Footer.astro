@@ -1,12 +1,40 @@
 ---
+// Site footer. On the left, the business card's details. Beside it three raised plates: the service
+// area as a framed chart of the 7 cities (the Census city shapes the service-area chart uses, drawn
+// still, no script) with "Check your ZIP" on its frame; the hours, with the 24/7 emergency line in
+// the one orange; and the help links as rows with arrows.
 import Logo from "./Logo.astro";
 import Fact from "./Fact.astro";
-import { facts } from "../data/facts";
+import Icon from "./Icon.astro";
+import { facts, workingHours } from "../data/facts";
 import { cities } from "../data/area";
+import { CITIES, REST } from "./zipchart/shapes";
+
+const clock = (h: number) => (h === 12 ? "12 p.m." : h < 12 ? `${h} a.m.` : `${h - 12} p.m.`);
+const span = (r: number[]) => `${clock(r[0])} to ${clock(r[1])}`;
+const hours = [
+  { d: "Mon to Fri", t: span(workingHours.weekday) },
+  ...(workingHours.saturday ? [{ d: "Sat", t: span(workingHours.saturday) }] : []),
+  ...(workingHours.sunday ? [{ d: "Sun", t: span(workingHours.sunday) }] : []),
+];
+// The chart's resting frame (zipchart/shapes REST: centre x, centre y, width; height is 0.827 of it).
+const [rx, ry, rw] = REST;
+const rh = rw * 0.827;
+const view = `${rx - rw / 2} ${ry - rh / 2} ${rw} ${rh}`;
+// Where each city name sits from its dot (x, y offset, anchor), so no two names collide.
+const pinText: Record<string, [number, number, "start" | "end"]> = { Portsmouth: [-16, 0, "end"], "Virginia Beach": [16, 34, "end"] };
+const links = [
+  { href: "/emergency", label: "Emergency help", urgent: true },
+  { href: "/book", label: "Book a time" },
+  { href: "/book#callback", label: "Ask for a callback" },
+  { href: "/pricing", label: "Prices, fees and guarantee" },
+  { href: "/faq", label: "Questions" },
+  { href: "/privacy", label: "Privacy" },
+];
 ---
 <footer class="site-footer navy on-navy">
   <div class="wrap grid-f">
-    <div>
+    <div class="f-id">
       <Logo class="f-logo" />
       <p class="f-sub">Plumbing and Drains · Est. {facts.established.value}</p>
       <p class="f-card">
@@ -18,24 +46,38 @@ import { cities } from "../data/area";
       <p class="small"><Fact k="contractorLicense" onlyWithTags /></p>
       <p class="small"><Fact k="insurance" /> · <Fact k="bonded" /></p>
     </div>
-    <div>
-      <h2 class="f-h">Hours</h2>
-      <p class="small"><Fact k="hours" /></p>
-      <p class="small"><Fact k="emergency247" /> for leaks, floods and no water.</p>
-      <h2 class="f-h">Service area</h2>
-      <p class="small">{cities.join(", ")}. <a href="/service-area">Check your ZIP</a>.</p>
-    </div>
-    <div>
-      <h2 class="f-h">Get help</h2>
+
+    <section class="plate f-area" aria-labelledby="f-area-h">
+      <h2 class="f-h" id="f-area-h">Service area</h2>
+      <p class="visually-hidden">{cities.join(", ")}</p>
+      <div class="f-map">
+        <svg viewBox={view} aria-hidden="true" focusable="false">
+          {CITIES.map((c) => <path class="f-land" d={c.d} />)}
+          {CITIES.map((c) => (
+            <g class="f-pin" transform={`translate(${c.label[0]} ${c.label[1]})`}>
+              <circle r="9" />
+              {(() => { const [dx, dy, anchor] = pinText[c.name] ?? [16, 0, "start"]; return <text x={dx} y={dy} dy=".35em" text-anchor={anchor}>{c.name}</text>; })()}
+            </g>
+          ))}
+        </svg>
+        <a class="f-zip" href="/service-area">Check your ZIP <Icon name="arrow" /></a>
+      </div>
+    </section>
+
+    <section class="plate f-hours" aria-labelledby="f-hours-h">
+      <h2 class="f-h" id="f-hours-h">Hours <Fact k="hours" text="" /></h2>
+      <dl class="f-times">
+        {hours.map((h) => <div><dt>{h.d}</dt><dd>{h.t}</dd></div>)}
+      </dl>
+      <p class="f-247"><b><Fact k="emergency247" plain text="24/7" /></b> Emergency line for leaks, floods and no water</p>
+    </section>
+
+    <nav class="plate f-help" aria-labelledby="f-help-h">
+      <h2 class="f-h" id="f-help-h">Get help</h2>
       <ul class="f-links">
-        <li><a href="/emergency">Emergency help</a></li>
-        <li><a href="/book">Book a time</a></li>
-        <li><a href="/book#callback">Ask for a callback</a></li>
-        <li><a href="/pricing">Prices, fees and guarantee</a></li>
-        <li><a href="/faq">Questions</a></li>
-        <li><a href="/privacy">Privacy</a></li>
+        {links.map((l) => <li><a class:list={{ urgent: l.urgent }} href={l.href}>{l.label}<Icon name="arrow" /></a></li>)}
       </ul>
-    </div>
+    </nav>
   </div>
   <p class="wrap small f-base">© {new Date().getFullYear()} {facts.name.value}. Owned and run by {facts.owner.value}.</p>
 </footer>
@@ -43,14 +85,55 @@ import { cities } from "../data/area";
 <style>
   .site-footer { padding: var(--space-5) 0 calc(var(--bar-h) + var(--space-3)); }
   @media (min-width: 900px) { .site-footer { padding-bottom: var(--space-3); } }
-  .grid-f { display: grid; gap: var(--space-4); }
-  @media (min-width: 900px) { .grid-f { grid-template-columns: 1.3fr 1fr 1fr; } }
+  .grid-f { display: grid; gap: var(--space-3); align-items: start; }
+  @media (min-width: 700px) { .grid-f { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (min-width: 1100px) { .grid-f { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.3fr) minmax(0, 0.85fr) minmax(0, 1fr); gap: 1.25rem; } }
+  .f-id { padding-right: 0.5rem; }
   .site-footer :global(.f-logo) { height: 1.93rem; }
   .f-sub { color: var(--sky-300); font-size: 0.9375rem; letter-spacing: 0.08em; margin: 0.5rem 0 1.5rem; }
   .f-card { font-family: var(--font-slab); font-size: 1.1875rem; line-height: 1.55; border-left: 3px solid var(--sky); padding-left: 1rem; }
-  .f-h { font-size: 1.1875rem; margin: 0 0 0.4rem; color: var(--sky-300); }
-  .f-h:not(:first-child) { margin-top: 1.5rem; }
+
+  /* Raised plates: a lighter navy lifted off the waves, with a hairline edge and a deep shadow. */
+  .plate { position: relative; height: 100%; padding: 1.25rem 1.25rem 1.4rem; border-radius: var(--radius-lg); background: linear-gradient(180deg, rgb(43 82 128 / 0.75), rgb(27 53 86 / 0.85)); border: 1px solid rgb(169 210 234 / 0.32); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 14px 32px -8px rgb(4 10 20 / 0.6); }
+  .f-h { margin: 0 0 0.75rem; font: 700 var(--step-1)/1.15 var(--font-slab); color: var(--white); }
+
+  /* Service area: the chart in a white-edged frame, the ZIP check sitting on its bottom edge. */
+  .f-area { padding-bottom: 2.4rem; }
+  /* The map and the button share one grid cell, so the button sits on the frame's bottom edge
+     without being positioned or transformed (either would trap its ::after), so the ::after can
+     stretch over the whole plate: a click anywhere on
+     the plate follows the one link. */
+  .f-map { display: grid; border: 2px solid rgb(228 241 249 / 0.85); border-radius: var(--radius); background: rgb(106 174 214 / 0.55); }
+  .f-map > * { grid-area: 1 / 1; }
+  .f-map svg { display: block; width: 100%; height: auto; border-radius: calc(var(--radius) - 2px); }
+  .f-area { cursor: pointer; transition: border-color 0.2s; }
+  .f-area:hover { border-color: rgb(169 210 234 / 0.6); }
+  .f-land { fill: var(--navy-900); stroke: var(--sky-300); stroke-width: 2; stroke-linejoin: round; }
+  .f-pin circle { fill: var(--sky-100); stroke: var(--navy-950); stroke-width: 3; }
+  .f-pin text { font: 700 34px/1 var(--font-body); fill: var(--white); paint-order: stroke; stroke: var(--navy-950); stroke-width: 6px; stroke-linejoin: round; }
+  .f-zip { align-self: end; justify-self: center; margin-bottom: -1.375rem; display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.75rem; padding: 0 1.1rem; border-radius: var(--radius); background: var(--sky-100); color: var(--navy-900); font: 700 1.0625rem/1 var(--font-slab); text-decoration: none; white-space: nowrap; box-shadow: 0 6px 16px rgb(4 10 20 / 0.45); }
+  .f-zip::after { content: ""; position: absolute; inset: 0; border-radius: var(--radius-lg); }
+  .f-zip:hover, .f-area:hover .f-zip { background: var(--white); }
+  .f-zip :global(svg) { width: 1.1rem; height: 1.1rem; }
+
+  /* Hours: the times large, then the emergency line as a block in the one orange. */
+  .f-hours { display: flex; flex-direction: column; padding-bottom: 0; }
+  .f-times { margin: 0 0 1rem; }
+  .f-times div + div { margin-top: 0.7rem; padding-top: 0.7rem; border-top: 1px solid rgb(169 210 234 / 0.25); }
+  .f-times dt { font-size: 0.9375rem; color: var(--sky-300); }
+  .f-times dd { margin: 0; font: 700 1.25rem/1.25 var(--font-slab); color: var(--white); white-space: nowrap; }
+  /* Rounded to the plate's own corners (the plate does not clip, so a review tag's question can overflow it). */
+  .f-247 { margin: auto -1.25rem 0; padding: 1rem 1.25rem 1.2rem; border-radius: 0 0 calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px); background: var(--signal); color: var(--white); font-size: 1rem; line-height: 1.35; }
+  .f-247 b { display: block; font: 800 2.75rem/1 var(--font-slab); letter-spacing: -0.02em; margin-bottom: 0.3rem; }
+
+  /* Help: each link a full-width row with an arrow, a hairline between rows. */
   .f-links { list-style: none; padding: 0; margin: 0; }
-  .f-links a { display: inline-block; padding: 0.35rem 0; }
+  .f-links li + li { border-top: 1px solid rgb(169 210 234 / 0.25); }
+  .f-links a { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; min-height: 2.75rem; padding: 0.35rem 0; color: var(--white); font: 600 1.0625rem/1.3 var(--font-slab); text-decoration: none; }
+  .f-links a:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+  .f-links a :global(svg) { width: 1.15rem; height: 1.15rem; flex: none; color: var(--sky); }
+  /* The emergency link in a light orange that keeps its contrast on navy. */
+  .f-links a.urgent, .f-links a.urgent :global(svg) { color: #fdba74; }
+
   .f-base { margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid rgb(255 255 255 / 0.12); color: var(--sky-300); max-width: none; }
 </style>

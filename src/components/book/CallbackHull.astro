@@ -1,33 +1,54 @@
 ---
-// "Rather talk first?" with the phone set at hull-number scale: the area code 757, which the
-// region goes by, painted largest, and the full number under it as the call link. The callback
-// form beside it is the site's standard one (CallbackForm.astro).
+// "Rather talk first?" on a pale sky band with the area code 757, which the region goes by, painted
+// enormous and faint across it like a hull number, running off both edges. The full number is the
+// call link; the callback form beside it is the site's standard one (CallbackForm.astro), lifted on
+// a deep shadow. With `waveTop`, the band's top edge is cut by the navy band above it (the home page,
+// after Services); the bottom edge is always cut by one wave into the paper below.
 import CallbackForm from "../CallbackForm.astro";
 import { facts } from "../../data/facts";
+interface Props { id?: string; formId?: string; waveTop?: boolean }
+const { id = "callback", formId = "cb-book", waveTop = false } = Astro.props;
 ---
-<section class="cbh" id="callback">
+<section class:list={["cbh", { "cbh--wave": waveTop }]} id={id} aria-labelledby={`${id}-h`}>
+  <span class="cbh-757" aria-hidden="true">757</span>
   <div class="wrap cbh-grid">
     <div>
-      <h2>Rather talk first?</h2>
+      <h2 id={`${id}-h`}>Rather talk first?</h2>
       <p class="lead">Leave your number and I'll call you back about bigger jobs, prices, or a time that suits you better</p>
-      <a class="hull" href={`tel:${facts.phoneHref.value}`}>
-        <span class="hull-a" aria-hidden="true">757</span>
-        <span class="hull-b num">{facts.phone.value}</span>
-      </a>
-      <p class="hull-cap">My phone. Call it now, or leave your number and I'll ring you.</p>
+      <a class="hull num" href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a>
     </div>
-    <CallbackForm id="cb-book" />
+    <CallbackForm id={formId} />
   </div>
 </section>
 
 <style>
-  .cbh { padding-block: var(--band-space); border-top: 1px solid var(--line); }
-  .cbh-grid { display: grid; gap: var(--space-4); }
-  @media (min-width: 900px) { .cbh-grid { grid-template-columns: 1fr 1fr; align-items: center; } }
-  .hull { display: inline-grid; justify-items: start; margin-top: 0.5rem; color: var(--navy-900); text-decoration: none; line-height: 1; }
-  .hull-a { font-family: var(--font-slab); font-weight: 800; font-size: clamp(6.5rem, 3.5rem + 11vw, 12rem); letter-spacing: -0.05em; line-height: 0.8; color: var(--navy); }
-  .hull-b { font-family: var(--font-slab); font-weight: 800; font-size: clamp(2rem, 1.4rem + 2.6vw, 3.25rem); letter-spacing: -0.01em; margin-top: 0.6rem; white-space: nowrap; }
-  .hull:hover .hull-b { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 0.15em; }
+  .cbh { position: relative; overflow: hidden; padding-block: var(--band-space) calc(var(--band-space) + 24px); background: var(--sky-100); }
+  .cbh--wave { padding-top: calc(var(--band-space) + 24px); }
+  /* One wave period per 96 px, as on the page headers. */
+  .cbh::after, .cbh--wave::before {
+    content: ""; position: absolute; left: 0; right: 0; height: 24px; pointer-events: none;
+  }
+  .cbh::after {
+    bottom: -1px; background: var(--paper);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='24'%3E%3Cpath d='M0 14C12 3.33 36 3.33 48 14S84 24.67 96 14V24H0Z'/%3E%3C/svg%3E") 0 0 / 96px 24px repeat-x;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='24'%3E%3Cpath d='M0 14C12 3.33 36 3.33 48 14S84 24.67 96 14V24H0Z'/%3E%3C/svg%3E") 0 0 / 96px 24px repeat-x;
+  }
+  .cbh--wave::before {
+    top: -1px; background: var(--navy);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='24'%3E%3Cpath d='M0 0H96V10C84 20.67 60 20.67 48 10S12 -0.67 0 10Z'/%3E%3C/svg%3E") 0 0 / 96px 24px repeat-x;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='24'%3E%3Cpath d='M0 0H96V10C84 20.67 60 20.67 48 10S12 -0.67 0 10Z'/%3E%3C/svg%3E") 0 0 / 96px 24px repeat-x;
+  }
+  /* The hull number: set so large it runs off the band, faint enough that the text reads over it. */
+  .cbh-757 {
+    position: absolute; left: max(-1rem, calc(50% - 44rem)); top: 52%; translate: 0 -50%; white-space: nowrap; pointer-events: none; user-select: none;
+    font: 800 clamp(13rem, 5rem + 30vw, 38rem)/0.8 var(--font-slab); letter-spacing: -0.06em; color: rgb(106 174 214 / 0.2);
+  }
+  .cbh-grid { position: relative; display: grid; gap: var(--space-4); }
+  @media (min-width: 900px) { .cbh-grid { grid-template-columns: 1fr minmax(0, 32rem); align-items: center; column-gap: var(--space-5); } }
+  .cbh h2 { font-size: var(--step-3); }
+  .cbh .lead { color: var(--ink); max-width: 30ch; }
+  .hull { display: inline-block; margin-top: 0.75rem; font: 800 clamp(2.25rem, 1.4rem + 3.4vw, 4rem)/1.05 var(--font-slab); letter-spacing: -0.01em; color: var(--navy-900); text-decoration: underline; text-decoration-color: var(--sky); text-decoration-thickness: 4px; text-underline-offset: 0.18em; text-decoration-skip-ink: none; white-space: nowrap; }
+  .hull:hover { text-decoration-color: var(--navy); }
   .hull:focus-visible { outline-offset: 6px; }
-  .hull-cap { margin: 0.85rem 0 0; color: var(--ink-soft); font-size: var(--step-0); }
+  .cbh :global(.cbf) { box-shadow: var(--shadow-3); }
 </style>
