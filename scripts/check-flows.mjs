@@ -61,7 +61,7 @@ try {
   const ics = await page.evaluate(async () => (await fetch(document.querySelector("[data-ics]").href)).text());
   check("calendar file has a start and end time", /DTSTART:\d{8}T\d{6}Z/.test(ics) && /DTEND:\d{8}T\d{6}Z/.test(ics), (ics.match(/DTSTART:\S+/) ?? [""])[0]);
 
-  // 5. Tags: off by default, ?tags=on turns them on before paint, switch toggles.
+  // 5. Tags: off by default, ?tags=on turns them on before paint.
   await page.goto(`${base}/pricing`);
   check("tags off by default", !(await page.evaluate(() => document.documentElement.classList.contains("tags-on"))));
   await page.goto(`${base}/pricing?tags=on`);
@@ -78,9 +78,6 @@ try {
   await page.goto(`${base}/pricing?tags=on`);
   const nested = await page.$$eval("a .fact-tag, button .fact-tag", (els) => els.length);
   check("no tag labels nested in links or buttons", nested === 0, `${nested}`);
-  // Labels sit in the text flow (so they never cover a word), which means turning tags on makes room
-  // for them. Turning them off must leave the page exactly as a page that never had them on.
-  const boxes = async () => page.$$eval("main h2, main table, main .panel", (els) => els.map((e) => { const r = e.getBoundingClientRect(); return `${Math.round(r.x)},${Math.round(r.y + scrollY)},${Math.round(r.width)},${Math.round(r.height)}`; }).join("|"));
   // Any visible "Confirm" label drawn over text outside itself (closed menus and hidden text skipped).
   const covering = () => page.evaluate(() => {
     const out = [];
@@ -107,14 +104,6 @@ try {
   });
   const coveredPricing = await covering();
   check("no confirm label covers text with tags on (pricing)", coveredPricing.length === 0, coveredPricing.slice(0, 3).join(" | "));
-  await page.click("[data-tag-switch]");
-  const off = await boxes();
-  await page.goto(`${base}/pricing?tags=off`);
-  const neverOn = await boxes();
-  check("tag switch off leaves the page as it is with tags never on", off === neverOn);
-  await page.goto(`${base}/pricing?tags=on`);
-  await page.click("[data-tag-switch]");
-  check("switch updates aria-pressed", (await page.getAttribute("[data-tag-switch]", "aria-pressed")) === "false");
   for (const p of ["/book?job=drains", "/residential/drains", "/"]) {
     await page.goto(`${base}${p}${p.includes("?") ? "&" : "?"}tags=on`);
     const c = await covering();

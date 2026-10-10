@@ -10,7 +10,7 @@
 // Input rules: id must be a known item (api/_items.js); value and note are strings of at
 // most 2,000 characters; updatedAt is a whole number of milliseconds since 1970 and not
 // more than a day ahead of the server clock. Fact items take "" | "yes" | "no:<right
-// answer>", photo shots "" | "can" | "cant", open questions any string. Stored text is
+// answer>", photo shots "" | "can" | "cant", open questions and /review answers any string. Stored text is
 // only ever returned as JSON; the page puts it into form fields, never into HTML.
 import { ITEMS } from "./_items.js";
 import { getStore } from "./_store.js";

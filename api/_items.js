@@ -28,9 +28,14 @@ const questions = Array.from({ length: 6 }, (_, i) => `q.${i + 1}`);
 // the zoom story's shots keep their ids 13 to 18.
 const shots = [...Array.from({ length: 10 }, (_, i) => i + 1), 13, 14, 15, 16, 17, 18].map((n) => `shot.${n}`);
 
-/** @type {Record<string, "fact" | "question" | "shot">} */
+// The /review page's answer boxes, one per open fact it lists, by the fact's code and label
+// (src/pages/review.astro fails the build if its rows and this list differ).
+const review = ["p04-contractor-license", "p04-contractor-license-class", "p05-insurance", "p06-bonding", "p07-24-7-service", "p08-who-answers-after-hours", "p09-emergency-arrival-time", "p10-working-hours", "p11-callback-time", "p11-callback-outside-working-hours", "p12-call-out-fee", "p12-call-out-fee-credited", "p13-diagnostic-fee", "p14-after-hours-fee", "p14-after-hours-window", "p15-cancellation-terms", "p16-card-fee", "p17-price-ranges", "p18-how-i-charge", "p19-labor-warranty", "p19-warranty-exclusions", "p20-parts-warranty", "p28-before-and-after", "p29-arrival-windows", "p30-booking-confirmation", "p31-years-in-the-trade", "p32-service-pages", "p32-service-area-zip-codes", "p33-commercial-offer", "p34-quoting-promises", "p34-nothing-starts-until-yes", "p35-payment-methods", "p36-permits"].map((k) => `rv.${k}`);
+
+/** @type {Record<string, "fact" | "question" | "shot" | "review">} */
 export const ITEMS = Object.fromEntries([
   ...[...facts, ...photos, ...prices, ...zips].map((id) => [id, "fact"]),
   ...questions.map((id) => [id, "question"]),
   ...shots.map((id) => [id, "shot"]),
+  ...review.map((id) => [id, "review"]),
 ]);

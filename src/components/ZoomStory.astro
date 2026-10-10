@@ -279,9 +279,9 @@ const photoTag = `Illustrations · ${photoFacts.beforeAfter.code}: AI stand-ins 
   .sa-snap.is-in { opacity: 1; }
   @keyframes sa-drop { from { opacity: 0; transform: translate(1.2rem, -1.4rem) rotate(14deg) scale(1.08); } 40% { opacity: 1; } to { opacity: 1; transform: rotate(5deg); } }
   .sa-post.is-out, .sa-stamp.is-out, .sa-snap.is-out { opacity: 0; }
-  /* ---------- Shorter desktop columns: a tighter slip, so the snapshots above it stay in view.
-     Values drop to body size (the floor), not below. ---------- */
-  @media (min-width: 900px) and (max-height: 980px) {
+  /* ---------- Shorter columns (desktop under 980 px tall, and phones): a tighter slip, so the
+     snapshots above it stay in view. Values drop to body size (the floor), not below. ---------- */
+  @media (max-width: 899px), (max-height: 980px) {
     [data-side="a"] { padding: 1.2rem 1.2rem 1.3rem; }
     .sa-slip { padding: 1rem 1.25rem .7rem; }
     .sa-row { grid-template-columns: 4.6rem minmax(0, 1fr); padding: .4rem 0; min-height: 0; }
@@ -289,78 +289,46 @@ const photoTag = `Illustrations · ${photoFacts.beforeAfter.code}: AI stand-ins 
     .sa-notes { padding-top: .5rem; }
     .sa-stamp { font-size: 1.02rem; bottom: -.35rem; }
   }
-
-  /* ---------- Phones: the column under the stage, the same idea at phone size ---------- */
+  /* ---------- Phones: the picture above, the work order under it as on desktop, without the notes
+     (owner's call, to leave the picture room). The site's phone has a sticky top area above the
+     pin and the Call and Book bar below it, so the pin stops above the bar. ---------- */
   @media (max-width: 899px) {
     .zs-stage { order: -1; }
-    [data-side="a"] { padding: 3rem .7rem .5rem; justify-content: flex-start; }
+    .sa-notes { display: none; }
+    /* the postmark and the snapshots sit on a strip of the navy band above the slip */
+    [data-side="a"] { padding-top: 3rem; }
     .sa-band { height: 5.4rem; }
     .sa-post { left: .5rem; top: .25rem; width: 7.4rem; }
     .sa-snap { right: .6rem; top: .3rem; width: 4.8rem; padding: .22rem .22rem .55rem; z-index: 1; }
     .sa-snap--fixed { right: 4.8rem; top: .7rem; }
-    /* the snapshots sit beside the slip's heading: its license line wraps to their left */
-    .sa-top { padding-right: 9.4rem; }
-    .sa-no { text-align: left; }
     .sa-tick { right: .2rem; bottom: .05rem; width: 1.4rem; height: .55rem; }
     .sa-tape { width: 2.2rem; height: .8rem; top: -.4rem; }
-    .sa-stack { padding: 0 8px 8px 0; }
-    .sa-stack::before { inset: 8px 0 0 8px; }
-    .sa-slip { padding: .6rem .85rem .5rem; }
-    .sa-top { padding-bottom: .3rem; }
-    .sa-title { font-size: 1.125rem; }
+    /* the snapshots overlap the title's line only: the license runs the full width under it, and
+       "Sample job" sits on the band between the postmark and the snapshots */
+    .sa-title { flex: 1 1 100%; padding-right: 8.6rem; }
+    .sa-title .sample-label { position: absolute; z-index: 2; left: 6.9rem; top: -2.05rem; }
+    .sa-no { flex: 1 1 100%; text-align: left; }
     .sa-no-k { display: inline; }
-    .sa-row { grid-template-columns: 4.1rem minmax(0, 1fr); padding: .12rem 0; min-height: 0; }
-    .sa-row dt { font-size: var(--step--2); }
-    .sa-row dd { font-size: var(--step-0); }
-    .sa-notes { padding: .35rem 0 0; }
-    .sa-notes-k { display: none; }
-    .sa-line { margin-bottom: .15rem; }
-    .sa-stamp { font-size: .8rem; border-width: 2.5px; }
-    .sa-stamp { bottom: -.3rem; right: -.1rem; }
-
-    /* The site's phone has a sticky top area above the pin and the Call and Book bar below it
-       (about 180 px the specimen did not have), so the pin stops above the bar and the slip packs
-       tighter: the license moves to one line at its foot, under the notes. */
-    .zs-pin { height: calc(100svh - var(--sticky-h) - 4.2rem - env(safe-area-inset-bottom)); padding: .4rem; gap: .4rem; }
-    [data-side="a"] { padding: 2.5rem .7rem .2rem; }
-    .sa-slip { display: flex; flex-direction: column; padding-bottom: .35rem; }
-    .sa-top { display: contents; }
-    .sa-title { padding: 0 9.4rem .2rem 0; border-bottom: 2px solid var(--navy); }
-    .sa-line { margin-bottom: 0; }
-    .sa-f { order: 1; }
-    .sa-notes { order: 2; }
-    .sa-no { order: 3; margin-top: .3rem; padding-top: .25rem; border-top: 1px dashed #74869e; font-size: var(--step--2); line-height: 1.3; }
-    .sa-no-v { font-size: var(--step--2); }
-    /* The work order keeps its full height and the picture takes the rest (never less than
-       --zs-stage-min of the pin). With tags on (prototype review) the tags can overflow the slip:
-       the notes give way first, then the rows; the license line at the foot always stays. */
-    .zs-pin { grid-template-rows: minmax(var(--zs-stage-min, 46%), 1fr) minmax(0, auto); }
-    /* "Sample job" sits on the navy band between the postmark and the snapshots, so it costs the
-       slip no line */
-    .sa-title .sample-label { position: absolute; z-index: 2; left: 7.6rem; top: -2.05rem; }
-    .sa-stack { display: flex; flex-direction: column; min-height: 0; }
-    .sa-slip { min-height: 0; }
-    .sa-title, .sa-no { flex: none; }
-    .tags-on .zs-pin { --zs-stage-min: 30%; }
-
-    .tags-on .zs .sa-f { flex: 0 1 auto; min-height: 0; overflow: clip; overflow-clip-margin: .6rem; }
-    /* a note that does not fit wraps into a second column out of view, so no line shows half cut */
-    .tags-on .zs .sa-notes { flex: 0 100 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start; }
-    .tags-on .zs .sa-line { width: 100%; }
+    /* Tested dry: smaller, over the slip's bottom edge, clear of the last row */
+    .sa-stamp { font-size: .85rem; border-width: 2.5px; right: .3rem; bottom: -1.5rem; }
+    [data-side="a"] { padding-bottom: 1.6rem; }
+    .zs-pin { height: calc(100svh - var(--sticky-h) - 4.2rem - env(safe-area-inset-bottom)); grid-template-rows: minmax(0, 1fr) auto; padding: .4rem; gap: .4rem; }
   }
-  /* Short phones (640 to 800 px tall): smaller postmark and snapshots, values and notes at 16 px
-     (body text never smaller), tighter rows, and the picture may drop to 30% of the pin. */
+
+  /* Short phones (under 800 px tall): a smaller postmark and snapshots, values at 16 px (body text
+     never smaller) and tighter rows, so the picture keeps its room. */
   @media (max-width: 899px) and (max-height: 799px) {
-    .zs-pin { --zs-stage-min: 30%; }
-    [data-side="a"] { padding-top: 1.9rem; }
+    [data-side="a"] { padding-top: 2rem; }
     .sa-band { height: 4.2rem; }
     .sa-post { top: .2rem; width: 5.6rem; }
     .sa-snap { top: .2rem; width: 3.8rem; }
     .sa-snap--fixed { right: 3.9rem; top: .5rem; }
-    .sa-title { padding-right: 7.6rem; }
-    .sa-title .sample-label { left: 5.9rem; top: -1.65rem; }
-    .sa-row dd, .sa-line { font-size: 1rem; }
-    .sa-row { padding: .06rem 0; }
+    .sa-title { padding-right: 7rem; font-size: var(--step-0); }
+    .sa-title .sample-label { left: 5.2rem; top: -1.7rem; }
+    .sa-slip { padding: .7rem 1rem .5rem; }
+    .sa-top { padding-bottom: .35rem; }
+    .sa-row { grid-template-columns: 4.1rem minmax(0, 1fr); padding: .2rem 0; }
+    .sa-row dd { font-size: 1rem; }
   }
 
   /* ---------- Motion. It plays the same with reduced motion (owner's decision), so the
