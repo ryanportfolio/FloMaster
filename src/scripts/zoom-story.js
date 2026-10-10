@@ -103,18 +103,6 @@ import { createSide } from "./zoom-story-side.js";
     if (u > 1 - a) return 1 - (v * (1 - u) * (1 - u)) / (2 * a);
     return v * (u - a / 2);
   };
-  // A zoom with a knee: z0 to zk in the first `at` of the time, then on to z1, as one smooth move
-  // (a monotone cubic through the three points, still at both ends). Fast through the wide levels,
-  // slowing all the way into the close ones.
-  const kneeCurve = (z0, zk, z1, at, u) => {
-    const h0 = at, h1 = 1 - at, d0 = (zk - z0) / h0, d1 = (z1 - zk) / h1;
-    const mk = d0 * d1 > 0 ? (3 * (h0 + h1)) / ((2 * h1 + h0) / d0 + (h1 + 2 * h0) / d1) : 0;
-    const herm = (p0, p1, m0, m1, h, s) => {
-      const s2 = s * s, s3 = s2 * s;
-      return (2 * s3 - 3 * s2 + 1) * p0 + (s3 - 2 * s2 + s) * h * m0 + (-2 * s3 + 3 * s2) * p1 + (s3 - s2) * h * m1;
-    };
-    return u < at ? herm(z0, zk, 0, mk, h0, u / h0) : herm(zk, z1, mk, 0, h1, (u - at) / h1);
-  };
   const stateAt = (t) => {
     t = Math.min(TOTAL, Math.max(0, t));
     let seg = SEGS[SEGS.length - 1];
@@ -122,7 +110,7 @@ import { createSide } from "./zoom-story-side.js";
     const u = Math.min(1, (t - seg.t0) / seg.dur);
     const use = seg.use || {};
     if (seg.type === "zoom") {
-      const z = seg.knee ? kneeCurve(seg.from, seg.knee.z, seg.to, seg.knee.at, u) : seg.from + (seg.to - seg.from) * trapezoid(u);
+      const z = seg.from + (seg.to - seg.from) * trapezoid(u);
       let fade = null;
       if (seg.zfade) { const f = seg.zfade; fade = [{ ...f, t: smooth((z - f.z0) / (f.z1 - f.z0)) }]; }
       return { z, use, fade, t };

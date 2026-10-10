@@ -117,12 +117,13 @@ const links = [
   .f-zip :global(svg) { width: 1.1rem; height: 1.1rem; }
 
   /* Hours: the times large, then the emergency line as a block in the one orange. */
-  .f-hours { display: flex; flex-direction: column; padding-bottom: 0; overflow: hidden; }
+  .f-hours { display: flex; flex-direction: column; padding-bottom: 0; }
   .f-times { margin: 0 0 1rem; }
   .f-times div + div { margin-top: 0.7rem; padding-top: 0.7rem; border-top: 1px solid rgb(169 210 234 / 0.25); }
   .f-times dt { font-size: 0.9375rem; color: var(--sky-300); }
   .f-times dd { margin: 0; font: 700 1.25rem/1.25 var(--font-slab); color: var(--white); white-space: nowrap; }
-  .f-247 { margin: auto -1.25rem 0; padding: 1rem 1.25rem 1.2rem; background: var(--signal); color: var(--white); font-size: 1rem; line-height: 1.35; }
+  /* Rounded to the plate's own corners (the plate does not clip, so a review tag's question can overflow it). */
+  .f-247 { margin: auto -1.25rem 0; padding: 1rem 1.25rem 1.2rem; border-radius: 0 0 calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px); background: var(--signal); color: var(--white); font-size: 1rem; line-height: 1.35; }
   .f-247 b { display: block; font: 800 2.75rem/1 var(--font-slab); letter-spacing: -0.02em; margin-bottom: 0.3rem; }
 
   /* Help: each link a full-width row with an arrow, a hairline between rows. */

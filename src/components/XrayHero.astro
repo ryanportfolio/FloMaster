@@ -37,6 +37,9 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
     <span class="xr-ring" data-xray-ring><span class="xr-ring-on"></span></span>
     {!isPublicBuild && <span class="photo-tag">Replace with real photos · {photoFacts.beforeAfter.code}: AI stand-ins now</span>}
   </div>
+  <!-- Keyboard: a button that shows only while it has keyboard focus, so the find can be reached
+       without a pointer (the automatic find skips short or zoomed screens). -->
+  <button class="xr-key" type="button" data-xray-key hidden>Show the leak</button>
   <!-- The reading card: the note, shown once the lens is on the leak. It keeps its space while
        hidden, so showing it moves nothing. -->
   <div class="xr-read" data-xray-card>
@@ -334,6 +337,14 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
     };
     const moveTo = (e: PointerEvent) => { const [x, y] = xyOf(e); setXY(x, y); place("visitor"); };
     const claim = () => { if (touched && !anim) return; touched = true; disarm(); stopAnim(); remember(); };
+    // The keyboard button: the lens glides to the leak and the finding is read out.
+    const key = root.querySelector<HTMLButtonElement>("[data-xray-key]")!;
+    key.addEventListener("click", () => {
+      touched = true; disarm(); remember();
+      if (found && !anim) { announce(); return; }
+      if (reduced()) { stopAnim(); [u, v] = [LU, LV]; place("visitor"); return; }
+      glide([[LU, LV]], 900, "visitor");
+    });
 
     // Mouse and pen move the lens on press; a touch waits until it is a horizontal drag (so
     // vertical swipes scroll the page and leave the lens and the find alone) or a tap.
@@ -443,6 +454,7 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
       place(touched ? "visitor" : "quiet");
       // The lens appears in one frame; state changes animate only from the next frames on.
       root.classList.add("is-ready");
+      key.hidden = false;
       requestAnimationFrame(() => requestAnimationFrame(() => root.classList.add("is-anim")));
       if (skip || touched) return;
       // Start the find only once the page load reveal has brought the photo fully in (2.5 s at most).
@@ -466,6 +478,8 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
   /* --r (lens radius, px) is set by the script. --xr-x / --xr-y place the photo in its frame;
      the script reads them, so change them only here, as plain percentages. */
   .xr { position: relative; }
+  .xr-key { position: absolute; top: 1rem; left: 1rem; z-index: 6; padding: 0.6rem 1rem; border: 2px solid var(--white); border-radius: var(--radius); background: var(--navy-900); color: var(--white); font: 700 1rem/1.2 var(--font-slab); cursor: pointer; }
+  .xr-key:not(:focus-visible) { clip-path: inset(50%); width: 1px; height: 1px; padding: 0; border: 0; overflow: hidden; white-space: nowrap; }
   .xr-stage {
     --xr-x: 50%; --xr-y: 50%;
     position: relative; overflow: hidden; aspect-ratio: 4 / 3; background: var(--navy-900);
