@@ -1,40 +1,45 @@
 ---
-// The FloMasters logo ring (src/assets/logo-static.svg: two arcs with a coupling top and bottom),
+// The FloMasters logo ring (src/assets/logo-static.svg, from the business card: four quarter arcs,
+// light top right and bottom left, dark the other two, with a collar at each light arc's end),
 // redrawn centred on 0,0 so it can mark a booking question. Unlit until an ancestor carries
 // [data-done] (or `filled` is set); lit, it takes the logo's two blues. `pipe` adds the logo's
-// pipe and drop inside, for the finished booking.
+// tap and drop inside, for the finished booking.
 interface Props { filled?: boolean; pipe?: boolean; class?: string }
 const { filled = false, pipe = false, class: cls } = Astro.props;
 const r = 43.4;
+const f = (v: number) => v.toFixed(2);
+// degrees clockwise from 3 o'clock, as in scripts/build-logo.mjs
 const pt = (deg: number) => {
   const a = (deg * Math.PI) / 180;
-  return `${(r * Math.sin(a)).toFixed(2)} ${(-r * Math.cos(a)).toFixed(2)}`;
+  return `${f(r * Math.cos(a))} ${f(r * Math.sin(a))}`;
 };
 const arc = (from: number, to: number) => `M${pt(from)}A${r} ${r} 0 0 1 ${pt(to)}`;
+const g = 4;
+const py = -r * 0.035, sx = r * 0.16;
 ---
 <svg class:list={["ring", cls, { "is-filled": filled }]} viewBox="-56 -56 112 112" aria-hidden="true" focusable="false">
-  <path d={arc(9, 175)} class="seg seg-r" fill="none" stroke-width="8.68" />
-  <path d={arc(185, 351)} class="seg seg-l" fill="none" stroke-width="8.68" />
-  <rect class="coupling" x="-6.51" y="-45.79" width="13.02" height="4.77" rx="1.59" />
-  <rect class="coupling" x="-6.51" y="41.01" width="13.02" height="4.77" rx="1.59" />
+  <path d={arc(-90 + g, -g)} class="seg seg-l" fill="none" stroke-width="8.68" />
+  <path d={arc(g, 90 - g)} class="seg seg-d" fill="none" stroke-width="8.68" />
+  <path d={arc(90 + g, pipe ? 180 : 180 - g / 2)} class="seg seg-l" fill="none" stroke-width="8.68" />
+  <path d={arc(pipe ? 188 : 180 + g / 2, 270 - g)} class="seg seg-d" fill="none" stroke-width="8.68" />
+  <path d={`${arc(-90 + g, -90 + g + 8)}M${pt(-g - 8)}A${r} ${r} 0 0 1 ${pt(-g)}M${pt(90 + g)}A${r} ${r} 0 0 1 ${pt(90 + g + 8)}`} class="seg seg-l collar" fill="none" stroke-width="12.5" />
   {pipe && (
     <g class="pipe">
-      <path d="M0 -39.06 V-7.81 Q0 0.87 -8.68 0.87 H-14.76 V6.94" fill="none" stroke-width="6.51" stroke-linejoin="round" />
-      <path d="M-6.94 -13.02 H6.94 M0 -13.02 V-7.81" fill="none" stroke-width="4.56" stroke-linecap="round" />
-      <path class="drop" d="M-14.756 5.21 C-13.45 9.55 -8.68 14.32 -8.68 17.79 A6.08 6.08 0 0 1 -20.83 17.79 C-20.83 14.32 -16.06 9.55 -14.756 5.21Z" />
+      <path d={`M${f(-r)} ${f(py)}H${f(r * 0.02)}Q${f(sx)} ${f(py)} ${f(sx)} ${f(py + r * 0.12)}V${f(r * 0.215)}`} fill="none" stroke-width={f(r * 0.165)} stroke-linejoin="round" />
+      <rect x={f(-r * 0.2)} y={f(-r * 0.31)} width={f(r * 0.13)} height={f(r * 0.22)} />
+      <rect x={f(-r * 0.34)} y={f(-r * 0.375)} width={f(r * 0.42)} height={f(r * 0.085)} rx={f(r * 0.03)} />
+      <path class="drop" d={(() => { const ds = r * 0.135, dx = sx + r * 0.02, dy = r * 0.41; return `M${f(dx)} ${f(dy - ds)}C${f(dx + ds * 0.15)} ${f(dy - ds * 0.5)} ${f(dx + ds * 0.72)} ${f(dy + ds * 0.05)} ${f(dx + ds * 0.72)} ${f(dy + ds * 0.45)}A${f(ds * 0.72)} ${f(ds * 0.72)} 0 0 1 ${f(dx - ds * 0.72)} ${f(dy + ds * 0.45)}C${f(dx - ds * 0.72)} ${f(dy + ds * 0.05)} ${f(dx - ds * 0.15)} ${f(dy - ds * 0.5)} ${f(dx)} ${f(dy - ds)}Z`; })()} />
     </g>
   )}
 </svg>
 
 <style>
   .ring { display: block; width: 100%; height: auto; overflow: visible; }
-  .seg, .coupling { transition: stroke 0.25s ease, fill 0.25s ease; }
+  .seg { transition: stroke 0.25s ease; }
   .seg { stroke: var(--line); }
-  .coupling { fill: var(--line); }
   .pipe path { stroke: var(--sky); }
-  .pipe .drop { fill: var(--sky); stroke: none; }
-  /* Lit: light blue on the left, the darker slate on the right, as on the logo. */
+  .pipe rect, .pipe .drop { fill: var(--sky); stroke: none; }
+  /* Lit: light blue top right and bottom left, the darker slate between, as on the logo. */
   .is-filled .seg-l, :global([data-done]) .seg-l { stroke: var(--sky); }
-  .is-filled .seg-r, :global([data-done]) .seg-r { stroke: var(--slate); }
-  .is-filled .coupling, :global([data-done]) .coupling { fill: var(--navy); }
+  .is-filled .seg-d, :global([data-done]) .seg-d { stroke: var(--slate); }
 </style>

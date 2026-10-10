@@ -28,7 +28,8 @@ export const facts = {
   phoneHref: f("P03", "Phone link", "+17572776194", "", ["Everywhere"], "confirmed", card),
   email: f("P03", "Email", "hello@example.com", "What email address should customers use?", ["Footer", "Contact"]),
   license: f("P04", "Master Plumber license", "2710081569", "", ["Header", "Footer", "About"], "confirmed", card),
-  contractorLicense: f("P04", "Contractor license", "Class B contractor, license #2705-000000", "Does FloMasters hold a Virginia contractor license? Which class and number?", ["Footer", "About", "Commercial"]),
+  contractorLicense: f("P04", "Contractor license", "Class A contractor, license #2705-000000", "You hold a Virginia Class A contractor license: what is its number (it starts 2705), and is plumbing (PLB) its specialty?", ["Footer", "About", "Commercial"]),
+  contractorClass: f("P04", "Contractor license class", "Virginia Class A contractor", "You hold a Virginia Class A contractor license (any job size). What is its number, so the site can show it?", ["Header", "About", "Commercial", "Service area"]),
   insurance: f("P05", "Insurance", "Fully insured, $1M general liability", "Who insures you, and for how much general liability cover?", ["Trust strip", "Footer", "Commercial"]),
   bonded: f("P06", "Bonding", "Bonded", "Are you bonded? If so, for how much?", ["Trust strip", "Footer"]),
   emergency247: f("P07", "24/7 service", "24/7 emergency line", "Do you take emergency calls 24 hours a day, 7 days a week? If not, what hours?", ["Hero", "Emergency", "Footer"]),
@@ -74,8 +75,9 @@ export type FactKey = keyof typeof facts;
 
 // Photo stand-ins: AI-generated, replaced by real photos before launch.
 export const photoFacts = {
-  portrait: f("P25", "Owner portrait", "AI-generated stand-in", "Can we take a portrait of you in work clothes, outside, in morning light?", ["Hero", "About", "Confirmation"]),
+  portrait: f("P25", "Owner portrait", "AI-generated stand-in", "Can we take a portrait of you in work clothes, outside, in morning light?", ["Confirmation"]),
   hero: f("P26", "Owner with van", "AI-generated stand-in", "Can we photograph you beside your van on a residential street?", ["About"]),
+  van: f("P41", "Lettered van and truck", "AI-generated lettering concepts", "Are your van and truck lettered? If so, can we photograph them on a residential street? If not, would you like lettering like these concepts?", ["Home", "About"]),
   jobs: f("P27", "Job photos", "AI-generated stand-ins", "Can we photograph real jobs (drain, water heater, repipe, fixture, sewer camera, commercial)?", ["Service pages", "Home"]),
   beforeAfter: f("P28", "Before and after", "AI-generated stand-in", "Can you photograph one real job in four shots from the same spot (the problem, the cause up close, the repair, the finished test), and will that customer agree to them being shown?", ["Home", "Service pages"]),
 };

@@ -3,21 +3,45 @@
 // carries the slip's title and, where a work order prints its number, Antonio's Virginia Master
 // Plumber license with its caption (shown at every width, so the number never reads as a quote
 // number). Filled-in values are set in the slab face in navy; printed labels in the body face.
-// The sheet behind is the second copy: the foot says who keeps which.
+// The sheet behind is the second copy. With `form`, the head is printed like a carbon-copy work
+// order: the logo and "Work order" across the top, then either the title (the plumber) and his
+// Class A contractor license as two printed fields (`form="plumber"`), or the title large with
+// both licenses on one line under it (`form="title"`).
 // Shared field styles for slots: .wo-f (a <dl> of label and value rows), .wo-f--two (two columns
 // from 480 px), .wo-row-link (a whole row that is a link).
+import Logo from "./Logo.astro";
+import Fact from "./Fact.astro";
 import { facts } from "../data/facts";
-interface Props { title: string; id: string; sub?: string; class?: string }
-const { title, id, sub, class: cls } = Astro.props;
+interface Props { title: string; id: string; sub?: string; form?: "plumber" | "title"; class?: string }
+const { title, id, sub, form, class: cls } = Astro.props;
 ---
 <div class:list={["stack", cls]}>
   <section class="slip" aria-labelledby={`${id}-t`}>
-    <div class="top">
-      <h2 class="title" id={`${id}-t`}>{title}{sub && <span class="sub">{sub}</span>}</h2>
-      <p class="no"><span class="no-k">Va. Master Plumber license</span> <span class="no-v num">No. {facts.license.value}</span></p>
-    </div>
+    {form ? (
+      <>
+        <div class="fhead">
+          <Logo dark class="fhead-logo" />
+          <p class="fhead-doc">Work order<span>Plumbing and Drains</span></p>
+        </div>
+        {form === "plumber" ? (
+          <div class="fwho">
+            <div><p class="fk">Plumber</p><h2 class="title fv" id={`${id}-t`}>{title}</h2></div>
+            <div><p class="fk">License</p><p class="fv fv--lic"><Fact k="contractorClass" /></p></div>
+          </div>
+        ) : (
+          <div class="ftitle">
+            <h2 class="title" id={`${id}-t`}>{title}</h2>
+            <p class="ftitle-lic"><span><Fact k="contractorClass" /></span> <span class="nowrap">Master Plumber <span class="num">No. {facts.license.value}</span></span></p>
+          </div>
+        )}
+      </>
+    ) : (
+      <div class="top">
+        <h2 class="title" id={`${id}-t`}>{title}{sub && <span class="sub">{sub}</span>}</h2>
+        <p class="no"><span class="no-k">Va. Master Plumber license</span> <span class="no-v num">No. {facts.license.value}</span></p>
+      </div>
+    )}
     <slot />
-    <p class="copy"><span>Your copy</span><span>I keep the matching copy</span></p>
   </section>
 </div>
 
@@ -43,9 +67,26 @@ const { title, id, sub, class: cls } = Astro.props;
     .no { text-align: left; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.5rem; }
     .no-k { display: inline; }
   }
-  .copy { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 1rem; margin: 0.5rem 0 0; padding-top: 0.4rem; border-top: 1px dashed #74869e; font-size: var(--step--2); color: var(--ink-soft); }
-  @media (min-width: 700px) { .copy { font-size: var(--step--1); margin-top: 0.75rem; padding-top: 0.5rem; } }
-  .copy span:first-child { font-weight: 700; color: var(--navy-900); }
+
+  /* Form head: printed across the top, then two fields over a ruled line each. */
+  .fhead { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: 0.6rem; border-bottom: 2px solid var(--navy); }
+  .slip :global(.fhead-logo) { height: 1.35rem; }
+  .fhead-doc { margin: 0; text-align: right; font: 800 var(--step-0)/1.1 var(--font-slab); letter-spacing: 0.04em; text-transform: uppercase; color: var(--navy-900); }
+  .fhead-doc span { display: block; font: 700 0.6875rem/1.4 var(--font-body); letter-spacing: 0.14em; color: var(--ink-soft); }
+  .fhead-doc, .fhead-doc span { white-space: nowrap; }
+  @media (max-width: 479px) { .slip :global(.fhead-logo) { height: 1.05rem; } .fhead-doc { font-size: 0.9375rem; } .fhead-doc span { font-size: 0.5625rem; letter-spacing: 0.1em; } }
+  .fwho { display: grid; gap: 0.6rem 1.25rem; padding: 0.7rem 0 0.2rem; }
+  @media (min-width: 480px) { .fwho { grid-template-columns: auto minmax(0, 1fr); } .fwho > div + div { border-left: 1px solid var(--line); padding-left: 1.25rem; } }
+  .fwho > div { min-width: 0; }
+  .ftitle { padding: 0.65rem 0 0.6rem; border-bottom: 2px solid var(--navy); }
+  .ftitle .title { font-size: var(--step-2); line-height: 1.1; }
+  .ftitle-lic { display: flex; flex-wrap: wrap; column-gap: 1rem; margin: 0.3rem 0 0; font-size: var(--step--1); line-height: 1.4; color: var(--ink-soft); }
+  .ftitle-lic .num { font-weight: 700; color: var(--navy-900); }
+  /* Printed labels any form slip can use, and the filled-in value on its ruled line. */
+  .slip :global(.fk) { margin: 0 0 0.15rem; font: 700 0.6875rem/1.3 var(--font-body); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
+  .fv { margin: 0; }
+  .fwho .title { font-size: var(--step-1); white-space: nowrap; }
+  .fv--lic { font: 700 var(--step-0)/1.35 var(--font-slab); color: var(--navy-900); padding-top: 0.15rem; }
 
   /* Field rows any slip can use: printed label, filled-in value. */
   .slip :global(.wo-f) { margin: 0; }

@@ -49,13 +49,14 @@ export const zoomPlaces = [
   { name: "Newport News", x: 462.3, y: 259.4, side: "l" },
 ];
 
-// The timeline the story plays on its own clock (29.5 s). Depth z: level i fills the stage at
+// The timeline the story plays on its own clock (25.25 s). Depth z: level i fills the stage at
 // z = i; "start" is the opening framing (the whole chart). Beats: when each entry of the work
-// order arrives (segment, ms into it). Drip: the drop falling from the failed joint.
+// order arrives (segment, ms into it). Knee: a zoom that reaches knee.z at knee.at of its time and
+// slows from there (zoom-story.js kneeCurve). Drip: the drop falling from the failed joint.
 export const zoomStory = {
   timeline: [
-    { type: "hold", z: "start", dur: 1500, note: "the chart; where" },
-    { type: "zoom", from: "start", to: 10, dur: 8100, note: "chart to the house, one move: about 1.5 s per five-fold step, eased start and stop" },
+    { type: "hold", z: "start", dur: 400, note: "the chart; where" },
+    { type: "zoom", from: "start", to: 10, dur: 4950, knee: { z: 5.5, at: 0.26 }, note: "chart to the house, one move: a quick dive to the neighborhood blocks (about 1.3 s), then slowing all the way into the house" },
     { type: "hold", z: 10, dur: 1800, note: "the house, its wall cut open; found" },
     { type: "zoom", from: 10, to: 13.7, toPhone: 13.4, dur: 3400, note: "house to the cracked joint" },
     { type: "hold", z: 13.7, zPhone: 13.4, dur: 3600, note: "the failed joint, the drip falling; failed" },

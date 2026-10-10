@@ -5,17 +5,90 @@ import WorkOrderSlip from "../components/WorkOrderSlip.astro";
 import HullCheck from "../components/HullCheck.astro";
 import Fact from "../components/Fact.astro";
 import CallToAction from "../components/CallToAction.astro";
+import { facts, workingHours } from "../data/facts";
+
+// The work order's hours, from the same data as the booking calendar and the callback form (P10).
+const clock = (h: number) => (h === 12 ? "12 p.m." : h < 12 ? `${h} a.m.` : `${h - 12} p.m.`);
+const span = (r: number[]) => `${clock(r[0])} to ${clock(r[1])}`;
+const hours = [
+  { d: "Mon to Fri", t: span(workingHours.weekday) },
+  { d: "Sat", t: workingHours.saturday ? span(workingHours.saturday) : "Closed for planned work" },
+  { d: "Sun", t: workingHours.sunday ? span(workingHours.sunday) : "Closed for planned work" },
+];
+const emergencies = ["Leaks", "Floods", "No water", "Sewage backups"];
+const fee = `+${facts.afterHoursFee.value.replace(/ extra$/, "")}`;
 ---
 <Base title="Service area" description="FloMasters works across all 7 cities of Hampton Roads: Chesapeake, Hampton, Newport News, Norfolk, Portsmouth, Suffolk and Virginia Beach. Check your ZIP.">
   <WorkOrderHero title="All 7 cities of Hampton Roads" lead="Chesapeake, Hampton, Newport News, Norfolk, Portsmouth, Suffolk and Virginia Beach">
-    <WorkOrderSlip title="When I come out" id="wo-area">
-      <dl class="wo-f">
-        <div><dt>Working hours</dt><dd><Fact k="hours" /></dd></div>
-        <div><dt>Emergencies</dt><dd><Fact k="emergency247" /> for leaks, floods, no water and sewage backups: I answer the phone and come out any hour, every day of the year</dd></div>
-        <div><dt>After-hours visits</dt><dd><Fact k="afterHoursFee" /></dd></div>
-      </dl>
+    <WorkOrderSlip title={facts.owner.value} id="wo-area" form="plumber">
+      <div class="sa-f sa-first">
+        <p class="fk">Service hours <Fact k="hours" text="" /></p>
+        <dl class="sa-hours">
+          {hours.map((h) => <div><dt>{h.d}</dt><dd class:list={{ off: h.t.startsWith("Closed") }}>{h.t}</dd></div>)}
+        </dl>
+      </div>
+      <div class="sa-f sa-em">
+        <p class="sa-stamp"><Fact k="emergency247" plain><span>24/7</span></Fact></p>
+        <div>
+          <p class="fk sa-em-k">Emergency line</p>
+          <ul class="sa-boxes" role="list">
+            {emergencies.map((e) => <li><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="1.5" width="17" height="17" rx="3" /><path d="M5.2 10.4l3.2 3.2 6.6-7" /></svg>{e}</li>)}
+          </ul>
+          <p class="sa-em-t">I answer the phone and come out any hour, every day of the year</p>
+        </div>
+      </div>
+      <div class="sa-f sa-foot">
+        <div>
+          <p class="fk">Call</p>
+          <a class="sa-call num" href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a>
+        </div>
+        <div class="sa-fee">
+          <p class="fk">After-hours fee</p>
+          <p class="sa-fee-v"><Fact k="afterHoursFee"><span class="num">{fee}</span></Fact></p>
+        </div>
+      </div>
     </WorkOrderSlip>
   </WorkOrderHero>
   <HullCheck />
   <CallToAction />
 </Base>
+
+<style>
+  /* The work order's sections, each under a printed label and a ruled line. */
+  .sa-f { padding: 0.75rem 0; border-top: 1px solid var(--line); }
+  .sa-first { border-top: 2px solid var(--navy); margin-top: 0.6rem; }
+
+  .sa-hours { margin: 0.2rem 0 0; }
+  .sa-hours div { display: grid; grid-template-columns: 7rem minmax(0, 1fr); align-items: baseline; gap: 0.75rem; padding: 0.3rem 0; border-bottom: 1px solid var(--line); }
+  .sa-hours div:last-child { border-bottom: 0; }
+  .sa-hours dt { font: 700 var(--step-0)/1.3 var(--font-slab); color: var(--navy-900); white-space: nowrap; }
+  .sa-hours dd { margin: 0; font: 700 var(--step-0)/1.3 var(--font-slab); color: var(--navy-900); white-space: nowrap; }
+  .sa-hours dd.off { font: 600 var(--step--1)/1.3 var(--font-body); color: var(--ink-soft); white-space: normal; }
+
+  /* Emergencies: a rubber stamp in the one orange, the four kinds ticked off, one plain line. */
+  .sa-em { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1rem; align-items: center; }
+  .sa-stamp { margin: 0; padding-right: 1rem; border-right: 2px solid var(--signal); align-self: stretch; display: grid; place-items: center; }
+  .sa-stamp span { display: inline-block; padding: 0.1rem 0.5rem; border: 3px solid var(--signal); border-radius: 8px; box-shadow: inset 0 0 0 2px var(--white), inset 0 0 0 3.5px var(--signal); color: var(--signal); font: 800 2.25rem/1.1 var(--font-slab); letter-spacing: -0.02em; transform: rotate(-5deg); }
+  .sa-em-k { color: var(--signal-dark); }
+  .sa-boxes { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; list-style: none; margin: 0.2rem 0 0.4rem; padding: 0; }
+  .sa-boxes li { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; color: var(--navy-900); white-space: nowrap; }
+  .sa-boxes svg { width: 1.1rem; height: 1.1rem; flex: none; fill: none; stroke: var(--navy-900); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .sa-em-t { margin: 0; font-size: var(--step--1); line-height: 1.4; color: var(--ink-soft); }
+
+  /* Call and the after-hours fee, side by side; the fee in a box like a form's total. */
+  .sa-foot { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; align-items: end; padding-bottom: 0.35rem; }
+  .sa-call { display: inline-block; font: 800 var(--step-2)/1.1 var(--font-slab); color: var(--navy-900); text-decoration: none; white-space: nowrap; }
+  .sa-call:hover { text-decoration: underline; text-decoration-thickness: 2px; }
+  .sa-fee { border: 2px solid var(--navy-700); border-radius: var(--radius); padding: 0.45rem 0.9rem 0.5rem; text-align: center; }
+  .sa-fee-v { margin: 0; font: 800 var(--step-2)/1.05 var(--font-slab); color: var(--navy-900); }
+
+  /* Phones: the stamp sits above the ticks, and the fee box drops under the phone number. */
+  @media (max-width: 479px) {
+    .sa-hours div { grid-template-columns: 6.6rem minmax(0, 1fr); gap: 0.5rem; }
+    .sa-em { grid-template-columns: 1fr; gap: 0.5rem; }
+    .sa-stamp { border-right: 0; padding-right: 0; justify-items: start; }
+    .sa-stamp span { font-size: 1.875rem; }
+    .sa-foot { grid-template-columns: 1fr; }
+    .sa-fee { justify-self: start; text-align: left; }
+  }
+</style>

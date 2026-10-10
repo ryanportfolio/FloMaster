@@ -24,7 +24,7 @@ const row = (slug: string, i: number) => {
   const s = services.find((x) => x.slug === slug);
   const p = s?.prices[i];
   if (!s || !p) throw new Error(`ValveTagQuote: no price row ${slug}[${i}] in services.ts`);
-  return { job: p.job, range: p.range, top: `What puts ${s.title.toLowerCase()} at the top of the range: ${s.topOfRange.charAt(0).toLowerCase()}${s.topOfRange.slice(1)}` };
+  return { job: p.job, range: p.range, top: `Costs more if: ${s.topOfRange.charAt(0).toLowerCase()}${s.topOfRange.slice(1)}` };
 };
 // `tag` is the name stamped on the part's tag in the drawing and in the list; `w` is that tag's
 // width in the drawing, and (x, y) its corner, (wx, wy) where its wire meets the part.
@@ -41,7 +41,7 @@ const calloutText = facts.calloutFee.value;
 <section class="band band--paper vq" id="quote" aria-labelledby="vq-h" data-vq data-sel={start.id}>
   <div class="wrap">
     <h2 id="vq-h">Every line, tagged to what it's for</h2>
-    <p class="lead">Press a part under this sink and the example quote prices that job from my usual ranges</p>
+    <p class="lead">Tap a part to price it</p>
 
     <div class="vq-grid">
       <div class="vq-left">
@@ -92,7 +92,7 @@ const calloutText = facts.calloutFee.value;
             ))}
           </svg>
         </div>
-        <p class="sink-cap small muted">Example: <Fact k="sampleJob" text="a kitchen sink in Norfolk" />. Line drawing, not to scale.</p>
+        <p class="sink-cap small muted">Example: <Fact k="sampleJob" text="a kitchen sink in Norfolk" /></p>
 
         <fieldset class="tags">
           <legend class="vq-k">Which part?</legend>
@@ -113,11 +113,11 @@ const calloutText = facts.calloutFee.value;
             <div class="vl-b"><p class="vl-k"><span class="vl-pt" data-vq-tag>{start.tag}</span><span class="visually-hidden"> tag</span></p><p class="vl-t" data-vq-job>{start.job.job}</p><p class="vl-note" data-vq-top>{start.job.top}</p></div>
             <p class="vl-a"><Fact k="priceRanges"><span data-vq-range>{start.job.range}</span></Fact></p>
           </li>
-          <li class="vt-target" id="tag-callout" tabindex="-1"><ValveStamp mark={markOf(pricingTags, "tag-callout")} /><div class="vl-b"><p class="vl-t">Call-out</p><p class="vl-note">I come to you and find the cause</p></div><p class="vl-a"><Fact k="calloutFee" /></p></li>
-          <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Call-out credit</p><p class="vl-note">The {calloutText} is <Fact k="calloutCredited" /></p></div><p class="vl-a"><span aria-hidden="true">&minus;</span><span class="visually-hidden">minus </span><Fact k="calloutFee" /></p></li>
+          <li class="vt-target" id="tag-callout" tabindex="-1"><ValveStamp mark={markOf(pricingTags, "tag-callout")} /><div class="vl-b"><p class="vl-t">Call-out</p><p class="vl-note">I come out and find the cause</p></div><p class="vl-a"><Fact k="calloutFee" /></p></li>
+          <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Call-out credit</p><p class="vl-note"><Fact k="calloutCredited" text="Comes off if you go ahead" /></p></div><p class="vl-a"><span aria-hidden="true">&minus;</span><span class="visually-hidden">minus </span><Fact k="calloutFee" /></p></li>
           <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Diagnostic fee</p></div><p class="vl-a"><Fact k="diagnosticFee" /></p></li>
           <li class="vt-target" id="tag-after-hours" tabindex="-1"><ValveStamp mark={markOf(pricingTags, "tag-after-hours")} /><div class="vl-b"><p class="vl-t"><span aria-hidden="true">After-hours</span><span class="visually-hidden">After-hours: $0 on this quote</span></p><p class="vl-note"><Fact k="afterHoursFee" />, only <Fact k="afterHoursWhen" /></p></div><p class="vl-a" aria-hidden="true">$0</p></li>
-          <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Card payment fee</p><p class="vl-note">Card, check or cash all cost the same</p></div><p class="vl-a"><Fact k="cardFee" /></p></li>
+          <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Card payment fee</p><p class="vl-note">Card, check or cash</p></div><p class="vl-a"><Fact k="cardFee" /></p></li>
           <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Canceling or moving the visit</p><p class="vl-note"><Fact k="cancellation" /></p></div><p class="vl-a">$0</p></li>
           <li><span class="vtag" aria-hidden="true"></span><div class="vl-b"><p class="vl-t">Permits</p><p class="vl-note"><Fact k="permits" text="Only when the city requires one; I tell you first" /></p></div><p class="vl-a">At cost</p></li>
         </ul>
@@ -128,7 +128,7 @@ const calloutText = facts.calloutFee.value;
           <p class="visually-hidden" aria-live="polite" data-vq-say></p>
         </div>
         <p class="vq-foot">If it isn't on this list, I don't charge it</p>
-        <p class="vq-pm small"><Fact k="pricingModel" /></p>
+        <p class="vq-pm small"><Fact k="pricingModel" text="Flat price, in writing, before I start" /></p>
       </article>
     </div>
   </div>
@@ -138,21 +138,20 @@ const calloutText = facts.calloutFee.value;
   <div class="wrap rs-grid">
     <div>
       <h2 id="rs-h">How a job runs</h2>
-      <p class="lead">Four steps, with a valve between the price and the work that stays shut until you say yes</p>
     </div>
     <FactBlock k="quoting">
       <ol class="riser">
         <li class="rs-s">
-          <div class="rs-tag"><span class="rs-n" aria-hidden="true">1</span><div><h3>I look and find the cause</h3><p>I find out what's actually wrong before I name a price.</p></div></div>
+          <div class="rs-tag"><span class="rs-n" aria-hidden="true">1</span><div><h3>I find the cause</h3><p>Before I name a price</p></div></div>
         </li>
         <li class="rs-s">
-          <div class="rs-tag"><span class="rs-n" aria-hidden="true">2</span><div><h3>You get a written price</h3><p>One price for the job, written down, with repair and replacement side by side when there's a choice.</p></div></div>
+          <div class="rs-tag"><span class="rs-n" aria-hidden="true">2</span><div><h3>You get a written price</h3><p>One price; repair and replace side by side when there's a choice</p></div></div>
         </li>
         <li class="rs-s rs-s--yes">
           <div class="rs-tag">
             <span class="rs-n" aria-hidden="true">3</span>
             <div>
-              <h3>You say yes, or no and owe only the call-out</h3>
+              <h3>You say yes or no</h3>
               <p class="rs-rule"><Fact k="startsOnYes" /></p>
               <fieldset class="rs-ans">
                 <legend>Your answer</legend>
@@ -161,7 +160,7 @@ const calloutText = facts.calloutFee.value;
                   <label class="rs-c"><input type="radio" name="rs-ans" value="no" /><span>No, thanks</span></label>
                 </div>
               </fieldset>
-              <p class="rs-out" aria-live="polite" data-rs-out>The valve stays across the pipe: no work, no charge beyond the call-out.</p>
+              <p class="rs-out" aria-live="polite" data-rs-out>The valve stays shut until you say yes.</p>
             </div>
           </div>
           <svg class="valve" viewBox="-24 -24 48 48" aria-hidden="true" focusable="false">
@@ -171,7 +170,7 @@ const calloutText = facts.calloutFee.value;
           </svg>
         </li>
         <li class="rs-s rs-s--after">
-          <div class="rs-tag"><span class="rs-n" aria-hidden="true">4</span><div><h3>I fix it, test it, clean up and show you the old part</h3><p><Fact k="workPromises" text="Drop cloths down while I work, everything tested before I leave, and the part I took out is yours to see." /></p></div></div>
+          <div class="rs-tag"><span class="rs-n" aria-hidden="true">4</span><div><h3>I fix, test and clean up</h3><p><Fact k="workPromises" text="You see the old part" /></p></div></div>
         </li>
       </ol>
     </FactBlock>
@@ -179,9 +178,9 @@ const calloutText = facts.calloutFee.value;
       <h3>On every job</h3>
       <FactBlock k="quoting">
         <ul class="ticks">
-          <li><strong>Repair first.</strong> I only recommend replacing something when a repair won't last.</li>
-          <li><strong>No surprises mid-job.</strong> If I find something new, I stop and show you before the price changes.</li>
-          <li><strong>Pay when it's done.</strong> <Fact k="payment" />. No cash-only jobs, no full payment up front.</li>
+          <li><strong>Repair first.</strong> I replace only when a repair won't last.</li>
+          <li><strong>No surprises.</strong> Anything new, I show you before the price changes.</li>
+          <li><strong>Pay when it's done.</strong> <Fact k="payment" text="Card, check or cash" />. Nothing up front.</li>
         </ul>
       </FactBlock>
     </div>
@@ -209,13 +208,24 @@ const calloutText = facts.calloutFee.value;
       root.querySelector("[data-vq-say]")!.textContent = `${p.job}: you pay ${p.range} if you say yes`;
     };
     radios.forEach((r) => r.addEventListener("change", () => pick(r.value)));
+    // When the quote sits below the drawing (one column), a tap or click on a part or its tag
+    // scrolls down to the quote it rewrote. Arrow keys in the tag list fire clicks too, with
+    // detail 0; those stay put so keyboard users keep their place.
+    const quote = root.querySelector<HTMLElement>(".vq-q")!;
+    const stacked = matchMedia("(max-width: 999px)");
+    const toQuote = (e: MouseEvent) => {
+      if (e.detail > 0 && stacked.matches) quote.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
     // Pressing a part of the drawing picks it, like pressing its tag.
     root.querySelector("[data-sink]")!.addEventListener("click", (e) => {
       const g = (e.target as Element).closest<SVGGElement>("[data-part]");
       if (!g) return;
       const id = g.dataset.part!;
       const r = radios.find((x) => x.value === id);
-      if (r) { r.checked = true; pick(id); }
+      if (r) { r.checked = true; pick(id); toQuote(e); }
+    });
+    root.querySelector(".tags")!.addEventListener("click", (e) => {
+      if ((e.target as Element).closest(".tg-c")) toQuote(e);
     });
   }
   const rs = document.querySelector<HTMLElement>("[data-rs]");
@@ -225,8 +235,8 @@ const calloutText = facts.calloutFee.value;
       r.addEventListener("change", () => {
         rs.dataset.ans = r.value;
         out.textContent = r.value === "yes"
-          ? "Yes: the valve turns in line with the pipe and the work starts. The call-out comes off the price."
-          : `No: the valve stays across the pipe. You pay the ${callout} call-out and nothing else.`;
+          ? "Yes: the work starts, and the call-out comes off."
+          : `No: no work. You pay only the ${callout} call-out.`;
       }),
     );
   }

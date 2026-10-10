@@ -8,7 +8,7 @@ export const reviews: Review[] = [
     city: "Chesapeake",
     date: "2026-10-02",
     service: "Water heater",
-    text: "Our water heater quit on a Sunday. Antonio called back in about ten minutes, came out that afternoon, and gave me the price for a repair and for a new tank before touching anything. We went with the repair. He showed me the old part.",
+    text: "Our water heater quit on a Sunday. Antonio called back in about ten minutes, came out that afternoon, and gave me the price for a repair and for a new tank before touching anything.",
     reply: "Thank you, Denise. Glad the repair did the job. Call me if it gives you any trouble.",
   },
   {

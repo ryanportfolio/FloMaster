@@ -37,37 +37,32 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
     <span class="xr-ring" data-xray-ring><span class="xr-ring-on"></span></span>
     {!isPublicBuild && <span class="photo-tag">Replace with real photos · {photoFacts.beforeAfter.code}: AI stand-ins now</span>}
   </div>
-  <!-- The reading card: one grid cell holding two states, so swapping them moves nothing.
-       Not found: the hint and the button. Found: the note (the button has nothing left to do). -->
+  <!-- The reading card: the note, shown once the lens is on the leak. It keeps its space while
+       hidden, so showing it moves nothing. -->
   <div class="xr-read" data-xray-card>
-    <div class="xr-pre">
-      <p class="xr-hint" data-xray-hint>Press or drag anywhere on the photo to see inside the pipes</p>
-      <button type="button" class="xr-show" data-xray-show>Show the leak</button>
-    </div>
-    <div class="xr-note" data-xray-note tabindex="-1">
-      <p class="xr-note-k">Found it <span class="sample-label">Sample job</span></p>
+    <div class="xr-note" data-xray-note>
+      <p class="xr-note-k">Found it</p>
       <p class="xr-note-t">The steel trap rusted out at the bend. That's where the drip comes from.</p>
       <p class="xr-note-price"><span class="xr-note-job">{job.job}</span> <strong class="num"><Fact k="priceRanges" text={job.range} /></strong></p>
       <p class="xr-note-sub">Typical range. Your exact price is in writing before I start.</p>
     </div>
   </div>
   <p class="visually-hidden" role="status" data-xray-live></p>
-  <!-- Without JavaScript the lens cannot move: show the finding and its price, not a hint and a dead button.
+  <!-- Without JavaScript the lens cannot move: show the finding and its price.
        Ignored entirely when scripts run, so it changes nothing on the normal page. -->
-  <noscript><style is:inline>.xr-pre { display: none; } .xr-note { visibility: visible; } .xr-stage { cursor: auto; }</style></noscript>
+  <noscript><style is:inline>.xr-note { visibility: visible; } .xr-stage { cursor: auto; }</style></noscript>
 </div>
 
 <script>
   type P = [number, number];
   type Box = { l: number; t: number; r: number; b: number };
-  const KEY = "fm-xray-found"; // set when the find starts (or the visitor moves the lens) in this tab
+  const KEY = "fm-xray-found"; // set when the find starts (or the visitor moves the lens); scripts/check-reveal.mjs reads it
   const SLOP = 6; // px of horizontal travel before a touch drag takes over
   const TAP = 10; // a touch that ends within this many px of where it started is a tap
   const GLIDE = 1800; // ms, the first-view find
   const motionQuery = matchMedia("(prefers-reduced-motion: reduce)");
   const deskQuery = matchMedia("(min-width: 900px)");
   const reduced = () => motionQuery.matches;
-  const seen = () => { try { return sessionStorage.getItem(KEY) === "1"; } catch { return false; } };
   let stored = false; // written once per page: a drag's first move does no storage work after that
   const remember = () => { if (stored) return; stored = true; try { sessionStorage.setItem(KEY, "1"); } catch {} };
   const clamp = (x: number, a: number, b: number) => Math.min(b, Math.max(a, x));
@@ -93,9 +88,7 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
     const ring = root.querySelector<HTMLElement>("[data-xray-ring]")!;
     const mark = root.querySelector<HTMLElement>("[data-xray-mark]")!;
     const live = root.querySelector<HTMLElement>("[data-xray-live]")!;
-    const show = root.querySelector<HTMLButtonElement>("[data-xray-show]")!;
     const note = root.querySelector<HTMLElement>("[data-xray-note]")!;
-    const pre = root.querySelector<HTMLElement>(".xr-pre")!;
     const hero = root.closest<HTMLElement>(".hero");
     const copy = hero?.querySelector<HTMLElement>(".hero-copy") ?? null;
     const header = document.querySelector<HTMLElement>(".site-header");
@@ -155,17 +148,8 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
     const setFound = (f: boolean, how: How) => {
       if (f === found) return;
       found = f;
-      if (f) {
-        // The button hides once found; if it had focus, focus goes to the note, which reads it.
-        const hadFocus = document.activeElement === show;
-        root.classList.add("is-found");
-        if (hadFocus) note.focus({ preventScroll: true });
-        else if (how === "visitor") announce();
-      } else {
-        const inNote = note.contains(document.activeElement);
-        root.classList.remove("is-found");
-        if (inNote) show.focus({ preventScroll: true });
-      }
+      root.classList.toggle("is-found", f);
+      if (f && how === "visitor") announce();
     };
 
     // Draw the lens at (u, v). Transforms only, each written once, so a move costs no layout.
@@ -231,7 +215,7 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
     };
     // The find may start: the photo is in view and the lens at the leak would be on screen.
     const canFind = () => {
-      if (!ready || touched || seen()) return false;
+      if (!ready || touched) return false;
       const g = view();
       if (g.visH < 0.9 * g.full) return false;
       const ly = g.s.top + oy + LV * dh;
@@ -239,7 +223,7 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
     };
 
     // Where the lens may go on its own (stage px): R + 8 inside the photo; on wide screens also
-    // fully on screen and 16 px clear of the copy, the hint panel and the business card (ring plus
+    // fully on screen and 16 px clear of the copy and the business card (ring plus
     // its 9 px ticks). The note shows only near the leak, so it counts only there.
     const room = () => {
       const s = stage.getBoundingClientRect();
@@ -252,7 +236,7 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
       const obs: Box[] = [];
       let noteBox: Box | null = null;
       if (desk) {
-        for (const el of [...(copy ? Array.from(copy.children) : []), pre, hero?.querySelector(".hero-card") ?? null]) { const b = boxOf(el); if (b) obs.push(b); }
+        for (const el of [...(copy ? Array.from(copy.children) : []), hero?.querySelector(".hero-card") ?? null]) { const b = boxOf(el); if (b) obs.push(b); }
         noteBox = boxOf(note);
       }
       const m = R + 8;
@@ -328,8 +312,7 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
       if (reduced()) { remember(); [u, v] = [LU, LV]; place("quiet"); return; }
       let frames = 0;
       glide(route(), GLIDE, "quiet", () => {
-        // Seen once the lens first moves (frame 2; frame 1 draws the start), so a reload or a
-        // return shows the found state, still.
+        // Marked once the lens first moves (frame 2; frame 1 draws the start).
         if (++frames === 2) remember();
         // Scrolled away mid-find: settle on the leak, found, with no motion off screen.
         const g = view();
@@ -438,37 +421,6 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
       press(e);
     });
 
-    // "Show the leak": the keyboard path to the found state. Touch and pen activate on pointerup
-    // when the press began and ends on the button: after a quick drag Chrome may swallow the
-    // click of the next tap (it only stops the drag's fling). That activation dispatches the
-    // button's own click, and a real click following within 600 ms is ignored.
-    const activate = () => {
-      claim();
-      if (!ready) { [u, v] = [LU, LV]; return; }
-      const dist = Math.hypot((u - LU) * dw, (v - LV) * dh);
-      if (reduced() || dist < 1) { [u, v] = [LU, LV]; place("visitor"); return; }
-      glide([[LU, LV]], clamp(dist * 1.6, 280, 650), "visitor");
-    };
-    let showId: number | null = null;
-    let synth = false;
-    let lastUp = -1e9;
-    show.addEventListener("pointerdown", (e) => { showId = e.pointerType !== "mouse" && e.isPrimary ? e.pointerId : null; });
-    show.addEventListener("pointercancel", () => { showId = null; });
-    show.addEventListener("pointerup", (e) => {
-      if (e.pointerId !== showId) return;
-      showId = null;
-      const r = show.getBoundingClientRect();
-      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
-      synth = true;
-      try { show.click(); } finally { synth = false; }
-    });
-    show.addEventListener("click", () => {
-      const now = performance.now();
-      if (synth) { lastUp = now; activate(); return; }
-      if (now - lastUp < 600) return;
-      activate();
-    });
-
     // A layout change mid-find ends it at the leak; otherwise the lens keeps its place on the photo.
     // Before the X-ray is ready the lens has no size (begin() measures), so it never sits at the
     // stage's corner, even unseen.
@@ -485,8 +437,8 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
       ready = true;
       lens.append(ray);
       measure();
-      // Seen in this tab already, reduced motion, or moved by the visitor: no find plays.
-      const skip = seen() || reduced();
+      // Reduced motion, or moved by the visitor: no find plays. Otherwise it plays on every load.
+      const skip = reduced();
       if (!touched) [u, v] = skip ? [LU, LV] : toUV(startPose());
       place(touched ? "visitor" : "quiet");
       // The lens appears in one frame; state changes animate only from the next frames on.
@@ -553,18 +505,12 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
   .xr.is-anim .xr-ring-on { transition: opacity 0.2s ease; }
   .xr.is-anim .xr-mark { transition: opacity 0.18s ease; }
 
-  /* The reading card: hint and button, or the note, in one grid cell, swapped in one frame.
-     Phones: under the photo. Wide screens: in the photo's top right corner. */
-  /* The cell is as tall as the taller state, so on wide screens part of it lies over open photo:
-     only the state that shows takes presses (a hidden state takes none), the rest go to the photo. */
+  /* The reading card: the note. Phones: under the photo. Wide screens: in the photo's top right
+     corner. Hidden, it takes no presses, so they reach the photo under it. */
   .xr-read { display: grid; padding: 0.5rem 1.25rem 0; color: var(--white); pointer-events: none; }
   .xr-read > * { grid-area: 1 / 1; min-width: 0; pointer-events: auto; }
-  .xr-pre { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 0.6rem; }
-  .xr.is-found .xr-pre { visibility: hidden; }
-  .xr-hint { margin: 0; font-size: var(--step--1); line-height: 1.4; color: var(--sky-100); }
   .xr-note { visibility: hidden; }
   .xr.is-found .xr-note { visibility: visible; }
-  .xr.is-noray .xr-pre { display: none; }
   .xr.is-noray .xr-note { visibility: visible; }
   .xr.is-noray .xr-stage { cursor: auto; }
   .xr-note p { margin: 0; max-width: none; text-wrap: pretty; }
@@ -575,15 +521,7 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
   .xr-note-price { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 0.75rem; margin-top: 0.45rem !important; padding-top: 0.45rem; border-top: 1px dashed rgb(169 210 234 / 0.45); font-size: var(--step--1); }
   .xr-note-price strong { font: 700 1.375rem/1.2 var(--font-slab); color: var(--white); white-space: nowrap; }
   .xr-note-sub { margin-top: 0.15rem !important; font-size: 0.9375rem; line-height: 1.35; color: var(--sky-300); }
-  .xr-show {
-    display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0.5rem 1rem; border-radius: var(--radius);
-    border: 2px solid var(--sky-300); background: transparent; color: var(--white); font: 700 1rem/1.2 var(--font-body); cursor: pointer;
-    transition: background-color 0.15s;
-  }
-  .xr-show:hover { background: rgb(169 210 234 / 0.16); }
-
-  /* Phones: a compact note (price on one line), and the hint and button centred a little low in
-     the cell, so neither state leaves a tall empty band above the business card. */
+  /* Phones: a compact note, price on one line. */
   @media (max-width: 899px) {
     /* Phones: the X-ray paints above the business card below it (z-index 3 in index.astro), though
        they never overlap on screen. Painted after the lens instead, the card had to move to a
@@ -591,7 +529,6 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
        left; the first time it moved back, drawing the tilted card cost a 55 to 65 ms GPU stall
        on the next frame. */
     .xr { z-index: 4; }
-    .xr-pre { gap: 1.1rem; padding-top: 0.375rem; }
     .xr-note-price { flex-wrap: nowrap; gap: 0.5rem; }
     .xr-note-job { font-size: 0.9375rem; }
     .xr-note-price strong { font-size: 1.25rem; }
@@ -602,15 +539,11 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
     .xr-stage { --xr-x: 0%; --xr-y: 50%; position: absolute; inset: 0; aspect-ratio: auto; }
     /* Darkens the photo behind the copy; the lens sits above it. */
     .xr-shade { display: block; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, var(--navy) 0%, rgb(27 53 86 / 0.92) 22%, rgb(27 53 86 / 0.55) 38%, rgb(27 53 86 / 0) 58%); }
-    /* The card's top edge never moves; the shorter hint panel and the note both hang from it. */
     .xr-read { position: absolute; top: 1.75rem; right: 1.75rem; width: min(21rem, 46%); padding: 0; align-items: start; }
-    .xr-pre, .xr-note {
+    .xr-note {
       padding: 0.9rem 1.1rem 1rem; border-radius: var(--radius-lg); background: rgb(12 27 48 / 0.92);
       box-shadow: inset 0 0 0 1px rgb(169 210 234 / 0.4), var(--shadow-3);
     }
-    .xr-pre { gap: 0.75rem; }
-    .xr-hint { color: var(--white); font-size: 1rem; }
-    .xr-show:hover { background: rgb(169 210 234 / 0.2); }
   }
   /* 900 to 1199 px: the copy column is narrower, so the photo shifts left to keep the leak
      between the copy and the photo's right edge. */

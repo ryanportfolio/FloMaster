@@ -19,6 +19,8 @@ export type Service = {
   covers: string[];
   prices: { job: string; range: string }[];
   topOfRange: string;
+  /** topOfRange as two or three short tags, for the Prices page. */
+  topTags: string[];
   timeOnSite: string;
   options: string;
 };
@@ -40,6 +42,7 @@ export const services: Service[] = [
       { job: "Main line from a cleanout", range: "$275 to $450" },
     ],
     topOfRange: "No accessible cleanout, a line that needs a camera to find the problem, or roots.",
+    topTags: ["No accessible cleanout", "Needs a camera", "Roots"],
     timeOnSite: "45 minutes to 2 hours",
     options: "If a line keeps blocking, I'll show you why on camera and give you the repair and replacement prices side by side. You choose.",
   },
@@ -59,6 +62,7 @@ export const services: Service[] = [
       { job: "Tankless, installed", range: "$3,800 to $5,200" },
     ],
     topOfRange: "Moving the heater, venting changes for gas units, or bringing older pipework up to code.",
+    topTags: ["Moving the heater", "Gas venting changes", "Older pipework to code"],
     timeOnSite: "1 hour for most repairs; half a day for a replacement",
     options: "Repair first if your heater is under about 10 years old and the tank is sound. I'll say so if it isn't worth it.",
   },
@@ -78,6 +82,7 @@ export const services: Service[] = [
       { job: "Whole-house repipe (PEX)", range: "$4,500 to $9,000" },
     ],
     topOfRange: "Leaks inside walls or under slabs, tight crawlspaces, or several leaks on the same line.",
+    topTags: ["Inside walls or under slabs", "Tight crawlspaces", "Several leaks on one line"],
     timeOnSite: "1 to 3 hours for a repair",
     options: "A single leak gets a single repair. I'll only suggest a repipe if the pipe itself is failing, and I'll show you the section I took out.",
   },
@@ -97,6 +102,7 @@ export const services: Service[] = [
       { job: "Install a fixture you supply", range: "$175 to $350" },
     ],
     topOfRange: "Seized or corroded shut-offs, damaged flanges, or a new fixture that needs pipe changes.",
+    topTags: ["Seized or corroded shut-offs", "Damaged flanges", "New fixture needs pipe changes"],
     timeOnSite: "1 to 2 hours",
     options: "Most toilets and faucets can be repaired for far less than replacing them. I'll tell you which yours is.",
   },
@@ -116,6 +122,7 @@ export const services: Service[] = [
       { job: "Install a cleanout", range: "$650 to $1,200" },
     ],
     topOfRange: "No cleanout, deep lines, or repairs under driveways and trees.",
+    topTags: ["No cleanout", "Deep lines", "Under driveways and trees"],
     timeOnSite: "1 to 3 hours",
     options: "You keep the video. If someone else has told you the whole line needs replacing, I'm glad to give a second opinion.",
   },

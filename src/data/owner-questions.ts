@@ -46,7 +46,7 @@ const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(
 
 // ---- Part 1: short asks, one per fact (no codes or jargon in the wording) ----
 const asks: Partial<Record<FactKey, string>> = {
-  contractorLicense: "Virginia contractor license? Class? Number?",
+  contractorLicense: "Class A contractor license: number (starts 2705)? Plumbing (PLB) specialty?",
   insurance: "Who insures you? How much liability cover?",
   bonded: "Bonded? How much?",
   yearsInTrade: "Years as plumber, all of them, before FloMasters too?",
@@ -89,6 +89,7 @@ const asks: Partial<Record<FactKey, string>> = {
 const photoAsks: Record<keyof typeof photoFacts, string> = {
   portrait: "Portrait: you, work clothes, outside, morning light. OK?",
   hero: "You beside your van, home street. OK?",
+  van: "Van and truck lettered? Photos of them, or lettering like these concepts?",
   jobs: "Real jobs on camera: drain, water heater, repipe, fixture, sewer camera, business. OK?",
   beforeAfter: "One real job, 4 shots, same spot: problem, cause up close, repair, final test. Customer OK to show?",
 };
@@ -217,7 +218,7 @@ const shotGroups: { title: string; intro?: string[]; outro?: string[]; shots: Sh
   {
     title: "You and the van",
     shots: [
-      { title: "Portrait", codes: "P25", body: "You, navy work shirt, chest up, outside a house, van to one side, morning light on your face. Square or upright. Face in upper middle, so a square crop, a 4:5 crop and a small circle all work.", where: "Home top (small round photo) and Meet section, About page top, booking confirmation" },
+      { title: "Portrait", codes: "P25", body: "You, navy work shirt, chest up, outside a house, van to one side, morning light on your face. Square or upright. Face in upper middle, so a square crop, a 4:5 crop and a small circle all work.", where: "Booking confirmation" },
       { title: "You with the van", codes: "P26", body: "You beside your van, home street with trees, side door open, parts shelves showing. Eye level, you in the right half, street running away on the left. Cropped to 4:3.", where: "About page, beside the year FloMasters started" },
     ],
   },
@@ -290,7 +291,7 @@ export const parts: Part[] = [
       fg("promises", "Promises and warranty", ["laborWarranty", "warrantyExclusions", "partsWarranty", "workPromises", "quoting", "startsOnYes", "commercialOffer"]),
       fg("payment", "Payment", ["payment", "cardFee"]),
       fg("reviews", "Reviews", ["reviewSource", "rating", "reviewCount", "reviewPolicy", "reviewReplies"], ["6 reviews on site now are samples, marked as samples. They come off before launch. Your real ones replace them."]),
-      { id: "photos", title: "Photos", intro: ["Every photo on site now is AI-made. Real ones needed before launch. Shot list in Part 3."], items: [...(["portrait", "hero", "jobs", "beforeAfter"] as const).map(photoItem), factItem("sampleJob")] },
+      { id: "photos", title: "Photos", intro: ["Every photo on site now is AI-made. Real ones needed before launch. Shot list in Part 3."], items: [...(["portrait", "hero", "van", "jobs", "beforeAfter"] as const).map(photoItem), factItem("sampleJob")] },
     ],
   },
   {

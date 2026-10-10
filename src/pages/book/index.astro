@@ -43,7 +43,7 @@ const priceMap = Object.fromEntries(problems.map((p) => [p.slug, p.prices]));
             <StepWhen />
 
             <fieldset class="step" id="f-where" data-step="where">
-              <legend><StepMark n={3} /> <span class="lg-t">Where is the job?<span class="visually-hidden" data-state></span></span></legend>
+              <legend><StepMark n={3} /> <span class="lg-t">Location<span class="visually-hidden" data-state></span></span></legend>
               <div class="addr">
                 <div class="field">
                   <label for="street">Street address</label>
@@ -75,14 +75,13 @@ const priceMap = Object.fromEntries(problems.map((p) => [p.slug, p.prices]));
           <aside class="side" aria-label="Costs, and what to do in an emergency">
             <CostTags />
             <div class="panel urgent">
-              <p><strong>Water leaking now?</strong> Don't book: call.</p>
+              <p><strong>Emergency?</strong></p>
               <a class="btn btn--signal btn--block" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> {facts.phone.value}</a>
             </div>
           </aside>
 
           <div class="go">
             <button class="btn btn--navy submit" type="submit" data-submit disabled data-needs-js>Book this time</button>
-            <p class="small muted after">Prototype: nothing is sent. You'll see the confirmation screen.</p>
           </div>
         </form>
       </div>
@@ -320,7 +319,6 @@ const priceMap = Object.fromEntries(problems.map((p) => [p.slug, p.prices]));
 
   .submit { width: 100%; min-height: 3.75rem; font-size: 1.25rem; margin-top: 0.5rem; }
   @media (min-width: 700px) { .submit { width: auto; padding-inline: 2.5rem; } }
-  .after { margin-top: 0.75rem; }
   .error-summary { margin: 0 0 1rem; font-weight: 700; color: #b42318; }
   .error-summary:empty { display: none; }
 </style>

@@ -42,7 +42,7 @@ try {
   check("callback edits flow back to the booking form", (await page.inputValue("#phone")) === "757 555 0199");
   await page.fill("#phone", "757 555 0142");
   const when = (await page.textContent("#callback [data-when]")) ?? "";
-  check("callback timing message names a real opening or the callback fact", /call you back within|call you back (today|tomorrow|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday) at \d+ (a|p)\.m\., when I start/.test(when), when.trim());
+  check("callback timing message is the callback fact in hours and empty outside them", when.trim() === "" || /call you back within/.test(when), when.trim());
   await page.reload();
   check("phone number restored after reload", (await page.inputValue("#phone")) === "757 555 0142");
   check("callback form prefilled with the same number", (await page.inputValue("#cb-book-phone")) === "757 555 0142");
@@ -208,14 +208,15 @@ try {
 
   await ctx.close();
 
-  // 8. Out-of-hours callback message uses the real next opening (Virginia time).
-  for (const [iso, want] of [["2026-10-09T19:30:00-04:00", "tomorrow at 8 a.m."], ["2026-10-10T14:00:00-04:00", "Monday at 7 a.m."], ["2026-10-12T05:00:00-04:00", "today at 7 a.m."]]) {
+  // 8. Outside working hours (Virginia time) the callback form shows no timing line (owner's call);
+  //    in hours it names the callback fact.
+  for (const [iso, want] of [["2026-10-09T19:30:00-04:00", ""], ["2026-10-10T14:00:00-04:00", ""], ["2026-10-12T05:00:00-04:00", ""], ["2026-10-12T10:00:00-04:00", "call you back within"]]) {
     const c2 = await browser.newContext({ viewport: { width: 375, height: 740 } });
     const p2 = await c2.newPage();
     await p2.clock.setFixedTime(new Date(iso));
     await p2.goto(`${base}/emergency`);
     const msg = (await p2.textContent("[data-when]")) ?? "";
-    check(`out-of-hours message at ${iso}`, msg.includes(want), msg.trim());
+    check(`callback timing line at ${iso}`, want ? msg.includes(want) : msg.trim() === "", msg.trim());
     await c2.close();
   }
 } finally {

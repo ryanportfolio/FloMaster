@@ -11,14 +11,13 @@ import { facts } from "../../data/facts";
 ---
 <fieldset class="step vt" id="f-job" data-step="job" aria-describedby="err-job">
   <legend><StepMark n={1} /> <span class="lg-t">What needs doing?<span class="visually-hidden" data-state></span></span></legend>
-  <p class="intro">Tap what you're seeing. A tag with the price hangs right under it.</p>
 
   <div class="list">
     {problems.map((p) => (
       <>
         <label class="opt">
           <input type="radio" name="job" value={p.slug} data-label={p.words} data-title={p.service.title} data-say={sayFor(p)} aria-controls={`vt-${p.slug}`} />
-          <span class="face"><span class="eye" aria-hidden="true"></span><span class="w">{p.words}</span><span class="d">{p.detail}</span></span>
+          <span class="face"><span class="eye" aria-hidden="true"></span><span class="w">{p.words}</span></span>
         </label>
         <div class="hang" id={`vt-${p.slug}`}>
           <div class="tag">
@@ -51,7 +50,7 @@ import { facts } from "../../data/facts";
     ))}
     <label class="opt">
       <input type="radio" name="job" value="other" data-label="Something else" data-title="" data-say={sayFor(null)} aria-controls="vt-other" />
-      <span class="face"><span class="eye" aria-hidden="true"></span><span class="w">Something else</span><span class="d">Tell me in a few words</span></span>
+      <span class="face"><span class="eye" aria-hidden="true"></span><span class="w">Something else</span></span>
     </label>
     <div class="hang" id="vt-other">
       <div class="tag">
@@ -82,9 +81,8 @@ import { facts } from "../../data/facts";
 </fieldset>
 
 <style>
-  .intro { color: var(--ink-soft); margin: 0 0 1rem; }
 
-  .list { display: grid; gap: 0.6rem; }
+  .list { display: grid; gap: 0.6rem; margin-top: 1rem; }
   .list > * { min-width: 0; }
   .opt { position: relative; display: block; }
   .opt input { position: absolute; z-index: 1; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
@@ -93,9 +91,8 @@ import { facts } from "../../data/facts";
     min-height: 3.5rem; padding: 0.7rem 1rem; border: 2px solid #74869e; border-radius: var(--radius); background: var(--white);
   }
   /* The eye on the button is the radio mark; the tag's wire hangs from it once picked. */
-  .eye { grid-row: 1 / span 2; width: 1.25rem; height: 1.25rem; border-radius: 50%; border: 2px solid #74869e; background: var(--paper); }
+  .eye { width: 1.25rem; height: 1.25rem; border-radius: 50%; border: 2px solid #74869e; background: var(--paper); }
   .w { font-weight: 700; font-size: var(--step-0); line-height: 1.25; color: var(--navy-900); }
-  .d { grid-column: 2; font-size: var(--step--1); color: var(--ink-soft); line-height: 1.35; }
   .opt:hover .face { border-color: var(--navy); }
   .opt input:focus-visible + .face { outline: 3px solid var(--navy); outline-offset: 2px; }
   .opt input:checked + .face { border-color: var(--navy); background: var(--sky-100); }

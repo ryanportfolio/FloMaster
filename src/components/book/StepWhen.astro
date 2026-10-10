@@ -11,7 +11,7 @@ const days = nextDays(6);
 const first = days[0];
 ---
 <fieldset class="step hw" id="f-when" data-step="when" aria-describedby="err-when" data-when>
-  <legend><StepMark n={2} /> <span class="lg-t">When suits you?<span class="visually-hidden" data-state></span> <span class="tagwrap"><Fact k="windows" text="" /></span></span></legend>
+  <legend><StepMark n={2} /> <span class="lg-t">Availability<span class="visually-hidden" data-state></span> <span class="tagwrap"><Fact k="windows" text="" /></span></span></legend>
   <p class="hint">Pick a day, then a two-hour arrival window. I'll text when I'm on my way.</p>
 
   <div class="hw-grid">
@@ -65,7 +65,6 @@ const first = days[0];
     </div>
   </div>
 
-  <p class="hours small">Nothing here suits? <a href="#callback">Ask me to call you</a>. Every window sits inside my working hours: <Fact k="hours" /></p>
   <span class="error" id="err-when"></span>
 </fieldset>
 
@@ -191,5 +190,4 @@ const first = days[0];
   .b-time { font: 800 var(--step-2)/1.15 var(--font-slab); color: var(--white); letter-spacing: -0.01em; }
   .b-move { margin-top: 0.5rem !important; font-size: var(--step--1); color: var(--sky-100); }
   .b-wk { margin-top: 0.5rem !important; font-size: var(--step--1); color: var(--white); font-weight: 600; }
-  .hours { color: var(--ink-soft); margin: 0 0 0.5rem; }
 </style>
