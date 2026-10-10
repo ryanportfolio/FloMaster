@@ -1,106 +1,108 @@
 ---
-// Proof bar: the license first, with a link to check it on the state's
-// lookup, then insurance, years in the trade, fees, warranty and reviews.
+// Proof section under the home hero. The two state licenses lead, on one raised navy plate (the
+// Master Plumber number, the Class A contractor license, a button to check them on the state's
+// lookup). Beside it, "Why hire Antonio": four figures, each with what it means. "Every fee
+// listed" sits under the business card that hangs over the section's top edge from the hero.
 // Open facts render through <Fact>, so the review tags still mark them.
 //
-// A page can make room for something that overlaps the bar's top edge
-// (the home page's hanging business card) by setting these on .proofbar:
+// A page makes room for the hanging card by setting these on .proofbar:
 //   --proof-inset-top   extra space above everything (phone layout)
-//   --proof-inset-left  space left of the license block (desktop layout)
-//   --proof-lead-min    minimum height of the license row (desktop layout)
+//   --card-w            the card's width (desktop: the left column is that wide)
+//   --card-hang         how far the card hangs into the section (desktop: the fee block starts below it)
 import Fact from "./Fact.astro";
 import Icon from "./Icon.astro";
 import { facts } from "../data/facts";
 interface Props { class?: string }
 const { class: cls } = Astro.props;
 const dpor = "https://www.dpor.virginia.gov/LicenseLookup";
+// The figures, read from the facts they come from.
+const cover = facts.insurance.value.match(/\$[\d.,]+[MK]?/)?.[0] ?? "Insured";
+const years = facts.yearsInTrade.value.replace(/ years?$/, " yrs");
+const warranty = facts.laborWarranty.value.match(/^(\d+)-year/)?.[1];
 ---
 <section class:list={["proofbar", cls]} aria-labelledby="proofbar-h">
-  <h2 id="proofbar-h" class="visually-hidden">License, insurance and guarantees</h2>
   <div class="wrap proofbar-in">
-    <div class="proofbar-lead">
-      <span class="proofbar-badge"><Icon name="license" /></span>
-      <p class="proofbar-lic">
-        <span class="proofbar-lic-k">Virginia Master Plumber license</span>
-        <span class="proofbar-lic-n num">#{facts.license.value}</span>
+    <div class="pb-plate">
+      <span class="pb-screw" aria-hidden="true"></span><span class="pb-screw" aria-hidden="true"></span><span class="pb-screw" aria-hidden="true"></span><span class="pb-screw" aria-hidden="true"></span>
+      <span class="pb-mark" aria-hidden="true"><Icon name="valve" /></span>
+      <p class="pb-lic">
+        <span class="pb-lic-k">Virginia Master Plumber</span>
+        <span class="pb-lic-n num">{facts.license.value}</span>
       </p>
-      <a class="proofbar-check" href={dpor} rel="noopener">Check it on the Virginia DPOR license lookup<Icon name="external" /></a>
+      <p class="pb-class"><Fact k="contractorClass" /><span>Licensed for jobs of any size</span></p>
+      <a class="pb-check" href={dpor} rel="noopener">Check it on DPOR<span class="visually-hidden">, the Virginia license lookup</span><Icon name="external" /></a>
     </div>
-    <ul class="proofbar-list" role="list">
-      <li>
-        <span class="proofbar-ico"><Icon name="shield" /></span>
-        <span><strong><Fact k="insurance" /></strong><span class="proofbar-sub"><Fact k="bonded" /></span></span>
-      </li>
-      <li>
-        <span class="proofbar-ico"><Icon name="clock" /></span>
-        <span><strong><Fact k="yearsInTrade" /> in the trade</strong><span class="proofbar-sub">FloMasters est. {facts.established.value}</span></span>
-      </li>
-      <li>
-        <span class="proofbar-ico"><Icon name="receipt" /></span>
-        <span><strong>Every fee listed</strong><span class="proofbar-sub"><a href="/pricing">See prices and fees</a></span></span>
-      </li>
-      <li>
-        <span class="proofbar-ico"><Icon name="warranty" /></span>
-        <span><strong><Fact k="laborWarranty" /></strong><span class="proofbar-sub">In writing</span></span>
-      </li>
-      <li>
-        <span class="proofbar-ico"><Icon name="star" /></span>
-        <span><strong><span class="num"><Fact k="rating" /></span> star rating</strong><span class="proofbar-sub"><a href="/reviews">Read all <span class="num"><Fact k="reviewCount" plain /></span> reviews</a></span></span>
-      </li>
-    </ul>
+
+    <div class="pb-why">
+      <h2 id="proofbar-h">{facts.name.value.replace(/ Plumbing and Drains$/, "")}</h2>
+      <ul class="pb-list" role="list">
+        <li><b class="pb-fig num"><Fact k="insurance" plain text={cover} /></b><span><strong>Fully insured</strong><span class="pb-sub">General liability. <Fact k="bonded" />.</span></span></li>
+        <li><b class="pb-fig num"><Fact k="yearsInTrade" plain text={years} /></b><span><strong>In the trade</strong><span class="pb-sub">FloMasters established {facts.established.value}</span></span></li>
+        <li><b class="pb-fig num"><Fact k="laborWarranty" plain text={warranty ? `${warranty} yr` : "In writing"} /></b><span><strong>Labor warranty</strong><span class="pb-sub">In writing</span></span></li>
+        <li><b class="pb-fig num"><Fact k="rating" plain /></b><span><strong>Star rating</strong><span class="pb-sub"><a href="/reviews">Read all <span class="num"><Fact k="reviewCount" plain /></span> reviews</a></span></span></li>
+      </ul>
+    </div>
+
+    <p class="pb-fees"><strong>Every fee listed</strong><a href="/pricing">See prices and fees</a></p>
   </div>
 </section>
 
 <style>
   .proofbar { position: relative; background: var(--surface-raised); box-shadow: 0 1px 0 var(--line); }
-  .proofbar-in { display: grid; gap: var(--space-3); padding-block: calc(var(--proof-inset-top, 0px) + 1.75rem) var(--space-4); }
+  .proofbar-in { display: grid; gap: var(--space-4); padding-block: calc(var(--proof-inset-top, 0px) + 2rem) var(--space-5); }
 
-  /* License: the first and heaviest item, on the pale sky tint. */
-  .proofbar-lead {
-    display: grid; grid-template-columns: auto 1fr; column-gap: 1rem; row-gap: 0.6rem; align-items: center;
-    padding: 1.1rem 1rem 0.9rem 1.15rem; border-radius: var(--radius-lg);
-    background: var(--surface-tint); box-shadow: inset 4px 0 0 var(--navy);
+  /* The license plate: navy with the card's waves, screwed to the page, raised on a deep shadow. */
+  .pb-plate {
+    position: relative; display: grid; justify-items: center; gap: 0.9rem; padding: 2rem 1.5rem 1.75rem; text-align: center;
+    border-radius: var(--radius-lg); color: var(--white);
+    background: var(--navy-900) var(--waves); background-size: 72px 36px;
+    box-shadow: inset 0 0 0 2px var(--navy-700), inset 0 0 0 6px var(--navy-900), inset 0 0 0 7px rgb(169 210 234 / 0.25), var(--shadow-3);
   }
-  .proofbar-badge { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; background: var(--navy); color: var(--white); }
-  .proofbar-badge :global(svg) { width: 1.5rem; height: 1.5rem; }
-  .proofbar-lic { margin: 0; display: flex; flex-direction: column; font-family: var(--font-slab); color: var(--navy-900); line-height: 1.2; }
-  .proofbar-lic-k { font-size: 1.1875rem; font-weight: 600; text-wrap: balance; }
-  .proofbar-lic-n { font-size: var(--step-2); font-weight: 700; letter-spacing: -0.005em; white-space: nowrap; }
-  .proofbar-check {
-    grid-column: 1 / -1; justify-self: start; display: inline-block; padding-block: 0.3rem;
-    font-weight: 700; font-size: 1.0625rem; line-height: 1.5; color: var(--navy);
+  .pb-screw { position: absolute; width: 0.7rem; height: 0.7rem; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #dbe7f2, #5b7fae 60%, #24456d); box-shadow: 0 1px 2px rgb(0 0 0 / 0.5); }
+  .pb-screw:nth-child(1) { top: 0.9rem; left: 0.9rem; } .pb-screw:nth-child(2) { top: 0.9rem; right: 0.9rem; }
+  .pb-screw:nth-child(3) { bottom: 0.9rem; left: 0.9rem; } .pb-screw:nth-child(4) { bottom: 0.9rem; right: 0.9rem; }
+  .pb-mark { display: grid; place-items: center; width: 4.5rem; height: 4.5rem; border-radius: 50%; border: 2px solid var(--sky); background: var(--navy); color: var(--sky-100); box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.35); }
+  .pb-mark :global(svg) { width: 2.4rem; height: 2.4rem; }
+  .pb-lic { margin: 0; display: grid; font-family: var(--font-slab); line-height: 1.1; }
+  .pb-lic-k { font-size: var(--step-2); font-weight: 800; text-wrap: balance; padding-bottom: 0.6rem; border-bottom: 2px solid rgb(169 210 234 / 0.4); }
+  .pb-lic-n { font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.25rem); font-weight: 800; letter-spacing: 0.01em; padding: 0.55rem 0; border-bottom: 2px solid rgb(169 210 234 / 0.4); white-space: nowrap; }
+  .pb-class { margin: 0; display: grid; gap: 0.15rem; font-family: var(--font-slab); font-size: 1.1875rem; color: var(--sky-100); }
+  .pb-class span:last-child { font-family: var(--font-body); font-size: var(--step--1); color: var(--sky-300); }
+  .pb-check { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: 3rem; width: min(100%, 18rem); margin-top: 0.4rem; padding: 0 1.25rem; border-radius: var(--radius); background: var(--sky); color: var(--navy-950); font: 700 1.125rem/1 var(--font-slab); text-decoration: none; }
+  .pb-check:hover { background: var(--sky-300); }
+  .pb-check:focus-visible { outline-color: var(--white); }
+  .pb-check :global(svg) { width: 1.1rem; height: 1.1rem; }
+
+  /* Why hire Antonio: each figure large in slate, what it means beside it. */
+  .pb-why h2 { font-size: var(--step-3); margin-bottom: 0.5rem; }
+  /* One grid for all rows (each row a subgrid), so the figure column is as wide as the widest figure. */
+  .pb-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 1.75rem; }
+  .pb-list li { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: center; padding: 0.95rem 0; border-bottom: 1px solid var(--line); }
+  .pb-list li:last-child { border-bottom: 0; }
+  .pb-fig { font: 800 clamp(2.25rem, 1.8rem + 1.6vw, 2.9rem)/1 var(--font-slab); letter-spacing: -0.02em; color: var(--slate); white-space: nowrap; }
+  .pb-list strong { display: block; font: 700 var(--step-1)/1.2 var(--font-slab); color: var(--navy-900); }
+  .pb-sub { display: block; margin-top: 0.2rem; font-size: var(--step--1); color: var(--ink-soft); }
+  .pb-sub a { display: inline-block; padding-block: 0.15rem; font-weight: 600; }
+
+  /* Every fee listed: under the card on desktop, last on a phone. */
+  .pb-fees { margin: 0; display: grid; gap: 0.25rem; padding-top: 1rem; border-top: 2px solid var(--sky); }
+  .pb-fees strong { font: 800 var(--step-2)/1.15 var(--font-slab); color: var(--navy-900); }
+  .pb-fees a { justify-self: start; font-size: var(--step-0); font-weight: 600; padding-block: 0.2rem; }
+
+  /* Tablet: the plate and the reasons side by side, the fee line under both. */
+  @media (min-width: 700px) and (max-width: 899px) {
+    .proofbar-in { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+    .pb-fees { grid-column: 1 / -1; }
   }
-  .proofbar-check :global(svg) { width: 1.1em; height: 1.1em; margin-left: 0.35em; vertical-align: -0.2em; }
-
-  /* The other five: icon in a small tinted disc, a bold line, a short second line. */
-  .proofbar-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); font-size: var(--step--1); line-height: 1.4; }
-  .proofbar-list li { display: flex; gap: 0.85rem; align-items: flex-start; }
-  .proofbar-list strong { display: block; font-size: 1.125rem; color: var(--navy-900); }
-  .proofbar-sub { display: block; margin-top: 0.15rem; color: var(--ink-soft); }
-  .proofbar-sub a { display: inline-block; padding-block: 0.1rem; line-height: 1.5; font-weight: 600; }
-  .proofbar-ico { display: grid; place-items: center; flex: none; width: 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--surface-tint); color: var(--slate-ink); }
-  .proofbar-ico :global(svg) { width: 1.3rem; height: 1.3rem; }
-
-  @media (min-width: 640px) {
-    .proofbar-lead { grid-template-columns: auto 1fr auto; column-gap: 1.25rem; padding: 1.25rem 1.5rem; }
-    .proofbar-badge { width: 3.25rem; height: 3.25rem; }
-    .proofbar-badge :global(svg) { width: 1.7rem; height: 1.7rem; }
-    .proofbar-check { grid-column: auto; justify-self: end; }
-  }
-
+  /* Desktop: the card's column on the left (the fee line under the hanging card), the plate and the
+     reasons beside it; from 1200 px all three side by side. */
   @media (min-width: 900px) {
-    .proofbar-in { padding-block: 1.5rem var(--space-4); row-gap: 1.75rem; }
-    .proofbar-lead { margin-left: var(--proof-inset-left, 0px); min-height: var(--proof-lead-min, 0px); grid-template-columns: auto 1fr; }
-    .proofbar-check { grid-column: 2; justify-self: start; padding-block: 0.15rem; }
-    /* Five equal columns with hairline dividers, icon above the text. */
-    .proofbar-list { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; }
-    .proofbar-list li { flex-direction: column; gap: 0.7rem; padding: 0.25rem 1.25rem; border-left: 1px solid var(--line); }
-    .proofbar-list li:first-child { padding-left: 0; border-left: 0; }
-    .proofbar-list li:last-child { padding-right: 0; }
+    .proofbar-in { grid-template-columns: calc(var(--card-w) + 1rem) minmax(0, 1fr); grid-template-areas: "fees plate" "fees why"; column-gap: 2.5rem; row-gap: var(--space-4); padding-block: 2.25rem var(--space-5); align-items: start; }
+    .pb-plate { grid-area: plate; }
+    .pb-why { grid-area: why; }
+    .pb-fees { grid-area: fees; margin-top: calc(var(--card-hang) - 0.5rem); }
   }
   @media (min-width: 1200px) {
-    .proofbar-lead { grid-template-columns: auto 1fr auto; padding-inline: 1.75rem; }
-    .proofbar-check { grid-column: auto; justify-self: end; }
-    .proofbar-lic-k { font-size: 1.25rem; }
+    .proofbar-in { grid-template-columns: calc(var(--card-w) + 0.5rem) minmax(0, 1fr) minmax(0, 1.05fr); grid-template-areas: "fees plate why"; }
   }
 </style>

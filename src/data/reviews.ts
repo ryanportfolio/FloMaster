@@ -1,6 +1,8 @@
 // Sample reviews (P23). Every one is labelled "Sample review" on the page, with
 // tags on or off, and the public build fails while any remain.
-export type Review = { name: string; city: string; date: string; service: string; text: string; reply?: string };
+// `pull`: words from the review, exactly as written, that the home page picks out (large on a
+// review card, or marked in the newest review's quote).
+export type Review = { name: string; city: string; date: string; service: string; text: string; pull?: string; reply?: string };
 
 export const reviews: Review[] = [
   {
@@ -9,6 +11,7 @@ export const reviews: Review[] = [
     date: "2026-10-02",
     service: "Water heater",
     text: "Our water heater quit on a Sunday. Antonio called back in about ten minutes, came out that afternoon, and gave me the price for a repair and for a new tank before touching anything.",
+    pull: "gave me the price for a repair and for a new tank before touching anything",
     reply: "Thank you, Denise. Glad the repair did the job. Call me if it gives you any trouble.",
   },
   {
@@ -17,6 +20,7 @@ export const reviews: Review[] = [
     date: "2026-09-24",
     service: "Leak repair",
     text: "Leak in the crawlspace of a 1950s house. He crawled under, found it, fixed that section and told me the rest of the copper was fine. Another company had quoted me a full repipe. Price was exactly what he said on the phone.",
+    pull: "Another company had quoted me a full repipe",
   },
   {
     name: "Priya S.",
@@ -24,6 +28,7 @@ export const reviews: Review[] = [
     date: "2026-09-15",
     service: "Drain clearing",
     text: "Kitchen sink backed up the night before a party. Booked online, got a text confirming the morning slot, and he was there at the start of the window. Laid down a drop cloth and cleaned up after.",
+    pull: "He was there at the start of the window",
   },
   {
     name: "James W.",
@@ -31,6 +36,7 @@ export const reviews: Review[] = [
     date: "2026-08-30",
     service: "Sewer camera",
     text: "He ran the camera and let me watch the screen the whole time. Roots at the joint about 40 feet out. Cut them, sent me the video, and suggested a cleanout so it's cheaper next time. No pressure to do more.",
+    pull: "Let me watch the screen the whole time",
     reply: "Thanks, James. The cleanout will save you money if the roots come back.",
   },
   {

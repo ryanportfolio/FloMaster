@@ -1,47 +1,213 @@
 ---
-// Prototype only: every item for the owner to confirm, generated from
-// src/data/facts.ts. Excluded from the public build.
+// Prototype only: items for the owner to confirm, generated from src/data/facts.ts, with an answer
+// box per row. Answers save to /api/answers (api/answers.js, the store Antonio's checklist uses),
+// so what one person types shows on every computer; a copy stays in this browser until the server
+// has it. Excluded from the public build. Codes left off this list at the owner's request: P03,
+// P21 to P27 and P37 to P41.
 import Base from "../layouts/Base.astro";
 import { allFacts } from "../data/facts";
-const open = allFacts.filter((f) => f.status === "open").sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
+import { ITEMS } from "../../api/_items.js";
+const num = (code: string) => Number(code.replace(/\D/g, ""));
+const skip = (code: string) => { const n = num(code); return n === 3 || (n >= 21 && n <= 27) || (n >= 37 && n <= 41); };
+const open = allFacts.filter((f) => f.status === "open" && !skip(f.code)).sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
+const idOf = (f: (typeof allFacts)[number]) => "rv." + `${f.code}-${f.label}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 const confirmed = allFacts.filter((f) => f.status === "confirmed");
+
+// The API accepts only ids it knows; fail the build if these rows and api/_items.js drift apart.
+const mine = new Set(open.map(idOf));
+const theirs = new Set(Object.keys(ITEMS).filter((id) => (ITEMS as Record<string, string>)[id] === "review"));
+const drift = [...new Set([...mine, ...theirs])].filter((id) => !mine.has(id) || !theirs.has(id));
+if (drift.length) throw new Error(`/review rows and api/_items.js differ: ${drift.join(", ")}`);
 ---
 <Base title="Items to confirm" description="Prototype review checklist.">
   <section class="section">
     <div class="wrap">
       <h1>Items to confirm</h1>
       <p class="lead">Everything on the site that needs Antonio's answer</p>
-      <p>Each item shows on its page with a yellow "Confirm" tag when "Items to confirm" is on. Write the real answer, a change, or "take it out".</p>
-      <p class="no-print"><button class="btn btn--navy" type="button" onclick="window.print()">Print this list</button></p>
+      <p>Each item shows on its page with a yellow "Confirm" tag when "Items to confirm" is on. Write the real answer, a change, or "take it out". Answers save as you type and show on any computer that opens this page.</p>
+      <p class="no-print tools"><button class="btn btn--navy" type="button" onclick="window.print()">Print this list</button><span class="save-status" data-status role="status"></span></p>
       <div class="table-scroll" tabindex="0" role="region" aria-label="Items to confirm"><table class="checklist">
         <caption class="visually-hidden">Open items</caption>
-        <thead><tr><th scope="col">Code</th><th scope="col">Question</th><th scope="col">Shown now</th><th scope="col">Where</th><th scope="col">Answer</th></tr></thead>
+        <thead><tr><th scope="col">Code</th><th scope="col">Question</th><th scope="col">Shown now</th><th scope="col">Answer</th></tr></thead>
         <tbody>
           {open.map((f) => (
             <tr>
               <td class="code">{f.code}</td>
               <th scope="row"><span class="lbl">{f.label}</span>{f.question}</th>
               <td>{f.value || "(blank)"}</td>
-              <td class="small">{f.pages.join(", ")}</td>
-              <td class="answer"></td>
+              <td class="answer"><textarea data-answer={idOf(f)} rows="2" maxlength="2000" aria-label={`Answer for ${f.code}, ${f.label}`}></textarea></td>
             </tr>
           ))}
         </tbody>
       </table></div>
       <h2>Already confirmed</h2>
       <ul class="small">{confirmed.map((f) => <li><strong>{f.label}:</strong> {f.value} <span class="muted">({f.source})</span></li>)}</ul>
-      <h2>Also on this site, for later</h2>
-      <ul class="small">
-        <li>All photos are AI-generated stand-ins and must be replaced with real photos before going public.</li>
-        <li>All reviews are samples and must be replaced with real reviews before going public.</li>
-        <li>ZIP code lists were written from memory and need checking.</li>
-        <li>The privacy page is a draft.</li>
-      </ul>
     </div>
   </section>
 </Base>
 
+<script>
+  // Each box saves to the server a moment after typing stops (last write per item wins, by time).
+  // This browser keeps a copy, marked unsaved until the server has it, so nothing typed is lost
+  // offline or on a failed save; unsaved answers go again on the next chance. Coming back to the
+  // tab fetches the latest answers, so one person sees what the other typed.
+  type Rec = { value: string; updatedAt: number };
+  const API = "/api/answers";
+  const LS = "fm-review-answers-v2";
+  const DEBOUNCE = 600;
+
+  const boxes = new Map([...document.querySelectorAll<HTMLTextAreaElement>("[data-answer]")].map((t) => [t.dataset.answer!, t]));
+  const statusEl = document.querySelector<HTMLElement>("[data-status]")!;
+  const isRec = (r: unknown): r is Rec => !!r && typeof r === "object" && typeof (r as Rec).value === "string" && Number.isSafeInteger((r as Rec).updatedAt);
+
+  const state: Record<string, Rec> = {};
+  const pending = new Set<string>();
+  const timers: Record<string, number> = {};
+  let failed = false;
+  let loadFailed = false;
+  let retryTimer = 0;
+
+  const fit = (t: HTMLTextAreaElement) => { t.style.height = "auto"; t.style.height = `${t.scrollHeight + 2}px`; };
+  // Puts the record in its box; a box being typed in keeps its cursor where it was.
+  const show = (id: string) => {
+    const t = boxes.get(id);
+    if (!t || t.value === state[id].value) return;
+    const focused = document.activeElement === t, a = t.selectionStart, b = t.selectionEnd;
+    t.value = state[id].value;
+    fit(t);
+    if (focused) t.setSelectionRange(Math.min(a, t.value.length), Math.min(b, t.value.length));
+  };
+  // An edit is always later than the answer it replaces, even when the computer that saved that
+  // answer has a clock running ahead of this one.
+  const stamp = (id: string) => Math.max(Date.now(), (state[id]?.updatedAt ?? 0) + 1);
+  const readLocal = () => {
+    try {
+      const k = JSON.parse(localStorage.getItem(LS) || "{}");
+      return { st: (k.state ?? {}) as Record<string, unknown>, pend: new Set<string>(k.pending ?? []) };
+    } catch {
+      return { st: {} as Record<string, unknown>, pend: new Set<string>() };
+    }
+  };
+  // Another tab of this page writes the same key, so merge per item: the newer record wins, with
+  // its own unsaved mark.
+  const writeLocal = () => {
+    try {
+      const { st, pend } = readLocal();
+      const out: Record<string, Rec> = {};
+      const outPend = new Set<string>();
+      for (const [id, r] of Object.entries(st)) if (isRec(r)) { out[id] = r; if (pend.has(id)) outPend.add(id); }
+      for (const [id, r] of Object.entries(state)) {
+        const k = out[id];
+        if (!k || r.updatedAt > k.updatedAt) { out[id] = r; if (pending.has(id)) outPend.add(id); else outPend.delete(id); }
+        else if (r.updatedAt === k.updatedAt && !pending.has(id)) outPend.delete(id);
+      }
+      localStorage.setItem(LS, JSON.stringify({ state: out, pending: [...outPend] }));
+    } catch {}
+  };
+  const status = () => {
+    const parts: string[] = [];
+    if (loadFailed) parts.push("Couldn't load the saved answers: trying again");
+    if (pending.size) parts.push(failed ? `${pending.size} not saved yet: trying again` : "Saving…");
+    else if (!loadFailed && Object.keys(state).length) parts.push("All answers saved");
+    statusEl.textContent = parts.join(" · ");
+  };
+  const retrySoon = () => { clearTimeout(retryTimer); retryTimer = window.setTimeout(() => (loadFailed ? load() : flushAll()), 15000); };
+
+  async function send(id: string) {
+    clearTimeout(timers[id]);
+    delete timers[id];
+    const rec = state[id];
+    try {
+      const res = await fetch(API, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, value: rec.value, updatedAt: rec.updatedAt }), keepalive: true });
+      if (!res.ok) throw new Error(String(res.status));
+      const j = await res.json();
+      // A newer answer from elsewhere was already stored: show that one instead.
+      if (j.stale && isRec(j.saved) && j.saved.updatedAt > state[id].updatedAt) { state[id] = { value: j.saved.value, updatedAt: j.saved.updatedAt }; show(id); }
+      if (state[id].updatedAt <= (isRec(j.saved) ? j.saved.updatedAt : rec.updatedAt)) pending.delete(id);
+      failed = false;
+    } catch {
+      failed = true;
+      retrySoon();
+    }
+    writeLocal();
+    status();
+  }
+  function flushAll() { for (const id of pending) if (!timers[id]) send(id); }
+
+  async function load() {
+    try {
+      const res = await fetch(API, { cache: "no-store" });
+      if (!res.ok) throw new Error(String(res.status));
+      const server: Record<string, unknown> = (await res.json())?.answers ?? {};
+      for (const [id, rec] of Object.entries(server)) {
+        if (!boxes.has(id) || !isRec(rec)) continue;
+        const mine = state[id];
+        if (!mine || rec.updatedAt > mine.updatedAt) { state[id] = { value: rec.value, updatedAt: rec.updatedAt }; pending.delete(id); show(id); }
+        else if (rec.updatedAt === mine.updatedAt) pending.delete(id);
+      }
+      for (const id of Object.keys(state)) { const s = server[id]; if (!isRec(s) || s.updatedAt < state[id].updatedAt) pending.add(id); }
+      failed = false;
+      loadFailed = false;
+      writeLocal();
+      flushAll();
+    } catch {
+      loadFailed = true;
+      retrySoon();
+    }
+    status();
+  }
+
+  for (const [id, t] of boxes) {
+    t.addEventListener("input", () => {
+      fit(t);
+      state[id] = { value: t.value, updatedAt: stamp(id) };
+      pending.add(id);
+      writeLocal();
+      status();
+      clearTimeout(timers[id]);
+      timers[id] = window.setTimeout(() => send(id), DEBOUNCE);
+    });
+    t.addEventListener("blur", () => { if (timers[id]) send(id); });
+  }
+  // Answers typed in another tab show here too; one it has not saved yet is saved from here after
+  // a pause that normally lets that tab save it first (a second save of it changes nothing).
+  addEventListener("storage", (e) => {
+    if (e.key !== LS) return;
+    const { st, pend } = readLocal();
+    for (const [id, r] of Object.entries(st)) {
+      const mine = state[id];
+      if (!boxes.has(id) || !isRec(r) || (mine && r.updatedAt < mine.updatedAt)) continue;
+      if (mine && r.updatedAt === mine.updatedAt) { if (!pend.has(id)) pending.delete(id); continue; }
+      state[id] = r;
+      show(id);
+      if (pend.has(id)) { pending.add(id); clearTimeout(timers[id]); timers[id] = window.setTimeout(() => send(id), 3000); }
+      else pending.delete(id);
+    }
+    status();
+  });
+  addEventListener("online", load);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") load(); else flushAll(); });
+
+  // This browser's copy first (with anything typed here before answers went to the server),
+  // then the server.
+  try {
+    const kept = JSON.parse(localStorage.getItem(LS) || "{}");
+    for (const [id, r] of Object.entries(kept.state ?? {})) if (boxes.has(id) && isRec(r)) state[id] = r;
+    for (const id of kept.pending ?? []) if (state[id]) pending.add(id);
+    const old: Record<string, unknown> = JSON.parse(localStorage.getItem("fm-review-answers") || "{}");
+    for (const [k, v] of Object.entries(old)) if (typeof v === "string" && v && !state["rv." + k] && boxes.has("rv." + k)) { state["rv." + k] = { value: v, updatedAt: Date.now() }; pending.add("rv." + k); }
+    localStorage.removeItem("fm-review-answers");
+  } catch {}
+  for (const id of Object.keys(state)) show(id);
+  for (const t of boxes.values()) fit(t);
+  writeLocal();
+  status();
+  load();
+</script>
+
 <style>
+  .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.25rem; }
+  .save-status { font-size: var(--step--1); color: var(--ink-soft); }
   .table-scroll { overflow-x: auto; margin: 1.5rem 0 2.5rem; }
   .checklist { min-width: 44rem; width: 100%; border-collapse: collapse; background: var(--white); font-size: 1rem; }
   .checklist th, .checklist td { border: 1px solid var(--line); padding: 0.6rem 0.7rem; text-align: left; vertical-align: top; }
@@ -49,6 +215,8 @@ const confirmed = allFacts.filter((f) => f.status === "confirmed");
   .checklist tbody th { font-weight: 400; }
   .lbl { display: block; font-weight: 700; }
   .code { font-weight: 700; white-space: nowrap; }
-  .answer { min-width: 12rem; }
-  @media print { .checklist { font-size: 9pt; } .answer { min-width: 16rem; } }
+  .answer { min-width: 14rem; padding: 0.3rem !important; }
+  .answer textarea { display: block; width: 100%; min-height: 3rem; padding: 0.45rem 0.55rem; border: 1px solid var(--line); border-radius: 6px; font: inherit; color: var(--ink); background: var(--paper); resize: vertical; }
+  .answer textarea:focus { background: var(--white); border-color: var(--navy); }
+  @media print { .checklist { font-size: 9pt; } .answer { min-width: 16rem; } .answer textarea { border: 0; background: none; resize: none; } }
 </style>

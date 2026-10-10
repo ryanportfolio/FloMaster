@@ -1,6 +1,6 @@
 // Lab speed checks on the production build (never the dev server).
 // 1) Lighthouse mobile navigation, 3 runs per page, median LCP/CLS/TBT.
-// 2) INP stand-in: real taps through booking, ZIP check and tag switch with the
+// 2) INP stand-in: real taps through booking and the ZIP check with the
 //    CPU slowed 4x; reports the slowest interaction (event timing entries).
 // Lab numbers only: field INP/LCP at the 75th percentile exist only after launch.
 import { launchPlacedChrome } from "./lib/launch-chrome.mjs";
@@ -38,8 +38,6 @@ try {
   await page.tap("#street"); await page.keyboard.type("1200 Colonial Ave");
   await page.tap("#zip"); await page.keyboard.type("23517");
   await page.tap("#phone"); await page.keyboard.type("7575550142");
-  await page.tap("[data-tag-switch]");
-  await page.tap("[data-tag-switch]");
   await page.waitForTimeout(500);
   const book = await page.evaluate(() => window.__inp);
   await page.goto(`${server.base}/`, { waitUntil: "load" });
