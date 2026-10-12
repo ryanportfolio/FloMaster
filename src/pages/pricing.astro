@@ -49,7 +49,7 @@ const from = (s: (typeof services)[number]) => `$${Math.min(...s.prices.map((p) 
             <p class="pm-big"><span class="pm-n num"><Fact k="calloutFee" plain /></span><span class="pm-k">Call-out</span><span class="pm-sub"><Fact k="calloutCredited" /></span></p>
             <ul class="pm-list" role="list">
               <li><Icon name="shield" /><span><Fact k="diagnosticFee" text="No diagnostic fee" /></span></li>
-              <li><Icon name="clock" /><span><strong>After hours {extra ? `+${extra}` : <Fact k="afterHoursFee" />}:</strong> <Fact k="afterHoursWhen" /></span></li>
+              <li><Icon name="clock" /><span><strong>After hours {extra ? <Fact k="afterHoursFee" text={`+${extra}`} /> : <Fact k="afterHoursFee" />}:</strong> <Fact k="afterHoursWhen" /></span></li>
               <li><Icon name="receipt" /><span><strong><Fact k="cardFee" text="No card fee" />:</strong> <Fact k="payment" text="card, check or cash" /></span></li>
               <li><Icon name="calendar" /><span><Fact k="cancellation" /></span></li>
             </ul>
@@ -61,7 +61,7 @@ const from = (s: (typeof services)[number]) => `$${Math.min(...s.prices.map((p) 
           <h2 id="typical-prices">Typical prices</h2>
           {services.map((s) => (
             <details class="pc" open data-pc>
-              <summary><h3>{s.title}</h3><span class="pc-from">from <b class="num">{from(s)}</b></span><svg class="pc-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></summary>
+              <summary><h3>{s.title}</h3><span class="pc-from">from <b class="num"><Fact k="priceRanges" plain text={from(s)} /></b></span><svg class="pc-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></summary>
               <ul class="pc-rows" role="list">{s.prices.map((p) => (
                 <li><span>{p.job}</span><span class="pc-price num"><Fact k="priceRanges" text={p.range} /></span></li>
               ))}</ul>
