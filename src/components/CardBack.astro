@@ -18,7 +18,6 @@ const { class: cls } = Astro.props;
   </svg>
   <p class="bcard-name">{facts.owner.value}</p>
   <p class="bcard-line">Master Plumber</p>
-  <p class="bcard-line">License # <span class="num">{facts.license.value}</span></p>
   <a class="bcard-phone num" href={`tel:${facts.phoneHref.value}`}>{facts.phone.value.replace(/[()]/g, "").replace(" ", "-")}<span class="visually-hidden">, call Antonio</span></a>
 </div>
 

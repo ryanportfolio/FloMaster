@@ -19,10 +19,10 @@ const steps = [
 ---
 <div class="ab wrap">
   <section class="row row--why" aria-labelledby="ab-why">
-    <p class="rh"><span class="rn num">{facts.established.value}</span> <span class="rcap">the year I started FloMasters</span></p>
+    <p class="rh"><span class="rn num"><Fact k="yearsInTrade" plain text={facts.yearsInTrade.value.replace(/ years?$/, "")} /></span> <span class="rcap">years in the trade</span></p>
     <div class="rb">
       <h2 id="ab-why">Why I started FloMasters</h2>
-      <p class="lead">I've been a plumber for <Fact k="yearsInTrade" />, and I started FloMasters in {facts.established.value} to give customers what I'd want in my own house</p>
+      <p class="lead">I've been a plumber for <Fact k="yearsInTrade" />, and I started FloMasters to give customers what I'd want in my own house</p>
       <FactBlock k="quoting"><p>That means a straight answer, a fair price written down before the work starts, and the same person from the phone call to the clean-up.</p></FactBlock>
       <FactBlock k="workPromises"><p>There's no call center and no sales team. When you call, I pick up, or I call you back as soon as I'm out from under the sink. When you book, I'm the one who turns up, and I'm the one who stands behind the work.</p></FactBlock>
     </div>
@@ -47,7 +47,7 @@ const steps = [
     <div class="rb">
       <h2 id="ab-creds">Licensed and insured</h2>
       <ul class="creds">
-        <li><strong>Virginia Master Plumber</strong><span class="num">License #{facts.license.value}</span></li>
+        <li><strong>Virginia Master Plumber</strong><span>Licensed by Virginia DPOR</span></li>
         {facts.contractorLicense.status === "confirmed" ? <li><strong>Contractor license</strong><span>{facts.contractorLicense.value}</span></li> : <li class="tags-only"><strong>Contractor license</strong><span><Fact k="contractorLicense" /></span></li>}
         <li><strong>Insurance</strong><span><Fact k="insurance" /></span></li>
         <li><strong>Bonding</strong><span><Fact k="bonded" /></span></li>

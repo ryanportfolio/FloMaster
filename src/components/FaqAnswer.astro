@@ -26,4 +26,4 @@ const cityText = cities.slice(0, -1).join(", ") + " and " + cities[cities.length
 
 {id === "q-fail" && <p><Fact k="laborWarranty" />: I come back and fix it at no charge. Parts carry the <Fact k="partsWarranty" text="manufacturer's warranty, and I handle the claim" />. <a href="/pricing#guarantee">Full guarantee</a></p>}
 {id === "q-exclusions" && <p>It doesn't cover <Fact k="warrantyExclusions" />.</p>}
-{id === "q-licensed" && <p>Yes. Virginia Master Plumber, license <span class="num">#{facts.license.value}</span>; check it on the <a href={dpor} rel="noopener">Virginia DPOR license lookup</a>. <Fact k="insurance" />.</p>}
+{id === "q-licensed" && <p>Yes. Virginia Master Plumber; check it on the <a href={dpor} rel="noopener">Virginia DPOR license lookup</a>. <Fact k="bonded" /> and <Fact k="insurance" text="insured" />.</p>}

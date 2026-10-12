@@ -36,15 +36,14 @@ const links = [
   <div class="wrap grid-f">
     <div class="f-id">
       <Logo class="f-logo" />
-      <p class="f-sub">Plumbing and Drains · Est. {facts.established.value}</p>
+      <p class="f-sub">Plumbing and Drains</p>
       <p class="f-card">
         <strong>{facts.owner.value}</strong><br />
         Virginia Master Plumber<br />
-        License <span class="num">#{facts.license.value}</span><br />
         <a class="num" href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a>
       </p>
       <p class="small"><Fact k="contractorLicense" onlyWithTags /></p>
-      <p class="small"><Fact k="insurance" /> · <Fact k="bonded" /></p>
+      <p class="small">Licensed, <Fact k="bonded" text="bonded" /> and <Fact k="insurance" text="insured" /></p>
     </div>
 
     <section class="plate f-area" aria-labelledby="f-area-h">

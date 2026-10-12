@@ -31,14 +31,14 @@ const { title, id, sub, form, class: cls } = Astro.props;
         ) : (
           <div class="ftitle">
             <h2 class="title" id={`${id}-t`}>{title}</h2>
-            <p class="ftitle-lic"><span><Fact k="contractorClass" /></span> <span class="nowrap">Master Plumber <span class="num">No. {facts.license.value}</span></span></p>
+            <p class="ftitle-lic"><span><Fact k="contractorClass" /></span> <span class="nowrap">Master Plumber</span></p>
           </div>
         )}
       </>
     ) : (
       <div class="top">
         <h2 class="title" id={`${id}-t`}>{title}{sub && <span class="sub">{sub}</span>}</h2>
-        <p class="no"><span class="no-k">Va. Master Plumber license</span> <span class="no-v num">No. {facts.license.value}</span></p>
+        <p class="no"><span class="no-v">Va. Master Plumber</span></p>
       </div>
     )}
     <slot />

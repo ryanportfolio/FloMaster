@@ -28,7 +28,6 @@
 // decision). At rest (no script, no WebGL 2, a failed load or a lost WebGL context) the markup shows the whole work order
 // and five stills instead.
 // The column beside the stage (zoom-story-side.js) fills in at the story's beats.
-import Lenis from "lenis";
 import { createSide } from "./zoom-story-side.js";
 
 (() => {
@@ -338,7 +337,7 @@ import { createSide } from "./zoom-story-side.js";
   const pinY = () => Math.round(geo.top - geo.stick);
   // the story starts once the section's top comes within this distance of the pinned place
   const reach = () => Math.round(innerHeight * 0.12);
-  const toY = (y) => { if (lenis) lenis.scrollTo(y, { immediate: true, force: true }); else scrollTo(0, y); };
+  const toY = (y) => scrollTo({ top: y, behavior: "instant" });
   // wheel gestures during playback: when the last wheel event came, when the current gesture began
   // and how far it has moved
   let wheelLast = 0, wheelBegan = 0, wheelMoved = 0, touchEnds = false, touchY0 = 0;
@@ -373,8 +372,7 @@ import { createSide } from "./zoom-story-side.js";
   // Input. During playback the first gesture is absorbed and a second one ends the story;
   // otherwise normal scrolling, and a downward movement that reaches the section top starts it.
   // A wheel over a box that scrolls by itself and can still move that way (the header's menu on a
-  // short or zoomed window) belongs to that box: the story neither starts, ends nor absorbs on it,
-  // and Lenis (allowNestedScroll) leaves it to the browser.
+  // short or zoomed window) belongs to that box: the story neither starts, ends nor absorbs on it.
   const scrollsInside = (target, dy) => {
     for (let el = target instanceof Element ? target : null; el && el !== document.body && el !== root; el = el.parentElement) {
       if (el.scrollHeight <= el.clientHeight + 1) continue;
@@ -384,12 +382,13 @@ import { createSide } from "./zoom-story-side.js";
     }
     return false;
   };
-  const onVirtualScroll = ({ deltaY, event }) => {
+  const onWheel = (event) => {
+    // in pixels, whatever unit the device reports (lines or pages on some mice)
+    const deltaY = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1);
     if (LOG) (window.__zsIn ||= []).push([Math.round(performance.now()), event.type, Math.round(deltaY), mode, event.isTrusted]);
     if (event.ctrlKey) return true; // page zoom
-    if (event.type === "wheel" && scrollsInside(event.target, deltaY)) return true;
+    if (scrollsInside(event.target, deltaY)) return true;
     if (mode === "playing") {
-      if (event.type !== "wheel") return touchEnds; // touch: handled by the listeners below
       const now = performance.now();
       if (now - wheelLast > GAP) { wheelBegan = now; wheelMoved = 0; } // a new gesture
       wheelLast = now;
@@ -398,8 +397,8 @@ import { createSide } from "./zoom-story-side.js";
       if (event.cancelable) event.preventDefault();
       return false;
     }
-    if (mode === "armed" && deltaY > 0 && event.type === "wheel") {
-      const y = lenis ? lenis.targetScroll : scrollY;
+    if (mode === "armed" && deltaY > 0) {
+      const y = scrollY;
       if (y + deltaY >= pinY() - reach() && y < pinY() + 2) {
         if (event.cancelable) event.preventDefault();
         start();
@@ -408,6 +407,7 @@ import { createSide } from "./zoom-story-side.js";
     }
     return true;
   };
+  addEventListener("wheel", onWheel, { passive: false, capture: true });
   for (const type of ["touchmove", "touchend"]) addEventListener(type, () => { lastTouch = performance.now(); }, { passive: true, capture: true });
   addEventListener("touchstart", (e) => {
     lastTouch = performance.now();
@@ -429,16 +429,12 @@ import { createSide } from "./zoom-story-side.js";
   addEventListener("click", (e) => {
     const a = e.target.closest?.("a[href]");
     if (!(a?.hash && a.pathname === location.pathname)) return;
-    lenis?.reset();
     if (mode === "playing") finish("link");
   }, { capture: true });
   const onKey = (e) => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     // keys typed into a field move its caret, not the page
     if (e.target.closest?.("input, textarea, select, [contenteditable]")) return;
-    // a key the browser scrolls by itself: stop Lenis easing a wheel scroll first, or it carries on
-    // and pulls the page back from where the key took it
-    if (NAV_KEYS.includes(e.key)) lenis?.reset();
     // End from above jumps past the story: it shows its end state and does not start on the way
     if (mode === "armed" && e.key === "End") { finish("key"); holdEnded = performance.now() + 1500; return; }
     if (mode !== "playing") return;
@@ -453,12 +449,11 @@ import { createSide } from "./zoom-story-side.js";
   section.addEventListener("focusin", () => { if (mode !== "ended") { finish("focus"); holdEnded = performance.now() + 1500; } });
 
   // ---------- Frame loop ----------
-  let lenis = null, raf = 0, frozen = false, prevY = null;
+  let raf = 0, frozen = false, prevY = null;
   const tick = (now) => {
     raf = requestAnimationFrame(tick);
-    lenis?.raf(now);
     if (frozen || failed) return;
-    const y = lenis ? lenis.scroll : scrollY;
+    const y = scrollY;
     if (mode === "playing") {
       if (Math.abs(y - pinY()) > 2) {
         // moved by something other than the stage: the entering scroll still settling (pull it
@@ -490,7 +485,6 @@ import { createSide } from "./zoom-story-side.js";
   const enable = () => {
     root.classList.add("zs-on");
     measure();
-    if (!lenis) lenis = new Lenis({ autoRaf: false, smoothWheel: true, syncTouch: false, allowNestedScroll: true, virtualScroll: onVirtualScroll });
     // a reload or history move that lands on or below the section shows the end state
     if (scrollY >= pinY() - 2) finish("landed");
     if (!raf) raf = requestAnimationFrame(tick);
