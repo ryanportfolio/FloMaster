@@ -1,5 +1,5 @@
 ---
-// "Rather talk first?" on a pale sky band with the area code 757, which the region goes by, painted
+// "Contact" on a pale sky band with the area code 757, which the region goes by, painted
 // enormous and faint across it like a hull number, running off both edges. The full number is the
 // call link; the callback form beside it is the site's standard one (CallbackForm.astro), lifted on
 // a deep shadow. With `waveTop`, the band's top edge is cut by the navy band above it (the home page,
@@ -13,7 +13,7 @@ const { id = "callback", formId = "cb-book", waveTop = false } = Astro.props;
   <span class="cbh-757" aria-hidden="true">757</span>
   <div class="wrap cbh-grid">
     <div>
-      <h2 id={`${id}-h`}>Rather talk first?</h2>
+      <h2 id={`${id}-h`}>Contact</h2>
       <p class="lead">Leave your number and I'll call you back about bigger jobs, prices, or a time that suits you better</p>
       <a class="hull num" href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a>
     </div>
@@ -46,6 +46,8 @@ const { id = "callback", formId = "cb-book", waveTop = false } = Astro.props;
   .cbh-grid { position: relative; display: grid; gap: var(--space-4); }
   @media (min-width: 900px) { .cbh-grid { grid-template-columns: 1fr minmax(0, 32rem); align-items: center; column-gap: var(--space-5); } }
   .cbh h2 { font-size: var(--step-3); }
+  /* The home page sets the heading twice as large. */
+  .cbh--wave h2 { font-size: calc(var(--step-3) * 2); line-height: 1; letter-spacing: -0.02em; }
   .cbh .lead { color: var(--ink); max-width: 30ch; }
   .hull { display: inline-block; margin-top: 0.75rem; font: 800 clamp(2.25rem, 1.4rem + 3.4vw, 4rem)/1.05 var(--font-slab); letter-spacing: -0.01em; color: var(--navy-900); text-decoration: underline; text-decoration-color: var(--sky); text-decoration-thickness: 4px; text-underline-offset: 0.18em; text-decoration-skip-ink: none; white-space: nowrap; }
   .hull:hover { text-decoration-color: var(--navy); }

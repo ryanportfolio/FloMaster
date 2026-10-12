@@ -1,20 +1,42 @@
 ---
 // About page body, in the header's hull-number style: each part of the page carries one large
 // number in the same left column with its caption beside it, so the pair reads as one phrase
-// ("5 things I do on every job"): the year FloMasters started, the count of promises on every
-// job, the state that licenses Antonio, and the 757 area code over the phone number.
+// ("18 years in the trade"). "How I work" runs the full width instead: the five promises in three
+// columns, one per part of a visit, each on a card with a sketch. The page ends on one card: a map
+// of the cities Antonio works in beside his credentials and his phone number.
+import { Image } from "astro:assets";
 import Photo from "./Photo.astro";
 import Fact from "./Fact.astro";
 import FactBlock from "./FactBlock.astro";
+import Icon from "./Icon.astro";
 import hero from "../assets/photos/hero.jpg";
+import findArt from "../assets/howiwork/find.png";
+import pricesArt from "../assets/howiwork/prices.png";
+import partArt from "../assets/howiwork/part.png";
+import clothArt from "../assets/howiwork/cloth.png";
+import warrantyArt from "../assets/howiwork/warranty.png";
 import { facts } from "../data/facts";
 import { cities } from "../data/area";
-// Set at display size, so no closing periods.
+import { dpor } from "../data/faq";
+import { CITIES, REST } from "./zipchart/shapes";
+// The map shows the chart's resting frame (zipchart/shapes REST: centre x, centre y, width; height
+// is 0.827 of it), as in the footer, with the same label offsets so no two names collide.
+const [mx, my, mw] = REST;
+const mh = mw * 0.827;
+const mapView = `${mx - mw / 2} ${my - mh / 2} ${mw} ${mh}`;
+const pinText: Record<string, [number, number, "start" | "end"]> = { Portsmouth: [-16, 0, "end"], "Virginia Beach": [16, 34, "end"] };
+// Set at display size, so no closing periods. The fifth promise is the labor warranty (a fact).
 const steps = [
-  "I find the cause before I name a price",
-  "You get repair and replacement prices side by side, and you choose",
-  "I show you the old part and explain what failed",
-  "Drop cloths down, mess cleaned up, everything tested before I leave",
+  { text: "I find the cause before I name a price", art: findArt },
+  { text: "You get repair and replacement prices side by side, and you choose", art: pricesArt },
+  { text: "I show you the old part and explain what failed", art: partArt },
+  { text: "Drop cloths down, mess cleaned up, everything tested before I leave", art: clothArt },
+  { text: "", art: warrantyArt },
+];
+const phases = [
+  { label: "Before I start", from: 0, to: 2 },
+  { label: "While I work", from: 2, to: 4 },
+  { label: "When I'm done", from: 4, to: 5 },
 ];
 ---
 <div class="ab wrap">
@@ -29,38 +51,58 @@ const steps = [
     <Photo src={hero} fact="hero" alt="Antonio beside his van, shelves of parts inside" widths={[480, 768, 1080]} sizes="(min-width: 900px) 25rem, 100vw" class="r-van" shot="Antonio with the van" />
   </section>
 
-  <section class="row" aria-labelledby="ab-how">
-    <p class="rh"><span class="rn num">{steps.length + 1}</span> <span class="rcap">things I do on every job</span></p>
+  <section class="row row--how" aria-labelledby="ab-how">
     <div class="rb">
       <h2 id="ab-how">How I work, on every job</h2>
       <FactBlock k="workPromises">
-        <ol class="steps">
-          {steps.map((s) => <li><span>{s}</span></li>)}
-          <li><span><Fact k="laborWarranty" /> on every job</span></li>
-        </ol>
+        <div class="phases">
+          {phases.map((ph) => (
+            <div class="ph">
+              <h3 class="ph-k">{ph.label}</h3>
+              <ol class="ph-steps" start={ph.from + 1}>
+                {steps.slice(ph.from, ph.to).map((st, i) => (
+                  <li class="hw">
+                    <span class="hw-n num" aria-hidden="true">{ph.from + i + 1}</span>
+                    <p class="hw-t">{st.text || <><Fact k="laborWarranty" /> on every job</>}</p>
+                    <Image src={st.art} alt="" class="hw-art" widths={[320, 640, 960]} sizes="(min-width: 900px) 24rem, 14rem" format="webp" quality={80} />
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))}
+        </div>
       </FactBlock>
     </div>
   </section>
 
-  <section class="row" aria-labelledby="ab-creds">
-    <p class="rh"><span class="rn" aria-hidden="true">VA</span> <span class="rcap">Virginia, the state that licenses me</span></p>
-    <div class="rb">
-      <h2 id="ab-creds">Licensed and insured</h2>
-      <ul class="creds">
-        <li><strong>Virginia Master Plumber</strong><span>Licensed by Virginia DPOR</span></li>
-        {facts.contractorLicense.status === "confirmed" ? <li><strong>Contractor license</strong><span>{facts.contractorLicense.value}</span></li> : <li class="tags-only"><strong>Contractor license</strong><span><Fact k="contractorLicense" /></span></li>}
-        <li><strong>Insurance</strong><span><Fact k="insurance" /></span></li>
-        <li><strong>Bonding</strong><span><Fact k="bonded" /></span></li>
-      </ul>
-    </div>
-  </section>
 
-  <section class="row" aria-labelledby="ab-call">
-    <p class="rh"><span class="rn num">757</span> <span class="rcap">the area code I work in</span></p>
-    <div class="rb">
-      <h2 id="ab-call">My phone, my area code</h2>
-      <p>I work in {cities.slice(0, -1).join(", ")} and {cities[cities.length - 1]}. Call or text; you get me.</p>
-      <a class="call num" href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a>
+  <section class="row row--full" aria-labelledby="ab-creds">
+    <div class="rb cz">
+      <div class="cz-map" role="img" aria-label={`Map of Hampton Roads with the cities I work in: ${cities.slice(0, -1).join(", ")} and ${cities[cities.length - 1]}`}>
+        <span class="cz-va" aria-hidden="true">VA</span>
+        <svg viewBox={mapView} aria-hidden="true" focusable="false">
+          {CITIES.map((c) => <path class="cz-land" d={c.d} />)}
+          {CITIES.map((c) => (
+            <g class="cz-pin" transform={`translate(${c.label[0]} ${c.label[1]})`}>
+              <circle r="10" />
+              {(() => { const [dx, dy, anchor] = pinText[c.name] ?? [18, 0, "start"]; return <text x={dx} y={dy} dy=".35em" text-anchor={anchor}>{c.name}</text>; })()}
+            </g>
+          ))}
+        </svg>
+      </div>
+      <div class="cz-body">
+        <h2 id="ab-creds">Licensed and insured</h2>
+        <ul class="cz-list" role="list">
+          <li><Icon name="shield" /><span><strong>Virginia Master Plumber</strong><a href={dpor} rel="noopener">Licensed by Virginia DPOR</a></span></li>
+          <li><Icon name="shield" /><span><strong><Fact k="insurance" /></strong></span></li>
+          <li><Icon name="shield" /><span><strong><Fact k="bonded" /></strong></span></li>
+          {facts.contractorLicense.status === "confirmed" ? <li><Icon name="shield" /><span><strong>{facts.contractorLicense.value}</strong></span></li> : <li class="tags-only"><Icon name="shield" /><span><strong><Fact k="contractorLicense" /></strong></span></li>}
+        </ul>
+        <div class="cz-call">
+          <a class="call num" href={`tel:${facts.phoneHref.value}`}>{facts.phone.value}</a>
+          <p>Call or text, you get me</p>
+        </div>
+      </div>
     </div>
   </section>
 </div>
@@ -85,15 +127,55 @@ const steps = [
 
   .row :global(.r-van) { grid-area: pic; align-self: start; aspect-ratio: 4 / 3; width: 100%; border-radius: var(--radius-lg); box-shadow: var(--shadow-1); }
 
-  /* The promises: display-size lines, no closing periods, numbered by the list itself. */
-  .steps { list-style: none; counter-reset: step; margin: 0; padding: 0; }
-  .steps li { counter-increment: step; display: grid; grid-template-columns: 3.25rem 1fr; gap: 1rem; align-items: baseline; padding: 0.85rem 0; border-bottom: 1px solid var(--line); font-size: var(--step-1); line-height: 1.4; font-weight: 600; color: var(--navy-900); max-width: none; }
-  .steps li::before { content: counter(step); font: 800 clamp(2.5rem, 2rem + 1.5vw, 3.25rem)/0.85 var(--font-slab); letter-spacing: -0.04em; color: var(--navy); }
+  /* How I work: full width, the heading centered over three columns, one per part of a visit.
+     Each column has a label strip (an arrow leads to the next) and its promises as cards; the
+     last column's single card stretches to the height of the other two. */
+  .row--how { grid-template-areas: "rb"; }
+  @media (min-width: 900px) { .row--how { grid-template-columns: minmax(0, 1fr); grid-template-areas: "rb"; } }
+  .row--how h2 { text-align: center; font-size: var(--step-4); margin-bottom: 1.25rem; }
+  .phases { display: grid; gap: 1.5rem; }
+  @media (min-width: 900px) { .phases { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem 2.5rem; } }
+  .ph { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+  .ph-k { position: relative; margin: 0; padding: 0.6rem 1rem; border-radius: 4px; background: var(--sky-300); color: var(--navy-900); font: 700 0.9375rem/1.2 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; text-align: center; }
+  @media (min-width: 900px) {
+    .ph:not(:last-child) .ph-k::after { content: "\2192"; position: absolute; left: 100%; top: 50%; width: 2.5rem; transform: translateY(-50%); text-align: center; font: 700 1.5rem/1 var(--font-body); letter-spacing: 0; color: var(--navy); }
+  }
+  .ph-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1rem; flex: 1; }
+  .hw { position: relative; isolation: isolate; overflow: hidden; flex: 1; display: grid; grid-template-columns: auto minmax(0, 1fr); align-content: start; gap: 0.25rem 1rem; min-height: 13rem; padding: 1.25rem 1.25rem 1rem; background: linear-gradient(160deg, var(--white) 35%, var(--sky-100)); border: 1px solid #cfe3f1; border-radius: var(--radius-lg); box-shadow: var(--shadow-1); max-width: none; }
+  .hw-n { grid-row: 1 / span 2; font: 800 clamp(3.5rem, 2.6rem + 2.4vw, 5rem)/0.8 var(--font-slab); letter-spacing: -0.05em; color: var(--navy-900); }
+  .hw-t { margin: 0; max-width: none; font: 600 var(--step-1)/1.3 var(--font-body); color: var(--navy-900); }
+  /* The sketch fills the card's lower right as a faint background, cut off by the card's edge;
+     the number and the words sit over it. */
+  .hw :global(.hw-art) { position: absolute; z-index: -1; right: -12%; bottom: -22%; width: 70%; height: auto; opacity: 0.45; pointer-events: none; -webkit-mask-image: linear-gradient(to top left, #000 35%, transparent 80%); mask-image: linear-gradient(to top left, #000 35%, transparent 80%); }
+  .ph:last-child .hw :global(.hw-art) { right: -14%; bottom: -10%; width: 100%; }
+  @media (max-width: 899px) { .hw { min-height: 11rem; } .hw :global(.hw-art) { width: 52%; right: -6%; bottom: -22%; } .ph:last-child .hw :global(.hw-art) { width: 60%; bottom: -14%; } }
 
-  .creds { list-style: none; padding: 0; margin: 0; }
-  .creds li { display: grid; grid-template-columns: 13rem 1fr; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--line); }
-  :global(.tags-on) .creds li.tags-only { display: grid !important; }
-  @media (max-width: 560px) { .creds li { grid-template-columns: 1fr; gap: 0; } }
+  /* Credentials and phone: one card, the map on the left (on top on phones). */
+  .row--full { grid-template-areas: "rb"; }
+  @media (min-width: 900px) { .row--full { grid-template-columns: minmax(0, 1fr); grid-template-areas: "rb"; } }
+  .cz { display: grid; overflow: hidden; background: linear-gradient(160deg, var(--white) 40%, var(--sky-100)); border: 1px solid #cfe3f1; border-radius: var(--radius-lg); box-shadow: var(--shadow-1); }
+  @media (min-width: 900px) { .cz { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); } }
+  .cz-map { position: relative; display: grid; place-items: center; padding: 1rem; background: var(--sky-100); border-bottom: 1px solid #cfe3f1; }
+  @media (min-width: 900px) { .cz-map { border-bottom: 0; border-right: 1px solid #cfe3f1; } }
+  .cz-map svg { position: relative; display: block; width: 100%; height: auto; max-width: 40rem; }
+  .cz-va { position: absolute; right: 1.25rem; top: 0.5rem; font: 800 clamp(5rem, 3rem + 7vw, 10rem)/1 var(--font-slab); letter-spacing: -0.05em; color: var(--navy); opacity: 0.08; }
+  .cz-land { fill: var(--white); stroke: var(--sky); stroke-width: 2; stroke-linejoin: round; }
+  .cz-pin circle { fill: var(--navy); stroke: var(--white); stroke-width: 4; }
+  .cz-pin text { font: 700 34px/1 var(--font-body); fill: var(--navy-900); paint-order: stroke; stroke: var(--sky-100); stroke-width: 8px; stroke-linejoin: round; }
+  /* Phones draw the map small: bigger names, so they stay readable. */
+  @media (max-width: 599px) { .cz-pin text { font-size: 46px; } }
+  .cz-body { padding: 1.75rem 1.5rem 1.5rem; }
+  @media (min-width: 900px) { .cz-body { padding: 2.25rem 2.5rem 2rem; } }
+  .cz-body h2 { margin-bottom: 1rem; }
+  .cz-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.9rem; }
+  .cz-list li { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); gap: 0.85rem; align-items: center; max-width: none; }
+  .cz-list li.tags-only { display: none; }
+  :global(.tags-on) .cz-list li.tags-only { display: grid !important; }
+  .cz-list :global(svg) { width: 2.25rem; height: 2.25rem; padding: 0.35rem; border-radius: 0.6rem; background: var(--navy); color: var(--white); }
+  .cz-list strong { display: block; font: 700 var(--step-1)/1.25 var(--font-slab); color: var(--navy-900); }
+  .cz-list a { font-size: var(--step--1); color: var(--slate-ink); }
+  .cz-call { margin-top: 1.5rem; padding: 1rem 1.25rem; border-top: 3px solid var(--navy); border-radius: 0 0 var(--radius) var(--radius); background: rgb(255 255 255 / 0.65); text-align: center; }
+  .cz-call p { margin: 0.1rem 0 0; max-width: none; font: 600 var(--step-0)/1.3 var(--font-body); color: var(--navy-900); }
 
   .call { display: inline-flex; align-items: center; min-height: 44px; font: 800 clamp(2rem, 1.4rem + 2.6vw, 3.25rem)/1.1 var(--font-slab); letter-spacing: -0.01em; color: var(--navy-900); text-decoration: none; white-space: nowrap; }
   .call:hover { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 0.15em; }
