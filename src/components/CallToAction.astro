@@ -1,4 +1,7 @@
 ---
+// The closing band above the footer: a new work order pinned to the band, with the three ways to
+// reach Antonio as its lines (book, call, callback), his hours along the foot and a rubber stamp.
+import WorkOrderSlip from "./WorkOrderSlip.astro";
 import Icon from "./Icon.astro";
 import Fact from "./Fact.astro";
 import { facts } from "../data/facts";
@@ -6,25 +9,57 @@ interface Props { title?: string }
 const { title = "Need a plumber?" } = Astro.props;
 ---
 <section class="cta">
-  <div class="wrap cta-grid">
-    <div>
-      <h2>{title}</h2>
-      <p class="lead">Call, book online, or leave your number and I'll call you back <Fact k="callback" /></p>
-    </div>
-    <div class="cta-actions">
-      <a class="btn btn--primary" href="/book"><Icon name="calendar" /> Book a time</a>
-      <a class="btn btn--ghost" href={`tel:${facts.phoneHref.value}`}><Icon name="phone" /> Call {facts.phone.value}</a>
-      <a class="btn btn--ghost" href="/book#callback"><Icon name="text" /> Ask for a callback</a>
+  <div class="wrap">
+    <div class="pad">
+      <span class="pin" aria-hidden="true"></span>
+      <WorkOrderSlip title={title} id="cta" form="title" class="cta-slip">
+        <ul class="wo-rows lines" role="list">
+          <li><a class="wo-row-link line line--main" href="/book"><span class="box" aria-hidden="true"></span><span class="wo-row-l">Book a time<span class="wo-row-d">Pick a time online</span></span><Icon name="arrow" class="go" /></a></li>
+          <li><a class="wo-row-link line" href={`tel:${facts.phoneHref.value}`}><span class="box" aria-hidden="true"></span><span class="wo-row-l">Call <span class="num nowrap">{facts.phone.value}</span></span><Icon name="arrow" class="go" /></a></li>
+          <li><a class="wo-row-link line" href="/book#callback"><span class="box" aria-hidden="true"></span><span class="wo-row-l">Ask for a callback<span class="wo-row-d">Leave your number and I'll call you back <Fact k="callback" plain /></span></span><Icon name="arrow" class="go" /></a></li>
+        </ul>
+        <div class="foot">
+          <p class="hours"><Fact k="hours" /></p>
+          <p class="stamp">Licensed, <Fact k="bonded" plain text="bonded" /><br />and <Fact k="insurance" plain text="insured" /></p>
+        </div>
+      </WorkOrderSlip>
     </div>
   </div>
 </section>
 
 <style>
-  .cta { padding-block: var(--space-5); background: var(--sky-100); border-top: 1px solid #c9e0ef; }
-  .cta-grid { display: grid; gap: var(--space-3); align-items: center; }
-  @media (min-width: 900px) { .cta-grid { grid-template-columns: 1fr auto; } }
-  .cta h2 { margin-bottom: 0.4rem; }
-  .cta .lead { margin: 0; color: var(--ink-soft); }
-  .cta-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
-  .cta .btn--ghost { color: var(--navy); }
+  .cta { padding-block: var(--space-5); background: var(--sky-100); border-top: 1px solid #c9e0ef; overflow: hidden; }
+  .pad { position: relative; max-width: 46rem; margin-inline: auto; }
+  /* The slip hangs a little crooked from its pin, with the second copy skewed the other way. */
+  @media (min-width: 700px) {
+    .pad :global(.cta-slip) { transform: rotate(-1.2deg); }
+    .pad :global(.cta-slip)::before { transform: rotate(2deg); }
+  }
+  .pad :global(.cta-slip)::before { background: #f3f8fc; }
+  .pin {
+    position: absolute; z-index: 2; left: 50%; top: -0.7rem; width: 1.5rem; height: 1.5rem; margin-left: -0.75rem; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #6f8fbc 0 18%, var(--navy) 45%, var(--navy-950) 100%);
+    box-shadow: 0 3px 4px rgb(6 14 26 / 0.35), 2px 7px 10px -2px rgb(6 14 26 / 0.3);
+  }
+  .lines { margin: 0.7rem 0 0.5rem; }
+  .lines li + li { border-top: 0 !important; margin-top: 0.5rem; }
+  .line { grid-template-columns: auto minmax(0, 1fr) auto !important; gap: 0.9rem !important; padding: 0.7rem 1rem !important; border: 1px solid var(--line); border-radius: var(--radius); }
+  .line--main { background: var(--sky-100); border-color: var(--sky-300); }
+  .line :global(.wo-row-l) { font: 700 var(--step-1)/1.2 var(--font-slab); }
+  .line :global(.wo-row-d) { margin-top: 0.2rem; font-family: var(--font-body); }
+  .box { width: 1.35rem; height: 1.35rem; border: 2px solid var(--slate); border-radius: 4px; background: var(--white); }
+  .line:hover { border-color: var(--slate); }
+  .line:hover .box { background: var(--navy) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/100% no-repeat; border-color: var(--navy); }
+  .line :global(.go) { width: 1.25rem; height: 1.25rem; color: var(--slate); }
+  .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem 1.5rem; margin-top: 0.3rem; padding: 0.6rem 0 0.2rem; border-top: 2px solid var(--navy); }
+  .hours { margin: 0; font-size: var(--step--1); color: var(--ink-soft); }
+  .stamp {
+    margin: 0 0.25rem 0 auto; padding: 0.35rem 0.75rem 0.3rem; border: 3px solid #1d4e8f; border-radius: 6px;
+    color: #1d4e8f; font: 800 0.9375rem/1.15 var(--font-slab); letter-spacing: 0.04em; text-align: center;
+    transform: rotate(-6deg); mix-blend-mode: multiply; opacity: 0.9;
+  }
+  @media (max-width: 479px) {
+    .line { padding: 0.6rem 0.75rem !important; gap: 0.7rem !important; }
+    .stamp { margin-left: 0; }
+  }
 </style>

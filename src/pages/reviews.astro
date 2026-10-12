@@ -1,29 +1,114 @@
 ---
+// Reviews, newest first, down a dated timeline. Antonio's replies hang under the review they
+// answer as his own navy cards, so it is plain that he reads and answers them. The header leads
+// with the rating, large, beside the FloMasters logo.
 import Base from "../layouts/Base.astro";
-import PageHero from "../components/PageHero.astro";
-import ReviewCard from "../components/ReviewCard.astro";
-import RatingLine from "../components/RatingLine.astro";
+import Icon from "../components/Icon.astro";
 import Fact from "../components/Fact.astro";
+import Logo from "../components/Logo.astro";
 import CallToAction from "../components/CallToAction.astro";
-import { reviews } from "../data/reviews";
+import { reviews, shortDate, longDate } from "../data/reviews";
 import { facts } from "../data/facts";
+const newest = reviews[0];
 ---
 <Base title="Reviews" description="What FloMasters customers across Hampton Roads say, newest first, with Antonio's replies.">
-  <PageHero title="Customer reviews">
-    <RatingLine class="rl" />
-  </PageHero>
-  <section class="section">
-    <div class="wrap">
-      <p class="note small muted"><Fact k="reviewReplies" /> Reviews on this page come from <Fact k="reviewSource" /> and are shown in full.</p>
-      <div class="grid grid--2">
-        {reviews.map((r) => <ReviewCard review={r} />)}
+  <section class="rh">
+    <div class="wrap rh-grid">
+      <div>
+        <h1>Customer reviews</h1>
+        <div class="score">
+          <b class="score-n num"><Fact k="rating" /></b>
+          <div>
+            <span class="stars" role="img" aria-label={`Rated ${facts.rating.value} out of 5`}>{[1, 2, 3, 4, 5].map(() => <Icon name="star" />)}</span>
+            <p class="score-t">stars from <span class="num"><Fact k="reviewCount" plain /></span> <Fact k="reviewSource" plain /> reviews</p>
+            <p class="score-d">newest review {shortDate(newest.date)}</p>
+          </div>
+        </div>
       </div>
+      <Logo dark class="rh-logo" />
     </div>
   </section>
-  <CallToAction title="Want to be the next review?" />
+  <section class="section">
+    <div class="wrap">
+      <ol class="tl" role="list">
+        {reviews.map((r) => (
+          <li class="tl-i">
+            <time class="tl-date" datetime={r.date} title={longDate(r.date)}>{shortDate(r.date)}</time>
+            <span class="tl-dot" aria-hidden="true"></span>
+            <div class="tl-body">
+              <article class="rv">
+                <header class="rv-head">
+                  <span class="stars" role="img" aria-label="5 out of 5 stars">{[1, 2, 3, 4, 5].map(() => <Icon name="star" />)}</span>
+                  <span class="chip">{r.service}</span>
+                  <span class="sample-label">Sample review</span>
+                </header>
+                <blockquote class="rv-text"><p>{r.text}</p></blockquote>
+                <p class="rv-who">{r.name}, {r.city}</p>
+              </article>
+              {r.reply && (
+                <div class="reply">
+                  <span class="reply-mark" aria-hidden="true"></span>
+                  <p><strong>Reply from {facts.ownerFirst.value}</strong> {r.reply}</p>
+                </div>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+  <CallToAction title="Need something fixed?" />
 </Base>
 
 <style>
-  :global(.rl) { color: var(--sky-100); margin-top: 0.5rem; }
-  .note { margin-bottom: 1.5rem; max-width: none; }
+  /* Header: pale sky with the card's wave lines in a lighter blue, the rating set large. */
+  .rh {
+    padding-block: 2.5rem 2.75rem; border-bottom: 1px solid #c9e0ef;
+    background: var(--sky-100) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='48' viewBox='0 0 96 48'%3E%3Cg fill='none' stroke='%23d2e6f3' stroke-width='5'%3E%3Cpath d='M-48 12 C -36 24, -12 24, 0 12 C 12 0, 36 0, 48 12 S 84 24, 96 12 S 132 0, 144 12'/%3E%3Cpath d='M-48 36 C -36 48, -12 48, 0 36 C 12 24, 36 24, 48 36 S 84 48, 96 36 S 132 24, 144 36'/%3E%3C/g%3E%3C/svg%3E") 0 0/96px 48px;
+  }
+  @media (min-width: 900px) { .rh { padding-block: 3rem 3.25rem; } }
+  .rh-grid { display: grid; gap: 1.5rem 3rem; align-items: end; }
+  @media (min-width: 900px) { .rh-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 30rem); } }
+  .rh h1 { margin: 0 0 0.75rem; font-size: var(--step-4); color: var(--navy-900); }
+  .score { display: flex; align-items: center; gap: 1rem 1.25rem; }
+  .score-n { font: 800 clamp(4rem, 3rem + 5vw, 6.5rem)/0.9 var(--font-slab); letter-spacing: -0.03em; color: var(--navy-900); }
+  .score .stars :global(svg) { width: 1.9rem; height: 1.9rem; }
+  .score-t { margin: 0.25rem 0 0; font: 700 var(--step-1)/1.25 var(--font-slab); color: var(--navy-900); }
+  .score-d { margin: 0.15rem 0 0; color: var(--ink-soft); }
+  /* The logo fills its column: as wide as the column allows, never past it. */
+  .rh-grid :global(.rh-logo) { width: min(100%, 18rem); }
+  .rh-grid :global(.rh-logo svg) { width: 100%; height: auto; }
+  @media (min-width: 900px) { .rh-grid :global(.rh-logo) { width: 100%; align-self: center; } }
+
+  .stars { display: inline-flex; gap: 2px; color: #e3a008; }
+  .stars :global(svg) { width: 1.15rem; height: 1.15rem; }
+
+  /* Timeline: date, dot on the line, then the review and any reply. */
+  .tl { position: relative; list-style: none; margin: 0 auto; padding: 0; max-width: 60rem; display: grid; gap: 1.25rem; }
+  .tl-i { position: relative; display: grid; grid-template-columns: 1.75rem minmax(0, 1fr); grid-template-areas: "dot date" "line body"; column-gap: 0.75rem; }
+  .tl::before { content: ""; position: absolute; left: calc(0.875rem - 1px); top: 0.6rem; bottom: 0.6rem; width: 2px; background: var(--slate); opacity: 0.6; }
+  .tl-date { grid-area: date; margin-bottom: 0.4rem; font: 700 var(--step--1)/1.6 var(--font-body); color: var(--navy-900); }
+  .tl-dot { grid-area: dot; justify-self: center; margin-top: 0.3rem; width: 1rem; height: 1rem; border-radius: 50%; background: var(--white); border: 3px solid var(--slate); box-shadow: 0 0 0 4px var(--paper); }
+  .tl-body { grid-area: body; display: grid; gap: 0.6rem; }
+  @media (min-width: 760px) {
+    .tl-i { grid-template-columns: 7.5rem 1.75rem minmax(0, 1fr); grid-template-areas: "date dot body"; column-gap: 1rem; }
+    .tl::before { left: calc(7.5rem + 1rem + 0.875rem - 1px); top: 1.6rem; }
+    .tl-date { margin: 1.05rem 0 0; text-align: right; }
+    .tl-dot { margin-top: 1.3rem; }
+  }
+
+  .rv { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1.1rem 1.35rem 1.2rem; box-shadow: var(--shadow-1); }
+  .rv-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; margin-bottom: 0.6rem; }
+  .rv-head .sample-label { margin-left: auto; }
+  .chip { padding: 0.15rem 0.6rem; border-radius: 999px; background: var(--sky-100); color: var(--navy-900); font: 700 var(--step--1)/1.4 var(--font-body); }
+  .rv-text { margin: 0 0 0.6rem; font-size: var(--step-0); }
+  .rv-text p { margin: 0; max-width: none; }
+  .rv-who { margin: 0; font-weight: 700; color: var(--navy-900); }
+
+  /* Antonio's reply: his navy card, set in from the review it answers, with a tail pointing up. */
+  .reply { position: relative; display: flex; gap: 0.85rem; align-items: center; margin-left: clamp(1rem, 4vw, 2.25rem); padding: 0.85rem 1.1rem; border-radius: var(--radius-lg); background: var(--navy); color: var(--white); box-shadow: var(--shadow-2); }
+  .reply::before { content: ""; position: absolute; left: 1.4rem; top: -0.55rem; width: 1.1rem; height: 1.1rem; background: var(--navy); transform: rotate(45deg); border-radius: 2px; }
+  .reply-mark { flex: none; width: 2.4rem; height: 2.4rem; border-radius: 50%; background: var(--logo-mark) center/100% no-repeat; box-shadow: 0 0 0 2px var(--sky-300); }
+  .reply p { position: relative; margin: 0; max-width: none; line-height: 1.45; }
+  .reply strong { display: block; font-family: var(--font-slab); color: var(--sky-300); }
 </style>

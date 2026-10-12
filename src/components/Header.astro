@@ -49,9 +49,7 @@ const nav = [
   <p class="license wrap">
     <span class="cls"><Fact k="contractorClass" plain><span class="wide">Virginia </span>Class A contractor</Fact></span>
     <span class="wide" aria-hidden="true">·</span>
-    <span>Master Plumber <span class="wide">license </span><span class="num">#{facts.license.value}</span></span>
-    <span class="est" aria-hidden="true">·</span>
-    <span class="est">Est. {facts.established.value}</span>
+    <span>Master Plumber</span>
   </p>
 </div>
 
@@ -98,7 +96,7 @@ const nav = [
   .license .cls { color: var(--white); font-weight: 700; }
   /* Phones: the two licenses on two lines, with no separator left hanging at a line end. */
   @media (max-width: 559px) { .license { flex-direction: column; gap: 0; } }
-  .est, .wide { display: none; }
+  .wide { display: none; }
   /* Steps by the bar's width in rem. Each threshold is the measured width of what that step
      shows (brand, buttons, gaps), plus a little room. */
   @container hbar (min-width: 17rem) {
@@ -119,5 +117,5 @@ const nav = [
     .actions { margin-left: 0.5rem; }
     .menu { display: none; }
   }
-  @media (min-width: 560px) { .est, .wide { display: inline; } }
+  @media (min-width: 560px) { .wide { display: inline; } }
 </style>

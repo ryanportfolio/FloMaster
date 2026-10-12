@@ -16,7 +16,6 @@ interface Props { class?: string }
 const { class: cls } = Astro.props;
 const dpor = "https://www.dpor.virginia.gov/LicenseLookup";
 // The figures, read from the facts they come from.
-const cover = facts.insurance.value.match(/\$[\d.,]+[MK]?/)?.[0] ?? "Insured";
 const years = facts.yearsInTrade.value.replace(/ years?$/, " yrs");
 const warranty = facts.laborWarranty.value.match(/^(\d+)-year/)?.[1];
 ---
@@ -27,7 +26,7 @@ const warranty = facts.laborWarranty.value.match(/^(\d+)-year/)?.[1];
       <span class="pb-mark" aria-hidden="true"><Icon name="valve" /></span>
       <p class="pb-lic">
         <span class="pb-lic-k">Virginia Master Plumber</span>
-        <span class="pb-lic-n num">{facts.license.value}</span>
+        <span class="pb-lic-n">Licensed</span>
       </p>
       <p class="pb-class"><Fact k="contractorClass" /><span>Licensed for jobs of any size</span></p>
       <a class="pb-check" href={dpor} rel="noopener">Check it on DPOR<span class="visually-hidden">, the Virginia license lookup</span><Icon name="external" /></a>
@@ -36,8 +35,8 @@ const warranty = facts.laborWarranty.value.match(/^(\d+)-year/)?.[1];
     <div class="pb-why">
       <h2 id="proofbar-h">{facts.name.value.replace(/ Plumbing and Drains$/, "")}</h2>
       <ul class="pb-list" role="list">
-        <li><b class="pb-fig num"><Fact k="insurance" plain text={cover} /></b><span><strong>Fully insured</strong><span class="pb-sub">General liability. <Fact k="bonded" />.</span></span></li>
-        <li><b class="pb-fig num"><Fact k="yearsInTrade" plain text={years} /></b><span><strong>In the trade</strong><span class="pb-sub">FloMasters established {facts.established.value}</span></span></li>
+        <li><b class="pb-fig pb-fig--i"><Icon name="shield" /></b><span><strong>Licensed, <Fact k="bonded" text="bonded" /> and <Fact k="insurance" text="insured" /></strong></span></li>
+        <li><b class="pb-fig num"><Fact k="yearsInTrade" plain text={years} /></b><span><strong>In the trade</strong></span></li>
         <li><b class="pb-fig num"><Fact k="laborWarranty" plain text={warranty ? `${warranty} yr` : "In writing"} /></b><span><strong>Labor warranty</strong><span class="pb-sub">In writing</span></span></li>
         <li><b class="pb-fig num"><Fact k="rating" plain /></b><span><strong>Star rating</strong><span class="pb-sub"><a href="/reviews">Read all <span class="num"><Fact k="reviewCount" plain /></span> reviews</a></span></span></li>
       </ul>
@@ -79,6 +78,7 @@ const warranty = facts.laborWarranty.value.match(/^(\d+)-year/)?.[1];
   .pb-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 1.75rem; }
   .pb-list li { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: center; padding: 0.95rem 0; border-bottom: 1px solid var(--line); }
   .pb-list li:last-child { border-bottom: 0; }
+  .pb-fig--i :global(svg) { display: block; width: 3.4rem; height: 3.4rem; }
   .pb-fig { font: 800 clamp(2.25rem, 1.8rem + 1.6vw, 2.9rem)/1 var(--font-slab); letter-spacing: -0.02em; color: var(--slate); white-space: nowrap; }
   .pb-list strong { display: block; font: 700 var(--step-1)/1.2 var(--font-slab); color: var(--navy-900); }
   .pb-sub { display: block; margin-top: 0.2rem; font-size: var(--step--1); color: var(--ink-soft); }

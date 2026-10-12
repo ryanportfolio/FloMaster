@@ -107,7 +107,7 @@ const listed: Partial<Record<FactKey, string[]>> = {
     "Drop cloths down, mess cleaned up, everything tested before I leave",
     `${facts.laborWarranty.value} on every job`,
   ],
-  // src/components/ValveTagQuote.astro ("How I quote")
+  // the "How I quote" promises
   quoting: [
     "Repair first. I only recommend replacing something when a repair won't last.",
     "No surprises mid-job. If I find something new, I stop and show you before the price changes.",
@@ -320,4 +320,4 @@ export const parts: Part[] = [
 export const allItems: Item[] = parts.flatMap((p) => p.groups.flatMap((g) => g.items));
 
 // Facts already confirmed from the business card, shown at the top.
-export const confirmedLine = [facts.name.value, facts.phone.value, `${facts.license.label} ${facts.license.value}`, `Established ${facts.established.value}`];
+export const confirmedLine = [facts.name.value, facts.phone.value, ];

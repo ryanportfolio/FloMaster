@@ -55,14 +55,21 @@ import { facts } from "../../data/facts";
   .warranty { margin: 0 -0.35rem 0.4rem; padding: 0.7rem 1rem; border-radius: var(--radius); background: var(--navy-900); color: var(--white); font: 600 var(--step-0)/1.3 var(--font-body); text-align: center; }
   .warranty b { font: 800 var(--step-1)/1 var(--font-slab); margin-right: 0.3rem; }
   .list { display: grid; gap: var(--space-5); }
-  .row { display: grid; gap: var(--space-3); align-items: center; }
+  .row { position: relative; display: grid; gap: var(--space-3); align-items: center; }
   @media (min-width: 900px) {
     .row { grid-template-columns: 520px 1fr; gap: var(--space-4); }
     .row.flip > :first-child { order: 2; }
   }
   .row :global(.row-photo) { border-radius: var(--radius-lg); aspect-ratio: 3 / 2; }
   h2 a { text-decoration: none; color: inherit; }
-  h2 a:hover { text-decoration: underline; }
+  /* The heading link covers the whole row, photo included, so a click anywhere opens the service.
+     Confirm tags sit above it (z-index 30 in global.css) and still open their questions. */
+  h2 a::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: var(--radius-lg); }
+  h2 a:focus-visible { outline: none; }
+  h2 a:focus-visible::after { outline: 3px solid var(--slate); outline-offset: 6px; }
+  .row:hover h2 a, .row:hover .more { text-decoration: underline; }
+  .row:hover :global(.row-photo img) { transform: scale(1.03); }
+  .row :global(.row-photo img) { transition: transform 0.3s ease; }
   .mini { border-collapse: collapse; width: 100%; max-width: 34rem; margin: 0.5rem 0 1rem; }
   .mini th, .mini td { padding: 0.55rem 0; border-bottom: 1px solid var(--line); text-align: left; font-size: 1.0625rem; }
   .mini th { font-weight: 500; }

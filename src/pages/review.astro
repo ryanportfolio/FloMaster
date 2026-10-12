@@ -2,16 +2,15 @@
 // Prototype only: items for the owner to confirm, generated from src/data/facts.ts, with an answer
 // box per row. Answers save to /api/answers (api/answers.js, the store Antonio's checklist uses),
 // so what one person types shows on every computer; a copy stays in this browser until the server
-// has it. Excluded from the public build. Codes left off this list at the owner's request: P03,
+// has it. Excluded from the public build. Codes left off this list at the owner's request: P03, P04,
 // P21 to P27 and P37 to P41.
 import Base from "../layouts/Base.astro";
 import { allFacts } from "../data/facts";
 import { ITEMS } from "../../api/_items.js";
 const num = (code: string) => Number(code.replace(/\D/g, ""));
-const skip = (code: string) => { const n = num(code); return n === 3 || (n >= 21 && n <= 27) || (n >= 37 && n <= 41); };
+const skip = (code: string) => { const n = num(code); return n === 3 || n === 4 || (n >= 21 && n <= 27) || (n >= 37 && n <= 41); };
 const open = allFacts.filter((f) => f.status === "open" && !skip(f.code)).sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
 const idOf = (f: (typeof allFacts)[number]) => "rv." + `${f.code}-${f.label}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-const confirmed = allFacts.filter((f) => f.status === "confirmed");
 
 // The API accepts only ids it knows; fail the build if these rows and api/_items.js drift apart.
 const mine = new Set(open.map(idOf));
@@ -28,11 +27,10 @@ if (drift.length) throw new Error(`/review rows and api/_items.js differ: ${drif
       <p class="no-print tools"><button class="btn btn--navy" type="button" onclick="window.print()">Print this list</button><span class="save-status" data-status role="status"></span></p>
       <div class="table-scroll" tabindex="0" role="region" aria-label="Items to confirm"><table class="checklist">
         <caption class="visually-hidden">Open items</caption>
-        <thead><tr><th scope="col">Code</th><th scope="col">Question</th><th scope="col">Shown now</th><th scope="col">Answer</th></tr></thead>
+        <thead><tr><th scope="col">Question</th><th scope="col">Shown now</th><th scope="col">Answer</th></tr></thead>
         <tbody>
           {open.map((f) => (
             <tr>
-              <td class="code">{f.code}</td>
               <th scope="row"><span class="lbl">{f.label}</span>{f.question}</th>
               <td>{f.value || "(blank)"}</td>
               <td class="answer"><textarea data-answer={idOf(f)} rows="2" maxlength="2000" aria-label={`Answer for ${f.code}, ${f.label}`}></textarea></td>
@@ -40,8 +38,6 @@ if (drift.length) throw new Error(`/review rows and api/_items.js differ: ${drif
           ))}
         </tbody>
       </table></div>
-      <h2>Already confirmed</h2>
-      <ul class="small">{confirmed.map((f) => <li><strong>{f.label}:</strong> {f.value} <span class="muted">({f.source})</span></li>)}</ul>
     </div>
   </section>
 </Base>
@@ -212,9 +208,17 @@ if (drift.length) throw new Error(`/review rows and api/_items.js differ: ${drif
   .checklist { min-width: 44rem; width: 100%; border-collapse: collapse; background: var(--white); font-size: 1rem; }
   .checklist th, .checklist td { border: 1px solid var(--line); padding: 0.6rem 0.7rem; text-align: left; vertical-align: top; }
   .checklist thead th { background: var(--navy); color: var(--white); }
+  /* Wide screens: the table needs no side scroll, so its header row can stay pinned under the
+     site header while the list scrolls (a scroll box around the table would pin it to the box). */
+  @media (min-width: 760px) {
+    .table-scroll { overflow: visible; }
+    .checklist { border-collapse: separate; border-spacing: 0; }
+    .checklist th, .checklist td { border-width: 0 1px 1px 0; }
+    .checklist tr > :first-child { border-left-width: 1px; }
+    .checklist thead th { position: sticky; top: var(--sticky-h, 0px); z-index: 2; border-top-width: 1px; }
+  }
   .checklist tbody th { font-weight: 400; }
   .lbl { display: block; font-weight: 700; }
-  .code { font-weight: 700; white-space: nowrap; }
   .answer { min-width: 14rem; padding: 0.3rem !important; }
   .answer textarea { display: block; width: 100%; min-height: 3rem; padding: 0.45rem 0.55rem; border: 1px solid var(--line); border-radius: 6px; font: inherit; color: var(--ink); background: var(--paper); resize: vertical; }
   .answer textarea:focus { background: var(--white); border-color: var(--navy); }

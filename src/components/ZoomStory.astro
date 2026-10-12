@@ -59,7 +59,7 @@ const photoTag = `Illustrations · ${photoFacts.beforeAfter.code}: AI stand-ins 
         <div class="sa-slip">
           <div class="sa-top">
             <p class="sa-title"><Fact k="sampleJob" text="Work order" /> <span class="sample-label">Sample job</span></p>
-            <p class="sa-no"><span class="sa-no-k">Va. Master Plumber license</span> <span class="sa-no-v">No. {facts.license.value}</span></p>
+            <p class="sa-no"><span class="sa-no-v">Va. Master Plumber</span></p>
           </div>
           <dl class="sa-f">
             {zoomRows.map((r) => (
@@ -114,7 +114,7 @@ const photoTag = `Illustrations · ${photoFacts.beforeAfter.code}: AI stand-ins 
 </section>
 
 <script>
-  // The story's code (and Lenis, which smooths wheel scrolling on this page) loads at the visitor's
+  // The story's code loads at the visitor's
   // first scroll, swipe or key press, or once the section is about two screens away, whichever
   // comes first. Loaded with the page, its 32 KB sat in the first screen's critical path and cost
   // the phone LCP about 0.25 s in Lighthouse.
@@ -148,9 +148,6 @@ const photoTag = `Illustrations · ${photoFacts.beforeAfter.code}: AI stand-ins 
 
 <style is:global>
   /* ---------- The zoom ---------- */
-  /* Lenis (src/scripts/zoom-story.js smooths wheel scrolling on this page): its own stylesheet */
-  html.lenis, html.lenis body { height: auto; }
-  .lenis.lenis-smooth iframe { pointer-events: none; }
 
   .zs { position: relative; background: var(--surface-paper); }
   /* The pin fills the screen under the sticky top area (and, on a phone, above the Call and Book

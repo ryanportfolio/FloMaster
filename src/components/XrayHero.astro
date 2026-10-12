@@ -1,36 +1,73 @@
 ---
-// The home page hero image: the leaking sink cabinet with an X-ray lens over it.
-// Press or drag anywhere on the photo and the lens goes there; over the rusted
-// bend of the trap it reads "Found it" with the leak-repair price. On first view
-// in a tab the lens finds the leak once on its own, once the photo is in view and
-// the page has stopped scrolling, then only moves when the visitor moves it.
-// Reduced motion: the found state, with no movement.
-// The X-ray layer loads after the photo.
+// The home page hero image: a plumbing problem in a home with an X-ray lens over it.
+// Press or drag anywhere on the photo and the lens goes there; over the fault it
+// reads "Found it" with the price for that job. On load the lens finds the fault on
+// its own, then every few seconds moves off, the next scene fades in and the lens
+// finds that one (five scenes, one per service, in a loop). The visitor moving the
+// lens stops the loop on the scene shown.
+// Reduced motion: the same, per the site's rule that its motion plays as designed.
+// The X-ray layer loads after the photo; each next scene loads while the one before it is shown.
 import { Image, getImage } from "astro:assets";
+import type { ImageMetadata } from "astro";
 import Fact from "./Fact.astro";
-import problem from "../assets/photos/story-1-problem.jpg";
-import xray from "../assets/photos/story-2-xray.jpg";
+import sinkPhoto from "../assets/photos/story-1-problem.jpg";
+import sinkRay from "../assets/photos/story-2-xray.jpg";
+import heaterPhoto from "../assets/photos/xray-heater.jpg";
+import heaterRay from "../assets/photos/xray-heater-ray.jpg";
+import toiletPhoto from "../assets/photos/xray-toilet.jpg";
+import toiletRay from "../assets/photos/xray-toilet-ray.jpg";
+import tubPhoto from "../assets/photos/xray-tub.jpg";
+import tubRay from "../assets/photos/xray-tub-ray.jpg";
+import sewerPhoto from "../assets/photos/xray-sewer.jpg";
+import sewerRay from "../assets/photos/xray-sewer-ray.jpg";
 import { isPublicBuild, photoFacts } from "../data/facts";
 import { services } from "../data/services";
 
 interface Props { class?: string }
 const { class: cls } = Astro.props;
 
-// The price shown is the posted range for this kind of job (P17), not a quote.
-const leak = services.find((s) => s.slug === "leaks-and-pipes")!;
-const job = leak.prices[0];
-
 const widths = [480, 760, 1080, 1440];
 const sizes = "(min-width: 900px) 70vw, 100vw";
-const ray = await getImage({ src: xray, widths, sizes, format: "webp", quality: 70 });
 
-// Where the leak is in the photo, as fractions of its width and height: the rusted bend of the trap.
-const LEAK = "0.395,0.615";
-const say = `Found it: the steel trap rusted out at the bend, which is where the drip comes from. ${job.job}, ${job.range}, typical range.`;
+// One scene per service. `at`: where the fault is in the photo, as fractions of its width and
+// height. The price shown is the posted range for that kind of job (P17), not a quote. `q`: WebP
+// quality where the default 70 costs too many bytes (the lawn's fine detail). The first scene is
+// the one on screen at load.
+type SceneSrc = { photo: ImageMetadata; ray: ImageMetadata; at: [number, number]; svc: string; job: number; q?: number; found: string; label: string };
+const list: SceneSrc[] = [
+  { photo: sewerPhoto, ray: sewerRay, at: [0.52, 0.79], svc: "sewer-lines", job: 1, q: 50,
+    found: "Tree roots grew into the sewer line through a joint, right under the soggy patch.",
+    label: "A back yard with a soggy patch of lawn between a tree and the house. A round X-ray lens, drawn as an illustration, shows the sewer pipe under the grass, where roots growing into a joint glow orange." },
+  { photo: sinkPhoto, ray: sinkRay, at: [0.395, 0.615], svc: "leaks-and-pipes", job: 0,
+    found: "The steel trap rusted out at the bend. That's where the drip comes from.",
+    label: "A leaking kitchen sink cabinet: a rusted steel drain trap drips onto a stained cabinet floor. A round X-ray lens, drawn as an illustration, shows the pipes inside, and the rusted bend at the bottom of the trap glows orange where the water gets out." },
+  { photo: heaterPhoto, ray: heaterRay, at: [0.54, 0.58], svc: "water-heaters", job: 0,
+    found: "The drain valve at the bottom of the tank is corroded and leaking. Sediment has built up behind it.",
+    label: "A water heater in a garage with a puddle spreading from its corroded drain valve. A round X-ray lens, drawn as an illustration, shows inside the tank, where the worn valve glows orange." },
+  { photo: toiletPhoto, ray: toiletRay, at: [0.34, 0.42], svc: "fixtures", job: 0,
+    found: "The wax ring under the toilet has failed. Water seeps out at the base every flush.",
+    label: "A toilet on a tile floor with a water stain around its base. A round X-ray lens, drawn as an illustration, shows under the floor, where the broken wax ring glows orange." },
+  { photo: tubPhoto, ray: tubRay, at: [0.36, 0.79], svc: "drains", job: 0,
+    found: "Hair and soap packed into the trap under the tub. That's why the water sits.",
+    label: "A bathtub holding standing grey water that will not drain. A round X-ray lens, drawn as an illustration, shows the pipes under the tub, where a clog in the trap glows orange." },
+];
+const scenes = await Promise.all(list.map(async (s, i) => {
+  const job = services.find((x) => x.slug === s.svc)!.prices[s.job];
+  const ray = await getImage({ src: s.ray, widths, sizes, format: "webp", quality: s.q ?? 70 });
+  const photo = i ? await getImage({ src: s.photo, widths, sizes, format: "webp", quality: s.q ?? 70 }) : null;
+  return {
+    ...s, job,
+    say: `Found it: ${s.found} ${job.job}, ${job.range}, typical range.`,
+    data: { photo: photo?.srcSet.attribute ?? "", ray: ray.srcSet.attribute, at: s.at, label: s.label, say: `Found it: ${s.found} ${job.job}, ${job.range}, typical range.` },
+  };
+}));
+// Every scene's photo and X-ray share one size, so the lens maps the same way on each.
+const first = list[0];
+for (const s of scenes) if (s.photo.width !== first.ray.width || s.photo.height !== first.ray.height || s.ray.width !== first.ray.width || s.ray.height !== first.ray.height) throw new Error(`XrayHero: scene images must be ${first.ray.width}x${first.ray.height}`);
 ---
-<div class:list={["xr", cls]} data-xray data-leak={LEAK} data-iw={xray.width} data-ih={xray.height} data-ray={ray.srcSet.attribute} data-ray-sizes={sizes} data-say={say}>
-  <div class="xr-stage" data-xray-stage role="img" aria-label="A leaking kitchen sink cabinet: a rusted steel drain trap drips onto a stained cabinet floor. A round X-ray lens, drawn as an illustration, shows the pipes inside, and the rusted bend at the bottom of the trap glows orange where the water gets out.">
-    <Image src={problem} alt="" class="xr-photo" widths={widths} sizes={sizes} format="webp" quality={70} loading="eager" fetchpriority="high" decoding="sync" draggable="false" />
+<div class:list={["xr", cls]} data-xray data-scenes={JSON.stringify(scenes.map((s) => s.data))} data-iw={first.ray.width} data-ih={first.ray.height} data-ray-sizes={sizes}>
+  <div class="xr-stage" data-xray-stage role="img" aria-label={scenes[0].label}>
+    <Image src={first.photo} alt="" class="xr-photo" widths={widths} sizes={sizes} format="webp" quality={first.q ?? 70} loading="eager" fetchpriority="high" decoding="sync" draggable="false" />
     <span class="xr-shade"></span>
     <span class="xr-lens" data-xray-lens></span>
     <span class="xr-mark" data-xray-mark></span>
@@ -39,36 +76,41 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
   </div>
   <!-- Keyboard: a button that shows only while it has keyboard focus, so the find can be reached
        without a pointer (the automatic find skips short or zoomed screens). -->
-  <button class="xr-key" type="button" data-xray-key hidden>Show the leak</button>
-  <!-- The reading card: the note, shown once the lens is on the leak. It keeps its space while
-       hidden, so showing it moves nothing. -->
+  <button class="xr-key" type="button" data-xray-key hidden>Show the problem</button>
+  <!-- The reading card: one note per scene, the current one shown once the lens is on the fault.
+       All share one grid cell and keep their space while hidden, so showing one moves nothing. -->
   <div class="xr-read" data-xray-card>
-    <div class="xr-note" data-xray-note>
-      <p class="xr-note-k">Found it</p>
-      <p class="xr-note-t">The steel trap rusted out at the bend. That's where the drip comes from.</p>
-      <p class="xr-note-price"><span class="xr-note-job">{job.job}</span> <strong class="num"><Fact k="priceRanges" text={job.range} /></strong></p>
-      <p class="xr-note-sub">Typical range. Your exact price is in writing before I start.</p>
-    </div>
+    {scenes.map((s, i) => (
+      <div class:list={["xr-note", { "is-on": i === 0 }]} data-xray-note>
+        <p class="xr-note-k">Found it</p>
+        <p class="xr-note-t">{s.found}</p>
+        <p class="xr-note-price"><span class="xr-note-job">{s.job.job}</span> <strong class="num"><Fact k="priceRanges" text={s.job.range} /></strong></p>
+        <p class="xr-note-sub">Typical range. Your exact price is in writing before I start.</p>
+      </div>
+    ))}
   </div>
   <p class="visually-hidden" role="status" data-xray-live></p>
   <!-- Without JavaScript the lens cannot move: show the finding and its price.
        Ignored entirely when scripts run, so it changes nothing on the normal page. -->
-  <noscript><style is:inline>.xr-note { visibility: visible; } .xr-stage { cursor: auto; }</style></noscript>
+  <noscript><style is:inline>.xr-note.is-on { visibility: visible; } .xr-stage { cursor: auto; }</style></noscript>
 </div>
 
 <script>
   type P = [number, number];
   type Box = { l: number; t: number; r: number; b: number };
+  type Scene = { photo: string; ray: string; at: P; label: string; say: string };
   const KEY = "fm-xray-found"; // set when the find starts (or the visitor moves the lens); scripts/check-reveal.mjs reads it
   const SLOP = 6; // px of horizontal travel before a touch drag takes over
   const TAP = 10; // a touch that ends within this many px of where it started is a tap
-  const GLIDE = 1800; // ms, the first-view find
-  const motionQuery = matchMedia("(prefers-reduced-motion: reduce)");
+  const GLIDE = 1800; // ms, a find
+  const HOLD = 4500; // ms on each found fault before the next scene
+  const AWAY = 900; // ms, the lens moving off the fault before the scene changes
+  const FADE = 600; // ms, the cross-fade to the next scene (matches .xr-photo's transition)
   const deskQuery = matchMedia("(min-width: 900px)");
-  const reduced = () => motionQuery.matches;
   let stored = false; // written once per page: a drag's first move does no storage work after that
   const remember = () => { if (stored) return; stored = true; try { sessionStorage.setItem(KEY, "1"); } catch {} };
   const clamp = (x: number, a: number, b: number) => Math.min(b, Math.max(a, x));
+  const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
   // Catmull-Rom through the points at e (0..1 over the whole path): no corners at the turns.
   const curve = (path: P[], e: number): P => {
@@ -91,20 +133,36 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
     const ring = root.querySelector<HTMLElement>("[data-xray-ring]")!;
     const mark = root.querySelector<HTMLElement>("[data-xray-mark]")!;
     const live = root.querySelector<HTMLElement>("[data-xray-live]")!;
-    const note = root.querySelector<HTMLElement>("[data-xray-note]")!;
+    const notes = Array.from(root.querySelectorAll<HTMLElement>("[data-xray-note]"));
     const hero = root.closest<HTMLElement>(".hero");
     const copy = hero?.querySelector<HTMLElement>(".hero-copy") ?? null;
     const header = document.querySelector<HTMLElement>(".site-header");
     const bar = document.querySelector<HTMLElement>("[data-sticky]");
-    const [LU, LV] = root.dataset.leak!.split(",").map(Number);
+    const scenes: Scene[] = JSON.parse(root.dataset.scenes!);
     const IW = Number(root.dataset.iw), IH = Number(root.dataset.ih);
+    let si = 0; // the scene shown
+    let [LU, LV] = scenes[0].at;
+    let note = notes[0];
 
     // The X-ray picture, inside the lens. Created here so it never competes with the photo.
-    const ray = new Image();
-    ray.className = "xr-ray";
-    ray.alt = "";
-    ray.draggable = false;
-    ray.decoding = "async";
+    const makeRay = (srcset: string) => {
+      const img = new Image();
+      img.className = "xr-ray";
+      img.alt = "";
+      img.draggable = false;
+      img.decoding = "async";
+      img.sizes = root.dataset.raySizes!;
+      img.srcset = srcset;
+      return img;
+    };
+    let ray = makeRay(scenes[0].ray);
+    // The photo is drawn twice, one copy over the other, so a scene change is a cross-fade.
+    const firstSet = photo.srcset; // the first scene's photo, which has no srcset of its own in the data
+    const shots = [photo, photo.cloneNode() as HTMLImageElement];
+    shots[1].removeAttribute("fetchpriority");
+    shots[1].decoding = "async";
+    shots[1].classList.add("is-out");
+    let shown = 0;
 
     // Layout, in stage pixels: the photo is drawn with object-fit: cover at the stage's
     // --xr-x / --xr-y object position, so (u, v) in the photo maps to (ox + u*dw, oy + v*dh).
@@ -112,9 +170,10 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
     let u = LU, v = LV; // lens centre in photo fractions
     let ready = false;
     let found = false;
-    let touched = false; // the visitor moved the lens; no find plays after that
+    let touched = false; // the visitor moved the lens; the scenes stop changing after that
     let anim = 0;
-    let finding = false; // the first-view find is gliding
+    let finding = false; // a find is gliding
+    let timer = 0;
 
     const measure = () => {
       W = stage.clientWidth;
@@ -145,8 +204,8 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
     const toUV = ([x, y]: P): P => [(x - ox) / dw, (y - oy) / dh];
 
     // Tell screen readers what the lens found (cleared first, so a repeat is read again).
-    const announce = () => { live.textContent = ""; requestAnimationFrame(() => { live.textContent = root.dataset.say!; }); };
-    // "visitor": found by the visitor's hand, so say it. "quiet": the first-view find, or a layout change.
+    const announce = () => { live.textContent = ""; requestAnimationFrame(() => { live.textContent = scenes[si].say; }); };
+    // "visitor": found by the visitor's hand, so say it. "quiet": a find on its own, or a layout change.
     type How = "visitor" | "quiet";
     const setFound = (f: boolean, how: How) => {
       if (f === found) return;
@@ -180,18 +239,16 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
     let restHow: How = "quiet";
     const stopAnim = () => { cancelAnimationFrame(anim); anim = 0; finding = false; };
     const settle = () => { if (anim) { stopAnim(); [u, v] = rest; place(restHow); } };
-    motionQuery.addEventListener("change", () => { if (reduced()) settle(); });
 
     // Move the lens along a smooth curve through the given points (photo fractions), eased in and out.
-    // `keep` runs before each frame; when it returns false the glide has been settled by it.
-    const glide = (pts: P[], ms: number, how: How, keep?: () => boolean) => {
+    // `keep` runs before each frame; `done` runs once the lens arrives (not when the glide is settled early).
+    const glide = (pts: P[], ms: number, how: How, keep?: () => boolean, done?: () => void) => {
       stopAnim();
       const path: P[] = [[u, v], ...pts];
       rest = path[path.length - 1];
       restHow = how;
       let t0 = -1;
       const tick = (now: number) => {
-        if (reduced()) { settle(); return; }
         if (keep && !keep()) return;
         if (t0 < 0) t0 = now; // the curve starts on the first frame
         const t = Math.min(1, (now - t0) / ms);
@@ -201,33 +258,17 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
         if (t < 1) { anim = requestAnimationFrame(tick); return; }
         anim = 0;
         finding = false;
+        done?.();
       };
       anim = requestAnimationFrame(tick);
     };
 
-    // ---- The first-view find -------------------------------------------------------------
+    // ---- Finding the fault on its own ------------------------------------------------------
 
     // The part of the screen not covered by the sticky header or the phone's bottom Call/Book bar.
-    const view = () => {
-      const s = stage.getBoundingClientRect();
-      const a = Math.max(0, header ? header.getBoundingClientRect().bottom : 0);
-      const barUp = !!bar && !deskQuery.matches && !bar.classList.contains("is-waiting");
-      const b = barUp ? Math.min(innerHeight, bar!.getBoundingClientRect().top) : innerHeight;
-      const visH = Math.max(0, Math.min(b, s.bottom) - Math.max(a, s.top));
-      return { s, a, b, visH, full: Math.min(s.height, b - a) };
-    };
-    // The find may start: the photo is in view and the lens at the leak would be on screen.
-    const canFind = () => {
-      if (!ready || touched) return false;
-      const g = view();
-      if (g.visH < 0.9 * g.full) return false;
-      const ly = g.s.top + oy + LV * dh;
-      return ly - R >= g.a && ly + R <= g.b;
-    };
-
     // Where the lens may go on its own (stage px): R + 8 inside the photo; on wide screens also
     // fully on screen and 16 px clear of the copy and the business card (ring plus
-    // its 9 px ticks). The note shows only near the leak, so it counts only there.
+    // its 9 px ticks). The note shows only near the fault, so it counts only there.
     const room = () => {
       const s = stage.getBoundingClientRect();
       const desk = deskQuery.matches;
@@ -253,13 +294,14 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
         && obs.every((o) => gap(x, y, o) >= clear)
         && (!noteBox || Math.hypot(x - lx, y - ly) > R * 0.6 || gap(x, y, noteBox) >= clear);
     };
-    // Where the find starts (stage px). Phone: top right, the top of the ring in the peek at the fold.
-    // Wide screens: the top right of the free part of the photo, far enough from the leak that the
-    // trap is outside the lens at load (so the find reads as a search), or failing that the farthest point.
-    const startPose = (): P => {
+    // Where a find starts (stage px), away from the fault at `at`. Phone: top right, the top of the
+    // ring in the peek at the fold. Wide screens: the top right of the free part of the photo, far
+    // enough from the fault that it is outside the lens there (so the find reads as a search), or
+    // failing that the farthest point.
+    const startPose = (at: P = [LU, LV]): P => {
       if (!deskQuery.matches) return [W * 0.68, R + 6];
       const ok = room();
-      const [lx, ly] = toPx([LU, LV]);
+      const [lx, ly] = toPx(at);
       let best: P | null = null, score = -Infinity, far: P | null = null, farD = -1;
       for (let y = 0; y <= H; y += 6) for (let x = 0; x <= W; x += 6) {
         if (!ok(x, y)) continue;
@@ -269,7 +311,21 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
       }
       return best ?? far ?? [lx, ly];
     };
-    // Two waypoints from the lens to the leak, a gentle S where there is room for one, so that every
+    // Between scenes: the point farthest from the next fault (at) that the lens may go to on its
+    // own, so each scene's search starts from a different side.
+    const awayPose = (at: P): P => {
+      const m = R + 8;
+      const ok = deskQuery.matches ? room() : (x: number, y: number) => x >= m && x <= W - m && y >= m && y <= H - m;
+      const [lx, ly] = toPx(at);
+      let far: P | null = null, farD = -1;
+      for (let y = 0; y <= H; y += 6) for (let x = 0; x <= W; x += 6) {
+        if (!ok(x, y)) continue;
+        const d = Math.hypot(x - lx, y - ly);
+        if (d > farD) { farD = d; far = [x, y]; }
+      }
+      return far ?? startPose(at);
+    };
+    // Two waypoints from the lens to the fault, a gentle S where there is room for one, so that every
     // point of the curve stays in the free part of the photo (the ends are allowed a little slack).
     const route = (): P[] => {
       const A = toPx([u, v]), L = toPx([LU, LV]);
@@ -285,47 +341,73 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
       return [line(1 / 3, 0), line(2 / 3, 0), L].map(toUV);
     };
 
-    let waitT = 0;
-    let armed = false;
-    const disarm = () => {
-      clearTimeout(waitT);
-      if (!armed) return;
-      armed = false;
-      removeEventListener("scroll", wait);
-      removeEventListener("resize", wait);
+    // ---- The scenes ------------------------------------------------------------------------
+
+    const cycling = () => scenes.length > 1 && !touched && !document.hidden;
+    const stopCycle = () => { clearTimeout(timer); timer = 0; };
+    // The next scene's photo and X-ray, decoded ahead so the change never waits on the network.
+    const loaded = new Map<number, Promise<HTMLImageElement>>();
+    const preload = (i: number) => {
+      if (!loaded.has(i)) {
+        const img = makeRay(scenes[i].ray);
+        const pic = new Image();
+        pic.sizes = photo.sizes;
+        pic.srcset = scenes[i].photo || firstSet;
+        loaded.set(i, Promise.all([img.decode(), pic.decode()]).then(() => img));
+      }
+      return loaded.get(i)!;
     };
-    // Wait for the photo to be in view with the page still for 200 ms, then 300 ms more, then check again.
-    function wait() {
-      clearTimeout(waitT);
-      waitT = window.setTimeout(() => {
-        if (!canFind()) return;
-        waitT = window.setTimeout(() => { if (canFind()) startFind(); }, 300);
-      }, 200);
-    }
-    const arm = () => {
-      if (armed) return;
-      armed = true;
-      addEventListener("scroll", wait, { passive: true });
-      addEventListener("resize", wait);
-      wait();
+    // Show scene i: cross-fade the photo, put its X-ray in the lens, its note in the card.
+    const useScene = (i: number, nextRay: HTMLImageElement) => {
+      si = i;
+      [LU, LV] = scenes[i].at;
+      const inc = shots[1 - shown], out = shots[shown];
+      inc.srcset = scenes[i].photo || firstSet;
+      // The copy later in the page draws on top: fade it in, or fade it out over the other.
+      if (inc === shots[1]) inc.classList.remove("is-out");
+      else { inc.classList.remove("is-out"); out.classList.add("is-out"); }
+      shown = 1 - shown;
+      lens.replaceChild(nextRay, ray);
+      ray = nextRay;
+      notes.forEach((n, k) => n.classList.toggle("is-on", k === i));
+      note = notes[i];
+      stage.setAttribute("aria-label", scenes[i].label);
+      measure();
+      place("quiet");
     };
-    const startFind = () => {
-      disarm();
+    // A find from where the lens is to the fault of the scene shown.
+    const find = () => {
       if (touched) return;
-      if (reduced()) { remember(); [u, v] = [LU, LV]; place("quiet"); return; }
       let frames = 0;
       glide(route(), GLIDE, "quiet", () => {
         // Marked once the lens first moves (frame 2; frame 1 draws the start).
         if (++frames === 2) remember();
-        // Scrolled away mid-find: settle on the leak, found, with no motion off screen.
-        const g = view();
-        if (g.visH >= 0.5 * g.full) return true;
-        remember();
-        settle();
-        return false;
-      });
+        return true;
+      }, held);
       finding = true;
     };
+    // On the fault: wait, then move off, change scene and find the next one.
+    const held = () => {
+      stopCycle();
+      if (!cycling()) return;
+      const next = (si + 1) % scenes.length;
+      preload(next);
+      timer = window.setTimeout(() => {
+        timer = 0;
+        if (!cycling()) return;
+        glide([toUV(awayPose(scenes[next].at))], AWAY, "quiet", undefined, async () => {
+          const img = await preload(next).catch(() => null);
+          if (!img || !cycling()) return;
+          useScene(next, img);
+          await wait(FADE);
+          if (cycling()) find();
+        });
+      }, HOLD);
+    };
+    // Carry on from wherever the loop stopped.
+    const resume = () => { if (!cycling() || anim || timer) return; if (found) held(); else find(); };
+
+    document.addEventListener("visibilitychange", () => { if (document.hidden) stopCycle(); else resume(); });
 
     // ---- Pointer and keyboard -------------------------------------------------------------
 
@@ -336,13 +418,13 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
       return [e.clientX - r.left, e.clientY - r.top];
     };
     const moveTo = (e: PointerEvent) => { const [x, y] = xyOf(e); setXY(x, y); place("visitor"); };
-    const claim = () => { if (touched && !anim) return; touched = true; disarm(); stopAnim(); remember(); };
-    // The keyboard button: the lens glides to the leak and the finding is read out.
+    // The visitor takes over: the scenes stop changing.
+    const claim = () => { stopCycle(); if (touched && !anim) return; touched = true; stopAnim(); remember(); };
+    // The keyboard button: the lens glides to the fault and the finding is read out.
     const key = root.querySelector<HTMLButtonElement>("[data-xray-key]")!;
     key.addEventListener("click", () => {
-      touched = true; disarm(); remember();
-      if (found && !anim) { announce(); return; }
-      if (reduced()) { stopAnim(); [u, v] = [LU, LV]; place("visitor"); return; }
+      claim();
+      if (found) { announce(); return; }
       glide([[LU, LV]], 900, "visitor");
     });
 
@@ -432,40 +514,37 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
       press(e);
     });
 
-    // A layout change mid-find ends it at the leak; otherwise the lens keeps its place on the photo.
-    // Before the X-ray is ready the lens has no size (begin() measures), so it never sits at the
-    // stage's corner, even unseen.
+    // A layout change mid-glide ends it where it was going; otherwise the lens keeps its place on
+    // the photo. Before the X-ray is ready the lens has no size (begin() measures), so it never sits
+    // at the stage's corner, even unseen.
     new ResizeObserver(() => {
       box = null;
       if (!ready) return;
       const pw = W, ph = H;
       measure();
-      if (finding && (pw !== W || ph !== H)) settle();
+      if (anim && (pw !== W || ph !== H)) { settle(); stopCycle(); if (found) held(); }
       place("quiet");
     }).observe(stage);
 
     const begin = () => {
       ready = true;
       lens.append(ray);
+      photo.after(shots[1]);
       measure();
-      // Reduced motion, or moved by the visitor: no find plays. Otherwise it plays on every load.
-      const skip = reduced();
-      if (!touched) [u, v] = skip ? [LU, LV] : toUV(startPose());
+      if (!touched) [u, v] = toUV(startPose());
       place(touched ? "visitor" : "quiet");
       // The lens appears in one frame; state changes animate only from the next frames on.
       root.classList.add("is-ready");
       key.hidden = false;
       requestAnimationFrame(() => requestAnimationFrame(() => root.classList.add("is-anim")));
-      if (skip || touched) return;
+      if (touched) return;
       // Start the find only once the page load reveal has brought the photo fully in (2.5 s at most).
       const settled = (window as unknown as { fmReveal?: { settled: Promise<void> } }).fmReveal?.settled;
-      Promise.race([settled, new Promise((r) => setTimeout(r, 2500))]).then(arm);
+      Promise.race([settled, new Promise((r) => setTimeout(r, 2500))]).then(find);
     };
 
     // Load the X-ray only after the photo, so it never slows the first screen.
     const loadRay = () => {
-      ray.sizes = root.dataset.raySizes!;
-      ray.srcset = root.dataset.ray!;
       // If the X-ray never arrives, show the finding as text, as with no script.
       ray.decode().then(begin, () => { root.classList.add("is-noray"); });
     };
@@ -486,7 +565,8 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
     cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
   }
   .xr.is-dragging .xr-stage { cursor: grabbing; }
-  .xr-stage .xr-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: var(--xr-x) var(--xr-y); pointer-events: none; -webkit-user-drag: none; }
+  .xr-stage .xr-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: var(--xr-x) var(--xr-y); pointer-events: none; -webkit-user-drag: none; transition: opacity 0.6s ease; }
+  .xr-stage .xr-photo.is-out { opacity: 0; }
   .xr-shade { display: none; }
 
   /* The lens: a round window onto the X-ray, moved with transforms only. It appears in one
@@ -524,8 +604,8 @@ const say = `Found it: the steel trap rusted out at the bend, which is where the
   .xr-read { display: grid; padding: 0.5rem 1.25rem 0; color: var(--white); pointer-events: none; }
   .xr-read > * { grid-area: 1 / 1; min-width: 0; pointer-events: auto; }
   .xr-note { visibility: hidden; }
-  .xr.is-found .xr-note { visibility: visible; }
-  .xr.is-noray .xr-note { visibility: visible; }
+  .xr.is-found .xr-note.is-on { visibility: visible; }
+  .xr.is-noray .xr-note.is-on { visibility: visible; }
   .xr.is-noray .xr-stage { cursor: auto; }
   .xr-note p { margin: 0; max-width: none; text-wrap: pretty; }
   /* Two short lines, never a word or two alone on the last one. */
