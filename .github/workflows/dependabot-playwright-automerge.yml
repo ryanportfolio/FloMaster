@@ -21,12 +21,23 @@ jobs:
       - id: meta
         uses: dependabot/fetch-metadata@v2
 
-      - name: Only Playwright packages changed
+      - name: Only Dependabot commits, only Playwright packages
         id: scope
         env:
           NAMES: ${{ steps.meta.outputs.dependency-names }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           ok=true
+          # fetch-metadata checks only the first commit; anyone with write access can push more.
+          commits=$(gh api "repos/$REPO/pulls/$PR/commits?per_page=100")
+          others=$(echo "$commits" | jq '[.[] | select(.author.login != "dependabot[bot]" or .commit.verification.verified != true)] | length')
+          last=$(echo "$commits" | jq -r '.[-1].sha // ""')
+          if [ "$others" != "0" ] || [ "$last" != "$SHA" ]; then
+            ok=false; echo "PR has commits not made and signed by Dependabot, or its head moved"
+          fi
           IFS=',' read -ra deps <<< "$NAMES"
           for d in "${deps[@]}"; do
             d="$(echo "$d" | xargs)"
@@ -62,7 +73,10 @@ jobs:
           SHA: ${{ github.event.pull_request.head.sha }}
           SELF: ${{ github.job }}
         run: |
-          for i in $(seq 1 80); do
+          # Merge only after two clean polls in a row, so a check that registers late
+          # (a job waiting on another job, a slow app) is seen before the merge.
+          clean=0
+          for _ in $(seq 1 80); do
             runs=$(gh api "repos/$REPO/commits/$SHA/check-runs?per_page=100" --jq "[.check_runs[] | select(.name != \"$SELF\")]")
             pending=$(echo "$runs" | jq '[.[] | select(.status != "completed")] | length')
             failed=$(echo "$runs" | jq '[.[] | select(.status == "completed" and (.conclusion | IN("success","skipped","neutral") | not))] | length')
@@ -72,7 +86,10 @@ jobs:
               echo "a check failed; leaving the PR open"; exit 1
             fi
             if [ "$pending" -eq 0 ] && { [ "$total" -eq 0 ] || [ "$state" = "success" ]; }; then
-              echo "all other checks passed"; exit 0
+              clean=$((clean + 1))
+              if [ "$clean" -ge 2 ]; then echo "all other checks passed"; exit 0; fi
+            else
+              clean=0
             fi
             sleep 30
           done
